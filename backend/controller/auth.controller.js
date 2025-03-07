@@ -100,10 +100,9 @@ const registerUser = asyncHandler(async (req, res) => {
             });
         } 
         else if (role === "farmer") {
-            const { farmLocation, farmDescription } = req.body;
+            const { location, description, farmName, farmType } = req.body;
             
-            // Validate farmer-specific fields
-            if (!farmLocation || !farmDescription) {
+            if (!location || !description || !farmName || !farmType) {
                 await User.findByIdAndDelete(user._id);
                 return res.status(400).json({
                     success: false,
@@ -115,8 +114,10 @@ const registerUser = asyncHandler(async (req, res) => {
             roleProfile = await Farmer.create({
                 user: user._id,
                 fullName,
-                farmLocation,
-                farmDescription,
+                location,
+                description,
+                farmName,
+                farmType,
                 profile: profileImageUrl,
                 products: [],
                 ratings: 0,

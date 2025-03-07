@@ -303,9 +303,38 @@ const ProductDetailPage = () => {
     setIsInWishlist(!isInWishlist);
   };
   
-  const addToCart = () => {
-    console.log(`Added ${quantity} ${product.unit} of ${product.name} to cart`);
-    // In a real app, this would call a function to add the product to cart
+  const addToCart = async () => {
+    const token = localStorage.getItem('token');
+    
+    if (!token) {
+      toast.error("User not logged in.");
+      return;
+    }
+
+
+    try {
+      const response = await axios.post(
+        `${API_BASE_URL}/api/v1/wishlist`,
+        {
+          productId: id, // Only send productId
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`, // Send the token in the header
+          },
+        }
+      );
+
+      if (response.data.success) {
+        toast.success("Added to cart successfully!");
+      } else {
+        toast.error("Failed to add to cart.");
+      }
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      toast.error("An error occurred while adding to cart.");
+    }
   };
   
   const handleBackToProducts = () => {

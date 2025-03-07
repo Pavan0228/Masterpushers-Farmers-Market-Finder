@@ -201,14 +201,14 @@ const Dashboard = () => {
                     <CardTitle>Couriers List</CardTitle>
                     <div className="flex space-x-2">
                       <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        {/* <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                         <Input 
                           type="text" 
                           placeholder="Search couriers..." 
                           className="pl-9 w-64"
-                        />
+                        /> */}
                       </div>
-                      <Button className="bg-green-600 hover:bg-green-700">Add Courier</Button>
+                      {/* <Button className="bg-green-600 hover:bg-green-700">Add Courier</Button> */}
                     </div>
                   </div>
                 </CardHeader>

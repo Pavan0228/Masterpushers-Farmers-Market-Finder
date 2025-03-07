@@ -51,6 +51,8 @@ const CourierDetails = () => {
       const response = await axios.get(`${API_BASE_URL}/api/v1/courier/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
+      console.log(response.data);
+      
       setCourier(response.data.data);
     } catch (error) {
       console.error('Error fetching courier details:', error);
@@ -115,7 +117,7 @@ const CourierDetails = () => {
       <Card className="max-w-4xl mx-auto mt-8">
         <CardContent className="flex flex-col items-center justify-center p-6">
           <h2 className="text-xl font-semibold text-gray-700 mb-4">Courier not found</h2>
-          <Button onClick={() => navigate('/admin/couriers')}>
+          <Button onClick={() => navigate('/admin/dashboard')}>
             Back to Couriers List
           </Button>
         </CardContent>
@@ -129,7 +131,7 @@ const CourierDetails = () => {
       <div className="flex items-center mb-6">
         <Button 
           variant="ghost" 
-          onClick={() => navigate('/admin/couriers')}
+          onClick={() => navigate('/admin/dashboard')}
           className="mr-4"
         >
           <ArrowLeft className="h-5 w-5 mr-2" />

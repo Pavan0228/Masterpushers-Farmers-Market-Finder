@@ -11,8 +11,8 @@ import { Label } from "@/components/ui/label";
 import { Eye, EyeOff, LogIn, Shield, Mail, Lock } from 'lucide-react';
 
 const AdminLogin = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('admin@example.com');
+  const [password, setPassword] = useState('123456');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();

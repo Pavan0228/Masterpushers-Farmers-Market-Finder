@@ -7,6 +7,7 @@ const productSchema = new mongoose.Schema(
             required: true,
         },
         price: { type: Number, required: true },
+        location: { type: String, required: true },
         unit: { type: String, required: true },
         description: { type: String, required: true },
         image: { type: String, required: true },
@@ -16,7 +17,6 @@ const productSchema = new mongoose.Schema(
             required: true,
         },
         stock: { type: Number, required: true },
-        isAvailable: { type: Boolean, default: true },
         userId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "User",

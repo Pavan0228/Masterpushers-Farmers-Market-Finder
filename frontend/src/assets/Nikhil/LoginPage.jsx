@@ -74,7 +74,7 @@ const LoginPage = () => {
                 if (response.ok) {
                     // Store tokens and user data
                     if (data.accessToken) {
-                        localStorage.setItem("accessToken", data.accessToken);
+                        localStorage.setItem("token", data.accessToken);
                     }
 
                     // Store user role if available

@@ -63,7 +63,8 @@ const registerUser = asyncHandler(async (req, res) => {
     let profileImageUrl = null;
     if (req.files) {
         console.log(req.files.profile);
-        profileImageUrl = req.files.profile.location;
+        profileImageUrl = req.files.profile[0].location;
+        console.log("profileImageUrl", profileImageUrl);
     }
 
     // Create the base user account

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
     User,
     Mail,
@@ -14,6 +14,7 @@ import {
     FileText,
     Tag,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 // Add Indian Rupee icon (you can create this as a custom component)
 const RupeeIcon = () => (
@@ -59,6 +60,7 @@ const ProductListingPage = () => {
     const [previewURL, setPreviewURL] = useState(null);
     const [success, setSuccess] = useState(false);
     const [apiError, setApiError] = useState(null);
+    const navigate = useNavigate();
 
     // Add category-specific UI elements
     const getCategoryIcon = (category) => {
@@ -107,10 +109,17 @@ const ProductListingPage = () => {
         const file = e.target.files[0];
         if (file) {
             if (file.size > 5 * 1024 * 1024) {
-                // 5MB limit
                 setErrors((prev) => ({
                     ...prev,
                     image: "File size should be less than 5MB",
+                }));
+                return;
+            }
+
+            if (!file.type.startsWith("image/")) {
+                setErrors((prev) => ({
+                    ...prev,
+                    image: "Please upload an image file",
                 }));
                 return;
             }
@@ -119,11 +128,10 @@ const ProductListingPage = () => {
                 ...prev,
                 image: file,
             }));
-            // Create URL for preview
+
             const url = URL.createObjectURL(file);
             setPreviewURL(url);
 
-            // Clean up the old preview URL if it exists
             return () => URL.revokeObjectURL(url);
         }
     };
@@ -131,20 +139,36 @@ const ProductListingPage = () => {
     const validateForm = () => {
         let formErrors = {};
 
-        if (!formData.name.trim()) {
+        if (!formData.name?.trim()) {
             formErrors.name = "Product name is required";
         }
 
-        if (!formData.price || isNaN(formData.price) || formData.price <= 0) {
+        if (
+            !formData.price ||
+            isNaN(Number(formData.price)) ||
+            Number(formData.price) <= 0
+        ) {
             formErrors.price = "Price must be a positive number";
         }
 
-        if (!formData.stock || isNaN(formData.stock) || formData.stock < 0) {
+        if (
+            !formData.stock ||
+            isNaN(Number(formData.stock)) ||
+            Number(formData.stock) < 0
+        ) {
             formErrors.stock = "Stock must be a non-negative number";
+        }
+
+        if (!formData.description?.trim()) {
+            formErrors.description = "Description is required";
         }
 
         if (!formData.image) {
             formErrors.image = "Please upload a product photo";
+        }
+
+        if (!formData.category) {
+            formErrors.category = "Category is required";
         }
 
         setErrors(formErrors);
@@ -217,24 +241,34 @@ const ProductListingPage = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (validateForm()) {
-            setApiError(null); // Reset any previous errors
             try {
+                const accessToken = localStorage.getItem("token");
+                console.log("accessToken", accessToken);
+
+                if (!accessToken) {
+                    setApiError("Please login to list a product");
+                    navigate("/login");
+                    return;
+                }
+
                 const formDataToSend = new FormData();
                 formDataToSend.append("name", formData.name);
-                formDataToSend.append("price", formData.price);
+                formDataToSend.append("price", formData.price.toString());
                 formDataToSend.append("unit", formData.unit);
                 formDataToSend.append("description", formData.description);
-                formDataToSend.append("image", formData.image);
                 formDataToSend.append("category", formData.category);
-                formDataToSend.append("stock", formData.stock);
-                formDataToSend.append("isAvailable", formData.isAvailable);
+                formDataToSend.append("stock", formData.stock.toString());
+                formDataToSend.append(
+                    "isAvailable",
+                    formData.isAvailable.toString()
+                );
 
-                // Get token from localStorage or your auth management system
-                const token = localStorage.getItem("token"); // Adjust based on your auth setup
+                if (formData.image) {
+                    formDataToSend.append("image", formData.image);
+                }
 
-                if (!token) {
-                    setApiError("Authentication required. Please login.");
-                    return;
+                for (let pair of formDataToSend.entries()) {
+                    console.log(pair[0] + ": " + pair[1]);
                 }
 
                 const response = await fetch(
@@ -242,53 +276,75 @@ const ProductListingPage = () => {
                     {
                         method: "POST",
                         headers: {
-                            Authorization: `Bearer ${token}`,
+                            Authorization: `Bearer ${accessToken}`,
                         },
                         body: formDataToSend,
                     }
                 );
 
-                if (response.ok) {
-                    setSuccess(true);
-                    // Reset form after 3 seconds
-                    setTimeout(() => {
-                        setSuccess(false);
-                        setFormData({
-                            name: "",
-                            description: "",
-                            price: "",
-                            unit: "kg",
-                            location: "",
-                            marketName: "",
-                            image: null,
-                            category: "vegetables",
-                            stock: "",
-                            isAvailable: true,
-                        });
-                        setPreviewURL(null);
-                        setActiveStep(1);
-                    }, 3000);
-                } else {
-                    const errorData = await response.json();
-                    throw new Error(
-                        errorData.message || "Failed to submit product"
-                    );
+                if (!response.ok) {
+                    const contentType = response.headers.get("content-type");
+                    if (
+                        contentType &&
+                        contentType.includes("application/json")
+                    ) {
+                        const errorData = await response.json();
+                        throw new Error(
+                            errorData.message || "Failed to create product"
+                        );
+                    } else {
+                        const textError = await response.text();
+                        console.error("Server response:", textError);
+                        throw new Error("Server error occurred");
+                    }
                 }
+
+                const data = await response.json();
+
+                setSuccess(true);
+                setTimeout(() => {
+                    setSuccess(false);
+                    setFormData({
+                        name: "",
+                        description: "",
+                        price: "",
+                        unit: "kg",
+                        location: "",
+                        marketName: "",
+                        image: null,
+                        category: "vegetables",
+                        stock: "",
+                        isAvailable: true,
+                    });
+                    setPreviewURL(null);
+                    setActiveStep(1);
+                }, 3000);
             } catch (error) {
-                console.error("Error submitting product:", error);
-                if (error.message === "Failed to fetch") {
-                    setApiError(
-                        "Unable to connect to the server. Please check your internet connection or try again later."
-                    );
-                } else {
-                    setApiError(
-                        error.message ||
-                            "An error occurred while submitting the product."
-                    );
+                console.error("Error creating product:", error);
+                setApiError(
+                    error.message ||
+                        "An error occurred while creating the product"
+                );
+
+                if (
+                    error.message.includes("unauthorized") ||
+                    error.message.includes("invalid token")
+                ) {
+                    localStorage.removeItem("token");
+                    navigate("/login");
                 }
             }
         }
     };
+
+    useEffect(() => {
+        // const accessToken = localStorage.getItem("accessToken");
+        const token = localStorage.getItem("token");
+        console.log("token", token);
+        if (!token) {
+            navigate("/login");
+        }
+    }, [navigate]);
 
     const handleLocationMethodChange = (method) => {
         setLocationMethod(method);
@@ -385,29 +441,9 @@ const ProductListingPage = () => {
     return (
         <div className="min-h-screen bg-gradient-to-b from-green-50 to-green-100 flex items-center justify-center p-6">
             <div className="bg-white shadow-2xl rounded-2xl p-8 md:p-10 w-full max-w-2xl relative overflow-hidden">
-                {/* Show API Error if present */}
                 {apiError && (
                     <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded">
-                        <div className="flex items-center">
-                            <div className="flex-shrink-0">
-                                <svg
-                                    className="h-5 w-5 text-red-400"
-                                    viewBox="0 0 20 20"
-                                    fill="currentColor"
-                                >
-                                    <path
-                                        fillRule="evenodd"
-                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                                        clipRule="evenodd"
-                                    />
-                                </svg>
-                            </div>
-                            <div className="ml-3">
-                                <p className="text-sm text-red-700">
-                                    {apiError}
-                                </p>
-                            </div>
-                        </div>
+                        <p className="text-red-700">{apiError}</p>
                     </div>
                 )}
 

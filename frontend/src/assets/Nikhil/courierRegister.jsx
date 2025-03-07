@@ -339,19 +339,18 @@ const CourierRegistrationPage = () => {
                 }
             );
 
+            const data = await response.json();
+
             if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
                 throw new Error(
-                    errorData.message ||
+                    data.message ||
                         "Registration failed. Please try again."
                 );
             }
 
-            const data = await response.json();
-
-            if (data.accessToken) {
-                localStorage.setItem("accessToken", data.accessToken);
-            }
+            // Store token and user role in localStorage
+            localStorage.setItem("token", data.accessToken);
+            localStorage.setItem("userRole", JSON.stringify(data.user.role));
 
             toast.success("Registration successful!");
             resetForm();

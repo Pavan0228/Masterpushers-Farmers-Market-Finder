@@ -1,4 +1,4 @@
-import React, { useState  } from "react";
+import React, { useState, useRef } from "react";
 import {
     User,
     Mail,
@@ -12,19 +12,38 @@ import {
     Leaf,
     Egg,
     Filter,
+    FileImage,
+    PenLine,
+    Home,
+    Info,
 } from "lucide-react";
 
 const FarmRegistrationPage = () => {
+    const fileInputRef = useRef(null);
+    const [profilePreview, setProfilePreview] = useState(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    // Update farmType options to match backend enum exactly
+    const farmTypes = [
+        { value: "Veg", label: "Vegetable Farming", icon: Leaf },
+        { value: "nonveg", label: "Poultry And Dairy Farming", icon: Egg },
+        { value: "both", label: "Mixed Farming", icon: Filter },
+    ];
+
+    // Update the initial form data with correct farmType value
     const [formData, setFormData] = useState({
         displayName: "",
         email: "",
         phoneNumber: "",
+        farmName: "",
+        farmDescription: "",
         address: "",
         city: "",
         district: "",
         password: "",
         confirmPassword: "",
-        farmType: "veg", // Default to veg farm type
+        farmType: "Veg", // Default to Veg farming (matching exact case)
+        profilePhoto: null,
     });
 
     const [errors, setErrors] = useState({});
@@ -32,33 +51,33 @@ const FarmRegistrationPage = () => {
     const [isGettingLocation, setIsGettingLocation] = useState(false);
     const [locationError, setLocationError] = useState("");
 
-    // Color themes based on farm type
+    // Update themes object keys to match exact enum values
     const themes = {
-        veg: {
-            primary: "#4CAF50", // Green primary
-            light: "#AED581", // Light green
-            secondary: "#8D6E63", // Earth brown
-            accent: "#CDDC39", // Lime accent
+        Veg: {
+            primary: "#4CAF50",
+            light: "#AED581",
+            secondary: "#8D6E63",
+            accent: "#CDDC39",
             backgroundLight: "#f1f8e9",
         },
         nonveg: {
-            primary: "#FFB300", // Yellow/gold primary
-            light: "#FFD54F", // Light yellow
-            secondary: "#795548", // Brown
-            accent: "#FFF8E1", // Cream/off-white
+            primary: "#FFB300",
+            light: "#FFD54F",
+            secondary: "#795548",
+            accent: "#FFF8E1",
             backgroundLight: "#fff8e1",
         },
         both: {
-            primary: "#388E3C", // Deeper green
-            light: "#A5D6A7", // Muted green
-            secondary: "#8D6E63", // Earth brown
-            accent: "#FFC107", // Amber accent
+            primary: "#388E3C",
+            light: "#A5D6A7",
+            secondary: "#8D6E63",
+            accent: "#FFC107",
             backgroundLight: "#f5f5f5",
         },
     };
 
-    // Get current theme based on farm type
-    const currentTheme = themes[formData.farmType];
+    // Get current theme based on farm type with fallback
+    const currentTheme = themes[formData.farmType] || themes.Veg;
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -66,6 +85,27 @@ const FarmRegistrationPage = () => {
             ...prev,
             [name]: value,
         }));
+    };
+
+    const handleFileChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setFormData((prev) => ({
+                ...prev,
+                profilePhoto: file,
+            }));
+
+            // Create preview URL
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setProfilePreview(reader.result);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const handleTriggerFileInput = () => {
+        fileInputRef.current.click();
     };
 
     const validateForm = () => {
@@ -77,6 +117,10 @@ const FarmRegistrationPage = () => {
 
         if (formData.password.length < 8) {
             formErrors.password = "Password must be at least 8 characters";
+        }
+
+        if (!formData.farmName.trim()) {
+            formErrors.farmName = "Please enter your farm name";
         }
 
         // Location validation based on selected method
@@ -127,11 +171,135 @@ const FarmRegistrationPage = () => {
         }
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        if (validateForm()) {
-            // Submit form logic
-            console.log("Form submitted", formData);
+
+        // Log when button is clicked
+        console.log("Farmer Register button clicked!");
+
+        // Log all form data
+        console.log("Current Form Data:", {
+            fullName: formData.displayName,
+            email: formData.email,
+            password: formData.password,
+            phoneNumber: formData.phoneNumber,
+            farmName: formData.farmName,
+            farmDescription: formData.farmDescription,
+            address: formData.address,
+            city: formData.city,
+            district: formData.district,
+            farmType: formData.farmType,
+            profilePhoto: formData.profilePhoto
+                ? {
+                      name: formData.profilePhoto.name,
+                      type: formData.profilePhoto.type,
+                      size: formData.profilePhoto.size,
+                  }
+                : null,
+        });
+
+        // Log validation status
+        const isValid = validateForm();
+        console.log("Form Validation Status:", isValid);
+        console.log("Current Errors:", errors);
+
+        if (isValid) {
+            setIsSubmitting(true);
+            console.log("Starting submission process...");
+
+            try {
+                const formDataToSend = new FormData();
+                formDataToSend.append("fullName", formData.displayName);
+                formDataToSend.append("email", formData.email);
+                formDataToSend.append("password", formData.password);
+                formDataToSend.append("role", "farmer");
+                formDataToSend.append("phoneNumber", formData.phoneNumber);
+                formDataToSend.append("farmName", formData.farmName);
+                formDataToSend.append("description", formData.farmDescription);
+                formDataToSend.append(
+                    "location",
+                    formData.address || `${formData.city}, ${formData.district}`
+                );
+                formDataToSend.append("farmType", formData.farmType);
+
+                if (formData.profilePhoto) {
+                    formDataToSend.append("profile", formData.profilePhoto);
+                }
+
+                // Log all data being sent to server
+                console.log("=== Data Being Sent to Server ===");
+                for (let [key, value] of formDataToSend.entries()) {
+                    if (key === "profile") {
+                        console.log("profile:", {
+                            name: value.name,
+                            type: value.type,
+                            size: value.size,
+                        });
+                    } else {
+                        console.log(`${key}:`, value);
+                    }
+                }
+
+                console.log("Sending request to API...");
+                console.log(
+                    "API Endpoint:",
+                    "http://localhost:3000/api/v1/auth/signup"
+                );
+                console.log("Request Method:", "POST");
+
+                const response = await fetch(
+                    "http://localhost:3000/api/v1/auth/signup",
+                    {
+                        method: "POST",
+                        headers: {
+                            Accept: "application/json",
+                        },
+                        body: formDataToSend,
+                    }
+                );
+
+                console.log("=== Response Details ===");
+                console.log("Response Status:", response.status);
+                console.log("Response Status Text:", response.statusText);
+                console.log("Response Headers:", {
+                    contentType: response.headers.get("content-type"),
+                    authorization: response.headers.get("authorization"),
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    console.log("Error Response Data:", errorData);
+                    throw new Error(errorData.message || "Registration failed");
+                }
+
+                const data = await response.json();
+                console.log("=== Success Response Data ===");
+                console.log(data);
+
+                console.log(
+                    "Farmer Registration successful! Redirecting to login..."
+                );
+                alert("Registration successful! Please login.");
+                window.location.href = "/login";
+            } catch (error) {
+                console.log("=== Error Details ===");
+                console.log("Error Name:", error.name);
+                console.log("Error Message:", error.message);
+                console.log("Error Stack:", error.stack);
+
+                setErrors((prev) => ({
+                    ...prev,
+                    submit:
+                        error.message ||
+                        "Registration failed. Please try again.",
+                }));
+            } finally {
+                setIsSubmitting(false);
+                console.log("Submission process completed");
+            }
+        } else {
+            console.log("=== Validation Failed ===");
+            console.log("Validation Errors:", errors);
         }
     };
 
@@ -156,7 +324,7 @@ const FarmRegistrationPage = () => {
 
     const getFarmTypeIcon = () => {
         switch (formData.farmType) {
-            case "veg":
+            case "Veg":
                 return <Leaf className="h-6 w-6 text-green-600" />;
             case "nonveg":
                 return <Egg className="h-6 w-6 text-yellow-600" />;
@@ -185,65 +353,92 @@ const FarmRegistrationPage = () => {
                     </p>
                 </div>
 
+                {/* Profile Photo Upload */}
+                <div className="mb-8 flex flex-col items-center">
+                    <div
+                        className="w-32 h-32 rounded-full flex items-center justify-center mb-4 overflow-hidden border-4"
+                        style={{ borderColor: currentTheme.light }}
+                    >
+                        {profilePreview ? (
+                            <img
+                                src={profilePreview}
+                                alt="Profile Preview"
+                                className="w-full h-full object-cover"
+                            />
+                        ) : (
+                            <User className="h-16 w-16 text-gray-400" />
+                        )}
+                    </div>
+                    <input
+                        type="file"
+                        ref={fileInputRef}
+                        accept="image/*"
+                        onChange={handleFileChange}
+                        className="hidden"
+                    />
+                    <button
+                        type="button"
+                        onClick={handleTriggerFileInput}
+                        className="py-2 px-4 rounded-lg text-base flex items-center justify-center transition duration-300 bg-white border"
+                        style={{
+                            borderColor: currentTheme.light,
+                            color: currentTheme.primary,
+                        }}
+                    >
+                        <FileImage className="mr-2 h-5 w-5" />
+                        {profilePreview
+                            ? "Change Profile Photo"
+                            : "Add Profile Photo"}
+                    </button>
+                </div>
+
                 {/* Farm Type Selection */}
-                <div className="mb-8">
-                    <label className="block text-gray-700 font-medium mb-3 text-lg">
+                <div className="space-y-6">
+                    <div className="font-medium text-gray-700 mb-2">
                         Choose Farm Type
-                    </label>
-                    <div className="flex flex-wrap gap-4">
-                        <button
-                            type="button"
-                            onClick={() =>
-                                setFormData((prev) => ({
-                                    ...prev,
-                                    farmType: "veg",
-                                }))
-                            }
-                            className={`flex-1 py-3 px-4 rounded-lg text-base flex items-center justify-center transition duration-300 ${
-                                formData.farmType === "veg"
-                                    ? "bg-green-600 text-white shadow-md"
-                                    : "bg-white text-gray-700 hover:bg-green-100 border border-green-200"
-                            }`}
-                        >
-                            <Leaf className="mr-2 h-5 w-5" />
-                            Vegetable Farming
-                        </button>
-
-                        <button
-                            type="button"
-                            onClick={() =>
-                                setFormData((prev) => ({
-                                    ...prev,
-                                    farmType: "nonveg",
-                                }))
-                            }
-                            className={`flex-1 py-3 px-4 rounded-lg text-base flex items-center justify-center transition duration-300 ${
-                                formData.farmType === "nonveg"
-                                    ? "bg-yellow-500 text-white shadow-md"
-                                    : "bg-white text-gray-700 hover:bg-yellow-100 border border-yellow-200"
-                            }`}
-                        >
-                            <Egg className="mr-2 h-5 w-5" />
-                            Poultry And Livestock Farming
-                        </button>
-
-                        <button
-                            type="button"
-                            onClick={() =>
-                                setFormData((prev) => ({
-                                    ...prev,
-                                    farmType: "both",
-                                }))
-                            }
-                            className={`flex-1 py-3 px-4 rounded-lg text-base flex items-center justify-center transition duration-300 ${
-                                formData.farmType === "both"
-                                    ? "bg-emerald-700 text-white shadow-md"
-                                    : "bg-white text-gray-700 hover:bg-emerald-100 border border-emerald-200"
-                            }`}
-                        >
-                            <Filter className="mr-2 h-5 w-5" />
-                            Mixed Farming
-                        </button>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {farmTypes.map((type) => {
+                            const Icon = type.icon;
+                            return (
+                                <button
+                                    key={type.value}
+                                    type="button"
+                                    onClick={() => {
+                                        setFormData((prev) => ({
+                                            ...prev,
+                                            farmType: type.value,
+                                        }));
+                                        console.log(
+                                            "Selected farm type:",
+                                            type.value
+                                        ); // Log selection
+                                    }}
+                                    className={`p-4 rounded-xl border-2 transition duration-300 flex flex-col items-center justify-center space-y-2 ${
+                                        formData.farmType === type.value
+                                            ? "border-green-500 bg-green-50"
+                                            : "border-gray-200 hover:border-green-300"
+                                    }`}
+                                >
+                                    <Icon
+                                        className={`h-8 w-8 ${
+                                            formData.farmType === type.value
+                                                ? "text-green-500"
+                                                : "text-gray-500"
+                                        }`}
+                                    />
+                                    <span
+                                        className={`text-sm font-medium ${
+                                            formData.farmType === type.value
+                                                ? "text-green-700"
+                                                : "text-gray-600"
+                                        }`}
+                                    >
+                                        {type.label}
+                                    </span>
+                                </button>
+                            );
+                        })}
                     </div>
                 </div>
 
@@ -263,6 +458,39 @@ const FarmRegistrationPage = () => {
                             }}
                             required
                         />
+                    </div>
+
+                    {/* Farm Name Field */}
+                    <div className="relative">
+                        <Home className="absolute left-4 top-4 text-gray-600 h-6 w-6" />
+                        <input
+                            type="text"
+                            name="farmName"
+                            placeholder="Farm Name"
+                            value={formData.farmName}
+                            onChange={handleChange}
+                            className={`w-full pl-14 pr-5 py-4 text-lg border-2 rounded-xl focus:outline-none ${
+                                errors.farmName
+                                    ? "border-red-500 focus:border-red-500"
+                                    : ""
+                            }`}
+                            style={
+                                !errors.farmName
+                                    ? {
+                                          borderColor: currentTheme.light,
+                                          ":focus": {
+                                              borderColor: currentTheme.primary,
+                                          },
+                                      }
+                                    : {}
+                            }
+                            required
+                        />
+                        {errors.farmName && (
+                            <p className="text-red-500 text-base mt-2 ml-2">
+                                {errors.farmName}
+                            </p>
+                        )}
                     </div>
 
                     <div className="relative">
@@ -296,6 +524,23 @@ const FarmRegistrationPage = () => {
                                 ":focus": { borderColor: currentTheme.primary },
                             }}
                             required
+                        />
+                    </div>
+
+                    {/* Farm Description */}
+                    <div className="relative">
+                        <PenLine className="absolute left-4 top-4 text-gray-600 h-6 w-6" />
+                        <textarea
+                            name="farmDescription"
+                            placeholder="Farm Description - Tell us about your farm, products, etc."
+                            value={formData.farmDescription}
+                            onChange={handleChange}
+                            className="w-full pl-14 pr-5 py-4 text-lg border-2 rounded-xl focus:outline-none resize-none"
+                            style={{
+                                borderColor: currentTheme.light,
+                                ":focus": { borderColor: currentTheme.primary },
+                                minHeight: "120px",
+                            }}
                         />
                     </div>
 
@@ -593,11 +838,20 @@ const FarmRegistrationPage = () => {
 
                     <button
                         type="submit"
-                        className="w-full text-white py-4 rounded-xl transition duration-300 flex items-center justify-center text-lg font-medium mt-6 shadow-md"
+                        disabled={isSubmitting}
+                        className={`w-full text-white py-4 rounded-xl transition duration-300 flex items-center justify-center text-lg font-medium mt-6 shadow-md ${
+                            isSubmitting ? "opacity-70" : ""
+                        }`}
                         style={{ backgroundColor: currentTheme.primary }}
                     >
-                        <CheckCircle className="mr-2 h-6 w-6" />
-                        Register
+                        {isSubmitting ? (
+                            "Registering..."
+                        ) : (
+                            <>
+                                <CheckCircle className="mr-2 h-6 w-6" />
+                                Register
+                            </>
+                        )}
                     </button>
                 </form>
 

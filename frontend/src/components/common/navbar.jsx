@@ -7,9 +7,12 @@ import {
     MapPin,
     ChevronDown,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Navbar = () => {
     const [searchTerm, setSearchTerm] = useState("");
+
+    const role = localStorage.getItem("userRole");
 
     const handleSearch = (e) => {
         e.preventDefault();
@@ -70,13 +73,13 @@ const Navbar = () => {
                     <ShoppingCart className="h-5 w-5 mr-2" />
                     <span>My Cart</span>
                 </a>
-                <a
-                    href="/profile"
+                <Link
+                    to={`/profile/${role}`}
                     className="flex items-center text-green-600 hover:text-green-800 transition-colors duration-200 font-medium px-3 py-2 rounded-lg hover:bg-green-50"
                 >
                     <UserIcon className="h-5 w-5 mr-2" />
                     <span>Profile</span>
-                </a>
+                </Link>
             </div>
         </nav>
     );

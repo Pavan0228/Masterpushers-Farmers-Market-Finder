@@ -68,6 +68,14 @@ export const getProductById = async (req, res) => {
     });
 };
 
+export const getProductsByCategory = async (req, res) => {
+    const products = await Product.find({ category: req.params.category });
+    res.status(200).json({
+        success: true,
+        products,
+    });
+};  
+
 export const updateProduct = async (req, res) => {
     const product = await Product.findByIdAndUpdate(req.params.id, req.body, { new: true });
     res.status(200).json({

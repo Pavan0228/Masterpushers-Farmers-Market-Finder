@@ -14,7 +14,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Phone,
-  ArrowLeft
+  ArrowLeft,
+  ShoppingBag
 } from 'lucide-react';
 import { useParams } from 'react-router-dom';
 import { API_BASE_URL } from '../../../config';
@@ -27,6 +28,9 @@ const ProductDetailPage = () => {
   const [quantity, setQuantity] = useState(1);
   const [isInWishlist, setIsInWishlist] = useState(false);
   const [relatedProducts, setRelatedProducts] = useState([]);
+  const [showBuyPopup, setShowBuyPopup] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
   
   // In a real app, you would get the product ID from the URL
   // For this demo, we'll use a fixed product ID
@@ -88,6 +92,60 @@ const ProductDetailPage = () => {
   const handleBackToProducts = () => {
     // In a real app, this would navigate back to products page
     window.location.href = '/product-show';
+  };
+
+  const handleOpenBuyPopup = () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setError("Please login to make a purchase");
+
+      return;
+    }
+    else{
+      setShowBuyPopup(true);
+    }
+    
+  };
+
+  const handleBuyProduct = async () => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setError("Please login to make a purchase");
+        return;
+      }
+
+      const response = await fetch(`${API_BASE_URL}/api/v1/order`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          productId: id,
+          totalAmount: product.price * quantity,
+          quantity: quantity,
+          paymentMethod: "online"
+        })
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        setShowBuyPopup(false);
+        alert("Order placed successfully!"); // Replace with a better UI notification
+      } else {
+        setError(data.message || "Failed to create order");
+      }
+    } catch (error) {
+      setError("An error occurred while processing your order");
+      console.error("Order creation error:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -188,59 +246,66 @@ const ProductDetailPage = () => {
                 <span className="text-gray-500">per {product.unit}</span>
               </div>
               
-              {/* Quantity selector */}
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Quantity</label>
-                <div className="flex items-center">
-                  <button 
-                    onClick={decrementQuantity}
-                    className="w-10 h-10 rounded-l-lg bg-gray-100 flex items-center justify-center hover:bg-gray-200"
-                    disabled={quantity <= 1}
-                  >
-                    <span className="text-xl font-bold text-gray-700">-</span>
-                  </button>
-                  <div className="w-16 h-10 bg-white border-t border-b border-gray-200 flex items-center justify-center">
-                    <span className="text-gray-800 font-medium">{quantity}</span>
+              {/* Product Actions Section */}
+              <div className="space-y-4 mt-6">
+                {/* Quantity Controls */}
+                <div className="flex items-center justify-between bg-white p-4 rounded-xl">
+                  <span className="text-gray-700">Quantity:</span>
+                  <div className="flex items-center gap-4">
+                    <button 
+                      onClick={() => quantity > 1 && setQuantity(quantity - 1)}
+                      className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200"
+                    >
+                      -
+                    </button>
+                    <span className="font-medium">{quantity}</span>
+                    <button 
+                      onClick={() => setQuantity(quantity + 1)}
+                      className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200"
+                    >
+                      +
+                    </button>
                   </div>
-                  <button 
-                    onClick={incrementQuantity}
-                    className="w-10 h-10 rounded-r-lg bg-gray-100 flex items-center justify-center hover:bg-gray-200"
-                  >
-                    <span className="text-xl font-bold text-gray-700">+</span>
-                  </button>
-                  <span className="ml-4 text-gray-500">{product.unit}</span>
                 </div>
-              </div>
-              
-              {/* Action Buttons */}
-              <div className="space-y-3 mb-6">
-                <button 
-                  onClick={addToCart}
-                  className="w-full bg-green-600 hover:bg-green-700 text-white py-3 px-6 rounded-xl font-medium flex items-center justify-center transition-colors duration-200"
-                >
-                  <ShoppingCart className="mr-2 h-5 w-5" />
-                  Add to Cart
-                </button>
-                
-                <div className="flex space-x-3">
+
+                {/* Action Buttons */}
+                <div className="grid gap-3">
                   <button 
-                    onClick={toggleWishlist}
-                    className={`flex-1 py-3 px-4 rounded-xl font-medium flex items-center justify-center transition-colors duration-200 ${
-                      isInWishlist 
-                        ? 'bg-red-50 text-red-600 border border-red-200' 
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
+                    onClick={handleOpenBuyPopup}
+                    className="w-full bg-green-600 hover:bg-green-700 text-white py-3 px-6 rounded-xl font-medium flex items-center justify-center transition-colors duration-200"
                   >
-                    <Heart className={`mr-2 h-5 w-5 ${isInWishlist ? 'fill-red-500' : ''}`} />
-                    {isInWishlist ? 'Saved' : 'Save'}
+                    <ShoppingCart className="mr-2 h-5 w-5" />
+                    Buy Now
                   </button>
-                  
+
                   <button 
-                    className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 px-4 rounded-xl font-medium flex items-center justify-center transition-colors duration-200"
+                    onClick={addToCart}
+                    className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 px-6 rounded-xl font-medium flex items-center justify-center transition-colors duration-200"
                   >
-                    <Share2 className="mr-2 h-5 w-5" />
-                    Share
+                    <ShoppingBag className="mr-2 h-5 w-5" />
+                    Add to Cart
                   </button>
+
+                  <div className="flex gap-3">
+                    <button 
+                      onClick={toggleWishlist}
+                      className={`flex-1 py-3 px-4 rounded-xl font-medium flex items-center justify-center transition-colors duration-200 ${
+                        isInWishlist 
+                          ? 'bg-red-50 text-red-600 border border-red-200' 
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      <Heart className={`mr-2 h-5 w-5 ${isInWishlist ? 'fill-red-500' : ''}`} />
+                      {isInWishlist ? 'Saved' : 'Save'}
+                    </button>
+                    
+                    <button 
+                      className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 px-4 rounded-xl font-medium flex items-center justify-center transition-colors duration-200"
+                    >
+                      <Share2 className="mr-2 h-5 w-5" />
+                      Share
+                    </button>
+                  </div>
                 </div>
               </div>
               
@@ -424,6 +489,89 @@ const ProductDetailPage = () => {
           </div>
         </footer>
       </div>
+
+      {/* Buy Popup */}
+      {showBuyPopup && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full mx-4">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-bold text-green-800">Confirm Order</h2>
+              <button 
+                onClick={() => setShowBuyPopup(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="space-y-4 mb-6">
+              <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                <span className="text-gray-600">Product:</span>
+                <span className="font-medium">{product.name}</span>
+              </div>
+              
+              <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                <span className="text-gray-600">Quantity:</span>
+                <div className="flex items-center gap-2">
+                  <button 
+                    onClick={decrementQuantity}
+                    className="px-2 py-1 bg-green-100 rounded"
+                  >-</button>
+                  <span className="font-medium">{quantity}</span>
+                  <button 
+                    onClick={incrementQuantity}
+                    className="px-2 py-1 bg-green-100 rounded"
+                  >+</button>
+                </div>
+              </div>
+              
+              <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                <span className="text-gray-600">Price per {product.unit}:</span>
+                <span className="font-medium">${product.price.toFixed(2)}</span>
+              </div>
+              
+              <div className="flex justify-between items-center p-4 bg-green-50 rounded-lg">
+                <span className="text-lg font-semibold text-green-800">Total Amount:</span>
+                <span className="text-lg font-bold text-green-800">
+                  ${(product.price * quantity).toFixed(2)}
+                </span>
+              </div>
+            </div>
+
+            {error && (
+              <div className="bg-red-50 text-red-600 p-4 rounded-lg mb-4">
+                {error}
+              </div>
+            )}
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowBuyPopup(false)}
+                className="flex-1 py-3 px-4 rounded-xl font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors duration-200"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleBuyProduct}
+                disabled={isLoading}
+                className="flex-1 bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded-xl font-medium transition-colors duration-200 disabled:bg-green-400"
+              >
+                {isLoading ? (
+                  <span className="flex items-center justify-center">
+                    <svg className="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                    </svg>
+                    Processing...
+                  </span>
+                ) : (
+                  'Confirm Purchase'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

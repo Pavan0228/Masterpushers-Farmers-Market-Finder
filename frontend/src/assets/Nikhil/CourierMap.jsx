@@ -41,6 +41,9 @@ const CourierMap = () => {
     // Add seasonal styling
     const [season, setSeason] = useState("summer");
 
+    // Add new state for tracking assignment status
+    const [assigningOrder, setAssigningOrder] = useState(false);
+
     // Load Google Maps script
     const { isLoaded, loadError } = useLoadScript({
         googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "",
@@ -127,7 +130,24 @@ const CourierMap = () => {
             );
 
             if (response.data && response.data.pickupLocations) {
-                setPickupLocations(response.data.pickupLocations);
+                // Filter out locations with only unavailable orders
+                const filteredLocations = {};
+
+                Object.entries(response.data.pickupLocations).forEach(
+                    ([location, orders]) => {
+                        // Only include available orders
+                        const availableOrders = orders.filter(
+                            (order) => order.isAvailable === true
+                        );
+
+                        // Only add this location if it has available orders
+                        if (availableOrders.length > 0) {
+                            filteredLocations[location] = availableOrders;
+                        }
+                    }
+                );
+
+                setPickupLocations(filteredLocations);
             }
         } catch (error) {
             console.error("Error fetching pickup locations:", error);
@@ -204,8 +224,14 @@ const CourierMap = () => {
     const handlePickupLocationSelect = async (location) => {
         setPickupLocation(location);
         const ordersAtLocation = pickupLocations[location] || [];
+
+        // Filter to only include available orders
+        const availableOrdersAtLocation = ordersAtLocation.filter(
+            (order) => order.isAvailable === true
+        );
+
         const ordersWithCoordinates = await Promise.all(
-            ordersAtLocation.map(async (order) => {
+            availableOrdersAtLocation.map(async (order) => {
                 if (order.location && geocoder) {
                     try {
                         const results = await new Promise((resolve, reject) => {
@@ -303,6 +329,69 @@ const CourierMap = () => {
             toast.error(
                 "Pickup location coordinates or current location are missing."
             );
+        }
+    };
+
+    // Handle order assignment
+    const handleAssignOrder = async () => {
+        if (!selectedOrder || !selectedOrder._id) {
+            toast.error("No order selected for assignment");
+            return;
+        }
+
+        try {
+            setAssigningOrder(true);
+
+            // The backend will use the JWT token to identify the courier
+            // We just need to make a request to the correct endpoint with the order ID
+            const response = await axios.put(
+                `http://localhost:3000/api/v1/order/${selectedOrder._id}/assign`,
+                {}, // Empty body as the backend uses the JWT to find the courier
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem(
+                            "token"
+                        )}`,
+                    },
+                }
+            );
+
+            if (response.status === 200) {
+                toast.success(
+                    "Order assigned successfully! You can now start the delivery."
+                );
+
+                // Update the selected order to show it's no longer available
+                setSelectedOrder({
+                    ...selectedOrder,
+                    isAvailable: false,
+                    courier: req.user._id, // Mark as assigned to current user
+                });
+
+                // Remove the assigned order from available orders
+                setAvailableOrders((prevOrders) =>
+                    prevOrders.filter(
+                        (order) => order._id !== selectedOrder._id
+                    )
+                );
+
+                // Refresh pickup locations to get updated data
+                fetchPickupLocations();
+            }
+        } catch (error) {
+            console.error("Error assigning order:", error);
+            const errorMessage =
+                error.response?.data?.message || "Failed to assign order";
+
+            if (errorMessage === "Courier not found") {
+                toast.error(
+                    "You need to register as a courier first. Please contact support."
+                );
+            } else {
+                toast.error(errorMessage);
+            }
+        } finally {
+            setAssigningOrder(false);
         }
     };
 
@@ -956,9 +1045,48 @@ const CourierMap = () => {
                                     </div>
 
                                     <button
-                                        className={`mt-4 w-full bg-gradient-to-r ${seasonalStyle.primary} text-white px-4 py-2 rounded-lg hover:opacity-90 transition-all shadow-md`}
+                                        className={`mt-4 w-full bg-gradient-to-r ${
+                                            seasonalStyle.primary
+                                        } text-white px-4 py-2 rounded-lg hover:opacity-90 transition-all shadow-md ${
+                                            assigningOrder ? "opacity-75" : ""
+                                        }`}
+                                        onClick={handleAssignOrder}
+                                        disabled={
+                                            assigningOrder ||
+                                            (selectedOrder &&
+                                                !selectedOrder.isAvailable)
+                                        }
                                     >
-                                        Start Delivery
+                                        {assigningOrder ? (
+                                            <span className="flex items-center justify-center">
+                                                <svg
+                                                    className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    fill="none"
+                                                    viewBox="0 0 24 24"
+                                                >
+                                                    <circle
+                                                        className="opacity-25"
+                                                        cx="12"
+                                                        cy="12"
+                                                        r="10"
+                                                        stroke="currentColor"
+                                                        strokeWidth="4"
+                                                    ></circle>
+                                                    <path
+                                                        className="opacity-75"
+                                                        fill="currentColor"
+                                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                                    ></path>
+                                                </svg>
+                                                Assigning Order...
+                                            </span>
+                                        ) : selectedOrder &&
+                                          !selectedOrder.isAvailable ? (
+                                            "Order Already Assigned"
+                                        ) : (
+                                            "Start Delivery"
+                                        )}
                                     </button>
                                 </div>
                             </div>

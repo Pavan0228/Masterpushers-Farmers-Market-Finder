@@ -49,7 +49,7 @@ const FarmerProfilePage = () => {
     useEffect(() => {
         const fetchFarmerData = async () => {
             try {
-                const accessToken = localStorage.getItem("accessToken");
+                const accessToken = localStorage.getItem("token");
                 if (!accessToken) {
                     throw new Error("No access token found");
                 }
@@ -143,106 +143,134 @@ const FarmerProfilePage = () => {
 
     // Update the stats section to show more details with farming theme
     const statsSection = (
-        <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-5 border border-green-200 shadow-sm">
-            <div className="flex justify-between items-center mb-4">
-                <h3 className="font-semibold text-green-800 text-lg">
+        <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 border border-green-200 shadow-md overflow-hidden relative">
+            {/* Decorative plant icon in background */}
+            <div className="absolute -right-6 -bottom-6 opacity-5">
+                <Sprout className="h-32 w-32 text-green-800" />
+            </div>
+
+            <div className="flex justify-between items-center mb-5">
+                <h3 className="font-semibold text-green-800 text-xl flex items-center">
+                    <Sprout className="h-5 w-5 mr-2 text-green-600" />
                     Harvest Statistics
                 </h3>
-                <Sprout className="h-5 w-5 text-green-600" />
+                <div className="bg-green-600/10 px-3 py-1 rounded-full text-green-700 text-sm font-medium">
+                    Current Season
+                </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-                <div className="bg-white/70 backdrop-blur-sm rounded-lg p-3 border border-green-100">
-                    <div className="flex items-center mb-2">
-                        <Package className="h-4 w-4 text-green-600 mr-2" />
-                        <span className="text-sm text-green-700">
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+                <div className="bg-white/80 backdrop-blur-sm rounded-lg p-4 border border-green-100 shadow-sm hover:shadow-md transition-all transform hover:-translate-y-1">
+                    <div className="flex items-center mb-3">
+                        <div className="bg-green-100 p-2 rounded-full mr-3">
+                            <Package className="h-5 w-5 text-green-600" />
+                        </div>
+                        <span className="text-sm font-medium text-green-700">
                             Total Orders
                         </span>
                     </div>
-                    <span className="text-xl font-bold text-gray-800">
+                    <span className="text-2xl font-bold text-gray-800">
                         {dashboardStats.totalOrders}
                     </span>
                 </div>
 
-                <div className="bg-white/70 backdrop-blur-sm rounded-lg p-3 border border-green-100">
-                    <div className="flex items-center mb-2">
-                        <ShoppingBag className="h-4 w-4 text-green-600 mr-2" />
-                        <span className="text-sm text-green-700">
+                <div className="bg-white/80 backdrop-blur-sm rounded-lg p-4 border border-green-100 shadow-sm hover:shadow-md transition-all transform hover:-translate-y-1">
+                    <div className="flex items-center mb-3">
+                        <div className="bg-green-100 p-2 rounded-full mr-3">
+                            <ShoppingBag className="h-5 w-5 text-green-600" />
+                        </div>
+                        <span className="text-sm font-medium text-green-700">
                             Total Revenue
                         </span>
                     </div>
-                    <span className="text-xl font-bold text-gray-800">
+                    <span className="text-2xl font-bold text-gray-800">
                         ₹{dashboardStats.totalAmount}
                     </span>
                 </div>
 
-                <div className="bg-white/70 backdrop-blur-sm rounded-lg p-3 border border-green-100">
-                    <div className="flex items-center mb-2">
-                        <Truck className="h-4 w-4 text-green-600 mr-2" />
-                        <span className="text-sm text-green-700">
+                <div className="bg-white/80 backdrop-blur-sm rounded-lg p-4 border border-green-100 shadow-sm hover:shadow-md transition-all transform hover:-translate-y-1">
+                    <div className="flex items-center mb-3">
+                        <div className="bg-green-100 p-2 rounded-full mr-3">
+                            <Truck className="h-5 w-5 text-green-600" />
+                        </div>
+                        <span className="text-sm font-medium text-green-700">
                             Total Quantity
                         </span>
                     </div>
-                    <span className="text-xl font-bold text-gray-800">
-                        {dashboardStats.totalQuantity} units
+                    <span className="text-2xl font-bold text-gray-800">
+                        {dashboardStats.totalQuantity}{" "}
+                        <span className="text-sm font-normal text-gray-500">
+                            units
+                        </span>
                     </span>
                 </div>
 
-                <div className="bg-white/70 backdrop-blur-sm rounded-lg p-3 border border-green-100">
-                    <div className="flex items-center mb-2">
-                        <Clock className="h-4 w-4 text-amber-500 mr-2" />
-                        <span className="text-sm text-amber-600">
+                <div className="bg-white/80 backdrop-blur-sm rounded-lg p-4 border border-amber-100 shadow-sm hover:shadow-md transition-all transform hover:-translate-y-1">
+                    <div className="flex items-center mb-3">
+                        <div className="bg-amber-100 p-2 rounded-full mr-3">
+                            <Clock className="h-5 w-5 text-amber-500" />
+                        </div>
+                        <span className="text-sm font-medium text-amber-600">
                             Pending Orders
                         </span>
                     </div>
-                    <span className="text-xl font-bold text-amber-600">
+                    <span className="text-2xl font-bold text-amber-600">
                         {dashboardStats.pendingOrders}
                     </span>
                 </div>
 
-                <div className="bg-white/70 backdrop-blur-sm rounded-lg p-3 border border-green-100">
-                    <div className="flex items-center mb-2">
-                        <ShoppingBag className="h-4 w-4 text-green-600 mr-2" />
-                        <span className="text-sm text-green-700">
+                <div className="bg-white/80 backdrop-blur-sm rounded-lg p-4 border border-green-100 shadow-sm hover:shadow-md transition-all transform hover:-translate-y-1">
+                    <div className="flex items-center mb-3">
+                        <div className="bg-green-100 p-2 rounded-full mr-3">
+                            <ShoppingBag className="h-5 w-5 text-green-600" />
+                        </div>
+                        <span className="text-sm font-medium text-green-700">
                             Completed Orders
                         </span>
                     </div>
-                    <span className="text-xl font-bold text-green-600">
+                    <span className="text-2xl font-bold text-green-600">
                         {dashboardStats.completedOrders}
                     </span>
                 </div>
 
-                <div className="bg-white/70 backdrop-blur-sm rounded-lg p-3 border border-green-100">
-                    <div className="flex items-center mb-2">
-                        <FileText className="h-4 w-4 text-red-500 mr-2" />
-                        <span className="text-sm text-red-600">
+                <div className="bg-white/80 backdrop-blur-sm rounded-lg p-4 border border-red-100 shadow-sm hover:shadow-md transition-all transform hover:-translate-y-1">
+                    <div className="flex items-center mb-3">
+                        <div className="bg-red-100 p-2 rounded-full mr-3">
+                            <FileText className="h-5 w-5 text-red-500" />
+                        </div>
+                        <span className="text-sm font-medium text-red-600">
                             Canceled Orders
                         </span>
                     </div>
-                    <span className="text-xl font-bold text-red-600">
+                    <span className="text-2xl font-bold text-red-600">
                         {dashboardStats.canceledOrders || 0}
                     </span>
                 </div>
 
-                <div className="bg-white/70 backdrop-blur-sm rounded-lg p-3 border border-green-100">
-                    <div className="flex items-center mb-2">
-                        <BarChart3 className="h-4 w-4 text-blue-600 mr-2" />
-                        <span className="text-sm text-blue-700">
+                <div className="bg-white/80 backdrop-blur-sm rounded-lg p-4 border border-blue-100 shadow-sm hover:shadow-md transition-all transform hover:-translate-y-1">
+                    <div className="flex items-center mb-3">
+                        <div className="bg-blue-100 p-2 rounded-full mr-3">
+                            <BarChart3 className="h-5 w-5 text-blue-600" />
+                        </div>
+                        <span className="text-sm font-medium text-blue-700">
                             Average Order
                         </span>
                     </div>
-                    <span className="text-xl font-bold text-gray-800">
+                    <span className="text-2xl font-bold text-gray-800">
                         ₹{dashboardStats.averageOrderValue}
                     </span>
                 </div>
 
-                <div className="bg-white/70 backdrop-blur-sm rounded-lg p-3 border border-green-100">
-                    <div className="flex items-center mb-2">
-                        <ArrowUp className="h-4 w-4 text-blue-600 mr-2" />
-                        <span className="text-sm text-blue-700">
+                <div className="bg-white/80 backdrop-blur-sm rounded-lg p-4 border border-blue-100 shadow-sm hover:shadow-md transition-all transform hover:-translate-y-1">
+                    <div className="flex items-center mb-3">
+                        <div className="bg-blue-100 p-2 rounded-full mr-3">
+                            <ArrowUp className="h-5 w-5 text-blue-600" />
+                        </div>
+                        <span className="text-sm font-medium text-blue-700">
                             Highest Order
                         </span>
                     </div>
-                    <span className="text-xl font-bold text-gray-800">
+                    <span className="text-2xl font-bold text-gray-800">
                         ₹{dashboardStats.highestOrderAmount}
                     </span>
                 </div>
@@ -252,73 +280,106 @@ const FarmerProfilePage = () => {
 
     // Add payment stats section with farming theme
     const paymentStatsSection = (
-        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-5 border border-blue-200 shadow-sm mt-4">
-            <div className="flex justify-between items-center mb-4">
-                <h3 className="font-semibold text-blue-800 text-lg">
+        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 border border-blue-200 shadow-md mt-6 overflow-hidden relative">
+            {/* Decorative icon in background */}
+            <div className="absolute -right-6 -bottom-6 opacity-5">
+                <FileText className="h-32 w-32 text-blue-800" />
+            </div>
+
+            <div className="flex justify-between items-center mb-5">
+                <h3 className="font-semibold text-blue-800 text-xl flex items-center">
+                    <FileText className="h-5 w-5 mr-2 text-blue-600" />
                     Yield Revenue
                 </h3>
-                <FileText className="h-5 w-5 text-blue-600" />
+                <div className="bg-blue-600/10 px-3 py-1 rounded-full text-blue-700 text-sm font-medium">
+                    Financial Summary
+                </div>
             </div>
-            <div className="grid grid-cols-1 gap-4">
-                <div className="bg-white/70 backdrop-blur-sm rounded-lg p-4 border border-blue-100">
-                    <div className="flex items-center justify-between">
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div className="bg-white/80 backdrop-blur-sm rounded-lg p-5 border border-blue-100 shadow-sm hover:shadow-md transition-all transform hover:-translate-y-1">
+                    <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center">
-                            <div className="bg-indigo-100 p-2 rounded-full mr-3">
-                                <ShoppingBag className="h-5 w-5 text-indigo-600" />
+                            <div className="bg-indigo-100 p-3 rounded-full mr-3">
+                                <ShoppingBag className="h-6 w-6 text-indigo-600" />
                             </div>
-                            <span className="text-gray-700 font-medium">
+                            <span className="text-gray-700 font-medium text-lg">
                                 Cash Sales
                             </span>
                         </div>
-                        <div className="text-right">
-                            <div className="font-bold text-gray-800 text-lg">
-                                {dashboardStats?.cashOrders || 0} orders
-                            </div>
-                            <div className="text-green-600 font-medium">
-                                ₹{dashboardStats?.revenueFromCash || 0}
-                            </div>
+                        <div className="bg-green-100 px-2 py-1 rounded-full">
+                            <span className="text-xs font-medium text-green-700">
+                                Local
+                            </span>
+                        </div>
+                    </div>
+                    <div className="mt-2">
+                        <div className="font-bold text-gray-800 text-2xl">
+                            {dashboardStats?.cashOrders || 0}{" "}
+                            <span className="text-sm font-normal text-gray-500">
+                                orders
+                            </span>
+                        </div>
+                        <div className="text-green-600 font-medium text-lg mt-1">
+                            ₹{dashboardStats?.revenueFromCash || 0}
                         </div>
                     </div>
                 </div>
 
-                <div className="bg-white/70 backdrop-blur-sm rounded-lg p-4 border border-blue-100">
-                    <div className="flex items-center justify-between">
+                <div className="bg-white/80 backdrop-blur-sm rounded-lg p-5 border border-blue-100 shadow-sm hover:shadow-md transition-all transform hover:-translate-y-1">
+                    <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center">
-                            <div className="bg-purple-100 p-2 rounded-full mr-3">
-                                <ExternalLink className="h-5 w-5 text-purple-600" />
+                            <div className="bg-purple-100 p-3 rounded-full mr-3">
+                                <ExternalLink className="h-6 w-6 text-purple-600" />
                             </div>
-                            <span className="text-gray-700 font-medium">
+                            <span className="text-gray-700 font-medium text-lg">
                                 Online Sales
                             </span>
                         </div>
-                        <div className="text-right">
-                            <div className="font-bold text-gray-800 text-lg">
-                                {dashboardStats.onlineOrders || 0} orders
-                            </div>
-                            <div className="text-green-600 font-medium">
-                                ₹{dashboardStats.revenueFromOnline || 0}
-                            </div>
+                        <div className="bg-purple-100 px-2 py-1 rounded-full">
+                            <span className="text-xs font-medium text-purple-700">
+                                Digital
+                            </span>
+                        </div>
+                    </div>
+                    <div className="mt-2">
+                        <div className="font-bold text-gray-800 text-2xl">
+                            {dashboardStats.onlineOrders || 0}{" "}
+                            <span className="text-sm font-normal text-gray-500">
+                                orders
+                            </span>
+                        </div>
+                        <div className="text-green-600 font-medium text-lg mt-1">
+                            ₹{dashboardStats.revenueFromOnline || 0}
                         </div>
                     </div>
                 </div>
 
-                <div className="bg-white/70 backdrop-blur-sm rounded-lg p-4 border border-blue-100">
-                    <div className="flex items-center justify-between">
+                <div className="bg-white/80 backdrop-blur-sm rounded-lg p-5 border border-amber-100 shadow-sm hover:shadow-md transition-all transform hover:-translate-y-1">
+                    <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center">
-                            <div className="bg-amber-100 p-2 rounded-full mr-3">
-                                <Clock className="h-5 w-5 text-amber-600" />
+                            <div className="bg-amber-100 p-3 rounded-full mr-3">
+                                <Clock className="h-6 w-6 text-amber-600" />
                             </div>
-                            <span className="text-gray-700 font-medium">
+                            <span className="text-gray-700 font-medium text-lg">
                                 Pending Harvest
                             </span>
                         </div>
-                        <div className="text-right">
-                            <div className="font-bold text-gray-800 text-lg">
-                                {dashboardStats.pendingPayments || 0} orders
-                            </div>
-                            <div className="text-amber-600 font-medium">
-                                ₹{dashboardStats.pendingRevenue || 0}
-                            </div>
+                        <div className="bg-amber-100 px-2 py-1 rounded-full">
+                            <span className="text-xs font-medium text-amber-700">
+                                Awaiting
+                            </span>
+                        </div>
+                    </div>
+                    <div className="mt-2">
+                        <div className="font-bold text-gray-800 text-2xl">
+                            {dashboardStats.pendingPayments || 0}{" "}
+                            <span className="text-sm font-normal text-gray-500">
+                                orders
+                            </span>
+                        </div>
+                        <div className="text-amber-600 font-medium text-lg mt-1">
+                            ₹{dashboardStats.pendingRevenue || 0}
                         </div>
                     </div>
                 </div>
@@ -376,12 +437,6 @@ const FarmerProfilePage = () => {
                                 </div>
                             </div>
                         </div>
-                        <div className="absolute right-6 top-6">
-                            <button className="bg-white/20 hover:bg-white/30 transition rounded-lg px-4 py-2 text-white font-medium backdrop-blur-sm flex items-center">
-                                <Edit className="h-4 w-4 mr-2" />
-                                Edit Profile
-                            </button>
-                        </div>
                     </div>
 
                     <div className="pt-20 pb-6 px-8">
@@ -391,13 +446,17 @@ const FarmerProfilePage = () => {
                                 <div className="col-span-1">
                                     <div className="flex items-center">
                                         <Mail className="h-5 w-5 text-green-600 mr-3" />
-                                        <span className="text-gray-800">{farmer.email}</span>
+                                        <span className="text-gray-800">
+                                            {farmer.email}
+                                        </span>
                                     </div>
                                 </div>
                                 <div className="col-span-1">
                                     <div className="flex items-center">
                                         <Phone className="h-5 w-5 text-green-600 mr-3" />
-                                        <span className="text-gray-800">{farmer.phoneNumber}</span>
+                                        <span className="text-gray-800">
+                                            {farmer.phoneNumber}
+                                        </span>
                                     </div>
                                 </div>
                                 <div className="col-span-1">
@@ -413,7 +472,9 @@ const FarmerProfilePage = () => {
                             {/* Address */}
                             <div className="flex items-start">
                                 <MapPin className="h-5 w-5 text-green-600 mr-3 mt-1" />
-                                <span className="text-gray-800">{farmer.address}</span>
+                                <span className="text-gray-800">
+                                    {farmer.address}
+                                </span>
                             </div>
 
                             {/* Stats Section */}
@@ -421,36 +482,71 @@ const FarmerProfilePage = () => {
                                 {/* Order Statistics */}
                                 <div className="bg-green-50 rounded-xl p-4 border border-green-100">
                                     <div className="flex justify-between items-center mb-4">
-                                        <h3 className="font-medium text-green-800">Order Statistics </h3>
+                                        <h3 className="font-medium text-green-800">
+                                            Order Statistics{" "}
+                                        </h3>
                                         <Star className="h-5 w-5 text-amber-400" />
                                     </div>
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="space-y-3">
                                             <div className="flex justify-between">
-                                                <span className="text-gray-600">Total Orders</span>
-                                                <span className="font-medium text-gray-800">{dashboardStats.totalOrders}</span>
+                                                <span className="text-gray-600">
+                                                    Total Orders
+                                                </span>
+                                                <span className="font-medium text-gray-800">
+                                                    {dashboardStats.totalOrders}
+                                                </span>
                                             </div>
                                             <div className="flex justify-between">
-                                                <span className="text-gray-600">Total Revenue</span>
-                                                <span className="font-medium text-gray-800">₹{dashboardStats.totalAmount}</span>
+                                                <span className="text-gray-600">
+                                                    Total Revenue
+                                                </span>
+                                                <span className="font-medium text-gray-800">
+                                                    ₹
+                                                    {dashboardStats.totalAmount}
+                                                </span>
                                             </div>
                                             <div className="flex justify-between">
-                                                <span className="text-gray-600">Total Quantity</span>
-                                                <span className="font-medium text-gray-800">{dashboardStats.totalQuantity} units</span>
+                                                <span className="text-gray-600">
+                                                    Total Quantity
+                                                </span>
+                                                <span className="font-medium text-gray-800">
+                                                    {
+                                                        dashboardStats.totalQuantity
+                                                    }{" "}
+                                                    units
+                                                </span>
                                             </div>
                                         </div>
                                         <div className="space-y-3">
                                             <div className="flex justify-between">
-                                                <span className="text-gray-600">Pending</span>
-                                                <span className="font-medium text-amber-600">{dashboardStats.pendingOrders}</span>
+                                                <span className="text-gray-600">
+                                                    Pending
+                                                </span>
+                                                <span className="font-medium text-amber-600">
+                                                    {
+                                                        dashboardStats.pendingOrders
+                                                    }
+                                                </span>
                                             </div>
                                             <div className="flex justify-between">
-                                                <span className="text-gray-600">Completed</span>
-                                                <span className="font-medium text-green-600">{dashboardStats.completedOrders}</span>
+                                                <span className="text-gray-600">
+                                                    Completed
+                                                </span>
+                                                <span className="font-medium text-green-600">
+                                                    {
+                                                        dashboardStats.completedOrders
+                                                    }
+                                                </span>
                                             </div>
                                             <div className="flex justify-between">
-                                                <span className="text-gray-600">Canceled</span>
-                                                <span className="font-medium text-red-600">{dashboardStats.canceledOrders || 0}</span>
+                                                <span className="text-gray-600">
+                                                    Canceled
+                                                </span>
+                                                <span className="font-medium text-red-600">
+                                                    {dashboardStats.canceledOrders ||
+                                                        0}
+                                                </span>
                                             </div>
                                         </div>
                                     </div>
@@ -459,31 +555,56 @@ const FarmerProfilePage = () => {
                                 {/* Payment Statistics */}
                                 <div className="bg-green-50 rounded-xl p-4 border border-green-100">
                                     <div className="flex justify-between items-center mb-4">
-                                        <h3 className="font-medium text-green-800">Payment Statistics</h3>
+                                        <h3 className="font-medium text-green-800">
+                                            Payment Statistics
+                                        </h3>
                                         <FileText className="h-5 w-5 text-blue-400" />
                                     </div>
                                     <div className="space-y-4">
                                         <div className="grid grid-cols-2 gap-4">
                                             <div className="bg-white rounded-lg p-3">
-                                                <div className="text-sm text-gray-600">Cash Orders</div>
+                                                <div className="text-sm text-gray-600">
+                                                    Cash Orders
+                                                </div>
                                                 <div className="font-medium text-gray-800 mt-1">
-                                                    {dashboardStats?.cashOrders || 0}
-                                                    <span className="text-sm text-gray-500 ml-2">₹{dashboardStats?.revenueFromCash || 0}</span>
+                                                    {dashboardStats?.cashOrders ||
+                                                        0}
+                                                    <span className="text-sm text-gray-500 ml-2">
+                                                        ₹
+                                                        {dashboardStats?.revenueFromCash ||
+                                                            0}
+                                                    </span>
                                                 </div>
                                             </div>
                                             <div className="bg-white rounded-lg p-3">
-                                                <div className="text-sm text-gray-600">Online Orders</div>
+                                                <div className="text-sm text-gray-600">
+                                                    Online Orders
+                                                </div>
                                                 <div className="font-medium text-gray-800 mt-1">
-                                                    {dashboardStats.onlineOrders}
-                                                    <span className="text-sm text-gray-500 ml-2">₹{dashboardStats.revenueFromOnline}</span>
+                                                    {
+                                                        dashboardStats.onlineOrders
+                                                    }
+                                                    <span className="text-sm text-gray-500 ml-2">
+                                                        ₹
+                                                        {
+                                                            dashboardStats.revenueFromOnline
+                                                        }
+                                                    </span>
                                                 </div>
                                             </div>
                                         </div>
                                         <div className="bg-amber-50 rounded-lg p-3">
-                                            <div className="text-sm text-amber-800">Pending Payments</div>
+                                            <div className="text-sm text-amber-800">
+                                                Pending Payments
+                                            </div>
                                             <div className="font-medium text-amber-900 mt-1">
                                                 {dashboardStats.pendingPayments}
-                                                <span className="text-sm text-amber-700 ml-2">₹{dashboardStats.pendingRevenue}</span>
+                                                <span className="text-sm text-amber-700 ml-2">
+                                                    ₹
+                                                    {
+                                                        dashboardStats.pendingRevenue
+                                                    }
+                                                </span>
                                             </div>
                                         </div>
                                     </div>

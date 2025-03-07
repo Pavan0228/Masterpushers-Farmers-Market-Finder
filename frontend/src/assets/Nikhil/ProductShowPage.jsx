@@ -217,7 +217,7 @@ const ProductShowPage = () => {
 
                                 <div className="flex justify-between items-baseline">
                                     <div className="text-xl font-bold text-green-700">
-                                        ${product.price.toFixed(2)}
+                                    ₹{product.price.toFixed(2)}
                                         <span className="text-sm text-gray-500 font-normal">
                                             /{product.unit}
                                         </span>
@@ -230,8 +230,8 @@ const ProductShowPage = () => {
                                 </div>
 
                                 <div className="mt-3 pt-3 border-t border-gray-100 flex items-center text-sm text-gray-500">
-                                    <Building className="h-4 w-4 mr-1" />
-                                    <span>{product.seller}</span>
+                                    {/* <Building className="h-4 w-4 mr-1" /> */}
+                                    {/* <span>{product.seller}</span> */}
                                 </div>
                             </div>
                         </div>

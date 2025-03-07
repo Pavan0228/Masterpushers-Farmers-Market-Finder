@@ -10,6 +10,7 @@ export const createProduct = async (req, res) => {
             category,
             stock,
             isAvailable,
+            location,
         } = req.body;
         
         // Check if image was uploaded
@@ -35,6 +36,7 @@ export const createProduct = async (req, res) => {
             isAvailable: isAvailable === undefined ? true : isAvailable,
             userId: req.user._id,
             farmerId: req.farmer._id,
+            location,
         });
 
         res.status(201).json({

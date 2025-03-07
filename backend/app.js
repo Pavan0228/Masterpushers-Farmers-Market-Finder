@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
+import { userRouter } from "./routers/user.routes.js";
 
 dotenv.config({
     path: "./.env",
@@ -21,5 +22,7 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+app.use("/api/v1/auth", userRouter);
 
 export { app };

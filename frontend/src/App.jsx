@@ -1,6 +1,5 @@
 import React from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-import HomePage from "./pages/HomePage";
 import UserRegisterPage from "./assets/Nikhil/UserRegistrationPage";
 import LoginPage from "./assets/Nikhil/LoginPage";
 import ProductListingPage from "./assets/Nikhil/ProductListingPage";
@@ -19,18 +18,12 @@ import AdminLogin from "./components/admin/adminLogin";
 import Dashboard from "./components/admin/adminDashboard";
 import CouriersList from "./components/admin/CouriersList";
 import CourierMap from "./assets/Nikhil/CourierMap";
-import CourierProfilePage from "./assets/Nikhil/CourierProfilePage";
 import CartPage from "./assets/Nikhil/CartPage";
+import ProfileCourier from "./components/ProfileCourier";           
+
 const App = () => {
     return (
         <Router>
-            {/* <Routes>
-                <Route path="/" element={<HomePage />} />
-                <Route path="/register" element={<UserRegisterPage />} />
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/product-listing" element={<ProductListingPage />} />
-            </Routes> */}
-
             <Routes>
                 <Route path="/" element={<Layout />}>
                     <Route index element={<Landingpage />} />
@@ -67,7 +60,7 @@ const App = () => {
                     />
                     <Route
                         path="/profile/courier"
-                        element={<CourierProfilePage />}
+                        element={<ProfileCourier />}
                     />
                 </Route>
 

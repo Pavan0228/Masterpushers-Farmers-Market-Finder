@@ -24,7 +24,31 @@ export const getCourierById = async (req, res) => {
 
 export const updateCourier = async (req, res) => {
     try {
-        const { fullName, location, description, phoneNumber } = req.body;
+        const {
+            fullName,
+            location,
+            description,
+            phoneNumber,
+            identityVerification,
+            drivingLicenseNumber,
+            licenseDocument,
+            vehicleType,
+        } = req.body;
+
+        // Check for required fields
+        if (
+            !identityVerification ||
+            !drivingLicenseNumber ||
+            !licenseDocument ||
+            !vehicleType
+        ) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    "Missing required fields: identityVerification, drivingLicenseNumber, licenseDocument, vehicleType",
+            });
+        }
+
         let profile = req.body.profile;
 
         if (req.file) {
@@ -34,7 +58,17 @@ export const updateCourier = async (req, res) => {
 
         const courier = await Courier.findByIdAndUpdate(
             req.params.id,
-            { fullName, location, description, phoneNumber, profile },
+            {
+                fullName,
+                location,
+                description,
+                phoneNumber,
+                profile,
+                identityVerification,
+                drivingLicenseNumber,
+                licenseDocument,
+                vehicleType,
+            },
             { new: true }
         );
 
@@ -55,14 +89,16 @@ export const makeVerify = async (req, res) => {
             return res
                 .status(404)
                 .json({ success: false, message: "Courier not found" });
+
         courier.isVerified = !courier.isVerified;
-        await courier.save();
+        await courier.save({ validateBeforeSave: false });
 
         res.status(200).json({ success: true, data: courier });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
 };
+
 
 export const deleteCourier = async (req, res) => {
     try {

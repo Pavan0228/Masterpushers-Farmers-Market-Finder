@@ -62,7 +62,8 @@ const registerUser = asyncHandler(async (req, res) => {
     // Handle profile image upload if provided
     let profileImageUrl = null;
     if (req.files) {
-        profileImageUrl = req.files.profile[0].location;
+        console.log(req.files.profile);
+        profileImageUrl = req.files.profile.location;
     }
 
     // Create the base user account
@@ -115,6 +116,7 @@ const registerUser = asyncHandler(async (req, res) => {
 
             roleProfile = await Farmer.create({
                 user: user._id,
+                email: email,
                 fullName,
                 location,
                 description,
@@ -126,7 +128,14 @@ const registerUser = asyncHandler(async (req, res) => {
                 reviews: [],
             });
         } else if (role === "courier") {
-            const { description, drivingLicenseNumber, vehicleType, identityVerification, cardNumber, dateOfBirth } = req.body;
+            const {
+                description,
+                drivingLicenseNumber,
+                vehicleType,
+                identityVerification,
+                cardNumber,
+                dateOfBirth,
+            } = req.body;
 
             // Validate courier-specific fields
             if (
@@ -179,13 +188,14 @@ const registerUser = asyncHandler(async (req, res) => {
                 reviews: [],
             });
         }
-        
+
         if (role != "admin") {
             if (!roleProfile) {
                 await User.findByIdAndDelete(user._id);
                 return res.status(400).json({
                     success: false,
-                    message: "Registration failed. Could not create role profile.",
+                    message:
+                        "Registration failed. Could not create role profile.",
                     error: "Role profile creation unsuccessful",
                 });
             }
@@ -233,7 +243,7 @@ const loginUser = asyncHandler(async (req, res) => {
     const { email, password } = req.body;
 
     // Check if all fields are provided
-    if ((!email) || !password) {
+    if (!email || !password) {
         return res.status(400).json({ message: "All fields are required" });
     }
 

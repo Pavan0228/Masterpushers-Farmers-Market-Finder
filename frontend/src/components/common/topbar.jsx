@@ -60,14 +60,14 @@ const TopBar = () => {
                                 scrolled ? "text-green-700" : "text-green-600"
                             } transition-colors duration-300`}
                         >
-                            Kisan
+                            Methi
                         </span>
                         <span
                             className={`${
                                 scrolled ? "text-green-900" : "text-green-800"
                             } transition-colors duration-300`}
                         >
-                            Konnect
+                            Bazzar
                         </span>
                     </h1>
                 </div>

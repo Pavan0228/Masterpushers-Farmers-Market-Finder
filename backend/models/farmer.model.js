@@ -40,7 +40,7 @@ const farmerSchema = new mongoose.Schema(
         }],
         farmType: {
             type: String,
-            enum: ["Poultry", "Dairy Farming", "Vegetable Farming", "Mixed Farming"],
+            enum: ["nonveg", "Veg", "both"],
             required: true
         }
     },

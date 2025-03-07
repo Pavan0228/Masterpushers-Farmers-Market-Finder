@@ -12,8 +12,8 @@ import FarmerProfilePage from "./assets/Nikhil/FarmerProfilePage";
 import ProductShowPage from "./assets/Nikhil/ProductShowPage";
 import ProductDetailPage from "./assets/Nikhil/ProductDetailPage";
 import CustomerRegister from "./assets/Nikhil/customerRegister";
-import FarmerRegister from "./pages/FarmerRegister";
-import FarmerLogin from "./pages/FarmerLogin";
+import AllRegister from "./pages/allRegister";
+import CourierRegister from "./assets/Nikhil/courierRegister";
 
 const App = () => {
     return (
@@ -28,8 +28,6 @@ const App = () => {
             <Routes>
                 <Route path="/" element={<Layout />}>
                     <Route index element={<Landingpage />} />
-                    {/* <Route path="/register" element={<UserRegisterPage />} />
-                    <Route path="/login" element={<LoginPage />} /> */}
                     <Route
                         path="/product-listing"
                         element={<ProductListingPage />}
@@ -50,6 +48,8 @@ const App = () => {
                         path="/customer/register"
                         element={<CustomerRegister />}
                     />
+                    <Route path="/allRegister" element={<AllRegister />} />
+                    <Route path="/courier/register" element={<CourierRegister />} />
                 </Route>
             </Routes>
         </Router>

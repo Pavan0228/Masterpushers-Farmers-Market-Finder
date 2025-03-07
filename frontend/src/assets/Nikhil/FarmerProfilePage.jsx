@@ -306,11 +306,11 @@ const FarmerProfilePage = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-100 py-8 px-4 sm:px-6 lg:px-8">
+        <div className="min-h-screen bg-green-50 py-8 px-4 sm:px-6 lg:px-8">
             <div className="max-w-6xl mx-auto">
                 {/* Profile Header Card */}
                 <div className="bg-white shadow-xl rounded-2xl overflow-hidden mb-6">
-                    <div className="bg-gradient-to-r from-green-600 to-green-800 h-40 relative">
+                    <div className="bg-gradient-to-r from-green-700 to-green-900 h-40 relative">
                         <div className="absolute -bottom-16 left-8 flex items-end">
                             <div className="relative">
                                 <div className="h-32 w-32 rounded-full border-4 border-white bg-white overflow-hidden shadow-lg">
@@ -364,48 +364,109 @@ const FarmerProfilePage = () => {
                     </div>
 
                     <div className="pt-20 pb-6 px-8">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <div className="col-span-2">
-                                <div className="space-y-4">
+                        <div className="grid grid-cols-1 gap-6">
+                            {/* Contact Information */}
+                            <div className="grid grid-cols-3 gap-6">
+                                <div className="col-span-1">
                                     <div className="flex items-center">
-                                        <Mail className="h-5 w-5 text-gray-500 mr-3" />
-                                        <span className="text-gray-800">
-                                            {farmer.email}
-                                        </span>
+                                        <Mail className="h-5 w-5 text-green-600 mr-3" />
+                                        <span className="text-gray-800">{farmer.email}</span>
                                     </div>
+                                </div>
+                                <div className="col-span-1">
                                     <div className="flex items-center">
-                                        <Phone className="h-5 w-5 text-gray-500 mr-3" />
-                                        <span className="text-gray-800">
-                                            {farmer.phoneNumber}
-                                        </span>
+                                        <Phone className="h-5 w-5 text-green-600 mr-3" />
+                                        <span className="text-gray-800">{farmer.phoneNumber}</span>
                                     </div>
-                                    <div className="flex items-start">
-                                        <MapPin className="h-5 w-5 text-gray-500 mr-3 mt-1" />
-                                        <div>
-                                            <span className="text-gray-800 block">
-                                                {farmer.address}
-                                            </span>
-                                        </div>
-                                    </div>
+                                </div>
+                                <div className="col-span-1">
                                     <div className="flex items-center">
-                                        <Calendar className="h-5 w-5 text-gray-500 mr-3" />
+                                        <Calendar className="h-5 w-5 text-green-600 mr-3" />
                                         <span className="text-gray-800">
-                                            Joined{" "}
-                                            {new Date(
-                                                farmer.memberSince
-                                            ).toLocaleDateString("en-US", {
-                                                month: "long",
-                                                day: "numeric",
-                                                year: "numeric",
-                                            })}
+                                            Joined {farmer.memberSince}
                                         </span>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="col-span-1">
-                                {statsSection}
-                                {paymentStatsSection}
+                            {/* Address */}
+                            <div className="flex items-start">
+                                <MapPin className="h-5 w-5 text-green-600 mr-3 mt-1" />
+                                <span className="text-gray-800">{farmer.address}</span>
+                            </div>
+
+                            {/* Stats Section */}
+                            <div className="grid grid-cols-2 gap-6 mt-6">
+                                {/* Order Statistics */}
+                                <div className="bg-green-50 rounded-xl p-4 border border-green-100">
+                                    <div className="flex justify-between items-center mb-4">
+                                        <h3 className="font-medium text-green-800">Order Statistics </h3>
+                                        <Star className="h-5 w-5 text-amber-400" />
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-3">
+                                            <div className="flex justify-between">
+                                                <span className="text-gray-600">Total Orders</span>
+                                                <span className="font-medium text-gray-800">{dashboardStats.totalOrders}</span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span className="text-gray-600">Total Revenue</span>
+                                                <span className="font-medium text-gray-800">₹{dashboardStats.totalAmount}</span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span className="text-gray-600">Total Quantity</span>
+                                                <span className="font-medium text-gray-800">{dashboardStats.totalQuantity} units</span>
+                                            </div>
+                                        </div>
+                                        <div className="space-y-3">
+                                            <div className="flex justify-between">
+                                                <span className="text-gray-600">Pending</span>
+                                                <span className="font-medium text-amber-600">{dashboardStats.pendingOrders}</span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span className="text-gray-600">Completed</span>
+                                                <span className="font-medium text-green-600">{dashboardStats.completedOrders}</span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span className="text-gray-600">Canceled</span>
+                                                <span className="font-medium text-red-600">{dashboardStats.canceledOrders || 0}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Payment Statistics */}
+                                <div className="bg-green-50 rounded-xl p-4 border border-green-100">
+                                    <div className="flex justify-between items-center mb-4">
+                                        <h3 className="font-medium text-green-800">Payment Statistics</h3>
+                                        <FileText className="h-5 w-5 text-blue-400" />
+                                    </div>
+                                    <div className="space-y-4">
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="bg-white rounded-lg p-3">
+                                                <div className="text-sm text-gray-600">Cash Orders</div>
+                                                <div className="font-medium text-gray-800 mt-1">
+                                                    {dashboardStats?.cashOrders || 0}
+                                                    <span className="text-sm text-gray-500 ml-2">₹{dashboardStats?.revenueFromCash || 0}</span>
+                                                </div>
+                                            </div>
+                                            <div className="bg-white rounded-lg p-3">
+                                                <div className="text-sm text-gray-600">Online Orders</div>
+                                                <div className="font-medium text-gray-800 mt-1">
+                                                    {dashboardStats.onlineOrders}
+                                                    <span className="text-sm text-gray-500 ml-2">₹{dashboardStats.revenueFromOnline}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="bg-amber-50 rounded-lg p-3">
+                                            <div className="text-sm text-amber-800">Pending Payments</div>
+                                            <div className="font-medium text-amber-900 mt-1">
+                                                {dashboardStats.pendingPayments}
+                                                <span className="text-sm text-amber-700 ml-2">₹{dashboardStats.pendingRevenue}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -606,10 +667,10 @@ const FarmerProfilePage = () => {
                         </div>
 
                         {/* Marketplace Trends */}
-                        <div className="bg-white shadow-lg rounded-xl p-6 mt-6">
+                        {/* <div className="bg-white shadow-lg rounded-xl p-6 mt-6">
                             <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
                                 <BarChart3 className="h-5 w-5 mr-2 text-green-600" />
-                                Order Statistics
+                                Order  is 
                             </h2>
 
                             <div className="overflow-x-auto">
@@ -676,7 +737,7 @@ const FarmerProfilePage = () => {
                             <button className="w-full mt-4 bg-green-600 hover:bg-green-700 text-white transition py-3 rounded-lg font-medium">
                                 List Produce for Sale
                             </button>
-                        </div>
+                        </div> */}
                     </div>
                 </div>
             </div>

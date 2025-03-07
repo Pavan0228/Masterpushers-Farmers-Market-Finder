@@ -314,7 +314,7 @@ const ProductDetailPage = () => {
 
     try {
       const response = await axios.post(
-        `${API_BASE_URL}/api/v1/wishlist`,
+        `${API_BASE_URL}/api/v1/wishlist/`,
         {
           productId: id, // Only send productId
         },
@@ -326,7 +326,7 @@ const ProductDetailPage = () => {
         }
       );
 
-      if (response.data.success) {
+      if (response.data.status =="success") {
         toast.success("Added to cart successfully!");
       } else {
         toast.error("Failed to add to cart.");

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
     MapPin,
     Building,
@@ -8,118 +8,58 @@ import {
     ChevronDown,
     Tag,
 } from "lucide-react";
-
-// Static product data
-const productsData = [
-    {
-        id: 1,
-        name: "Organic Fresh Tomatoes",
-        description:
-            "Hand-picked organic tomatoes grown without pesticides. Perfect for salads and cooking.",
-        price: 3.99,
-        unit: "lb",
-        rating: 4.7,
-        reviews: 24,
-        seller: "Green Valley Farms",
-        location: "Springfield, CA",
-        market: "Downtown Farmers Market",
-        category: "Vegetables",
-        image: "/api/placeholder/400/300",
-    },
-    {
-        id: 2,
-        name: "Fresh Farm Eggs",
-        description:
-            "Free-range eggs from pasture-raised hens. Rich in flavor and nutrition.",
-        price: 5.99,
-        unit: "dozen",
-        rating: 4.9,
-        reviews: 32,
-        seller: "Sunshine Poultry",
-        location: "Riverside, CA",
-        market: "Weekend Organic Market",
-        category: "Dairy & Eggs",
-        image: "/api/placeholder/400/300",
-    },
-    {
-        id: 3,
-        name: "Organic Honey",
-        description:
-            "Pure, unfiltered honey from local wildflower meadows. Perfect natural sweetener.",
-        price: 8.5,
-        unit: "jar",
-        rating: 4.8,
-        reviews: 18,
-        seller: "Buzz Bee Apiary",
-        location: "Meadowville, CA",
-        market: "Artisan Market",
-        category: "Honey & Preserves",
-        image: "/api/placeholder/400/300",
-    },
-    {
-        id: 4,
-        name: "Fresh Strawberries",
-        description:
-            "Sweet, juicy strawberries picked at peak ripeness. Perfect for desserts or eating fresh.",
-        price: 4.5,
-        unit: "pint",
-        rating: 4.6,
-        reviews: 41,
-        seller: "Berry Good Farms",
-        location: "Fruitland, CA",
-        market: "Downtown Farmers Market",
-        category: "Fruits",
-        image: "/api/placeholder/400/300",
-    },
-    {
-        id: 5,
-        name: "Sourdough Bread",
-        description:
-            "Artisanal sourdough bread made with organic flour and traditional fermentation methods.",
-        price: 6.75,
-        unit: "loaf",
-        rating: 4.9,
-        reviews: 56,
-        seller: "Hearth & Home Bakery",
-        location: "Bakersfield, CA",
-        market: "Weekend Organic Market",
-        category: "Bakery",
-        image: "/api/placeholder/400/300",
-    },
-    {
-        id: 6,
-        name: "Fresh Spinach",
-        description:
-            "Tender, nutrient-rich spinach leaves. Great for salads, smoothies, or cooking.",
-        price: 3.25,
-        unit: "bunch",
-        rating: 4.7,
-        reviews: 29,
-        seller: "Green Leaf Gardens",
-        location: "Riverdale, CA",
-        market: "Local Produce Market",
-        category: "Vegetables",
-        image: "/api/placeholder/400/300",
-    },
-];
+import { API_BASE_URL } from '../../../config';
 
 const ProductShowPage = () => {
     const [searchTerm, setSearchTerm] = useState("");
     const [categoryFilter, setCategoryFilter] = useState("All");
     const [marketFilter, setMarketFilter] = useState("All");
+    const [products, setProducts] = useState([]);
+
+    // Fetch products from API
+    useEffect(() => {
+        const fetchProducts = async () => {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/v1/product`);
+                const data = await response.json();
+                if (data.success) {
+                    // Transform API data to match existing structure
+                    const transformedProducts = data.products.map(product => ({
+                        id: product._id,
+                        name: product.name,
+                        description: product.description,
+                        price: product.price,
+                        unit: product.unit,
+                        rating: 4.7, // Default value since API doesn't provide ratings
+                        reviews: 0,  // Default value since API doesn't provide reviews
+                        seller: product.farmerId, // You might want to fetch farmer details separately
+                        location: "Location", // API doesn't provide location
+                        market: "Market",    // API doesn't provide market
+                        category: product.category,
+                        image: product.image
+                    }));
+                    setProducts(transformedProducts);
+                }
+            } catch (error) {
+                console.error("Error fetching products:", error);
+            }
+        };
+
+        fetchProducts();
+    }, []);
 
     // Get unique categories and markets for filter dropdowns
     const categories = [
         "All",
-        ...new Set(productsData.map((product) => product.category)),
+        ...new Set(products.map((product) => product.category)),
     ];
     const markets = [
         "All",
-        ...new Set(productsData.map((product) => product.market)),
+        ...new Set(products.map((product) => product.market)),
     ];
 
     // Filter products based on search term and filters
-    const filteredProducts = productsData.filter((product) => {
+    const filteredProducts = products.filter((product) => {
         const matchesSearch =
             product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             product.description
@@ -133,11 +73,18 @@ const ProductShowPage = () => {
         return matchesSearch && matchesCategory && matchesMarket;
     });
 
-    const handleProductClick = (productId) => {
-        // In a real app, this would navigate to the product detail page
-        // For this demo, we'll just log the product ID
-        console.log(`Navigating to product: ${productId}`);
-        window.location.href = `/product/${productId}`;
+    const handleProductClick = async (productId) => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/v1/product/${productId}`);
+            const data = await response.json();
+            if (data.success) {
+                window.location.href = `/product/${productId}`;
+            } else {
+                console.error("Error fetching product details:", data.message);
+            }
+        } catch (error) {
+            console.error("Error fetching product details:", error);
+        }
     };
 
     return (

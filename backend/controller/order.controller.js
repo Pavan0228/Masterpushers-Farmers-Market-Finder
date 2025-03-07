@@ -6,7 +6,8 @@ import { Farmer } from "../models/farmer.model.js";
 
 export const orderProducts = async (req, res) => {
     try {
-        const { productId, totalAmount, quantity, paymentMethod, location } = req.body; 
+        const { productId, totalAmount, quantity, paymentMethod, location } =
+            req.body;
         const customer = await Customer.findOne({ user: req.user._id });
         if (!customer) {
             return res.status(404).json({ message: "Customer not found" });
@@ -24,7 +25,6 @@ export const orderProducts = async (req, res) => {
             paymentStatus = "completed";
         }
 
-
         const newOrder = new Order({
             customer: customer._id,
             farmer: product.farmerId,
@@ -38,9 +38,13 @@ export const orderProducts = async (req, res) => {
         });
 
         await newOrder.save();
-        res.status(201).json({ message: "Order created successfully", order: newOrder, status: "success" });
+        res.status(201).json({
+            message: "Order created successfully",
+            order: newOrder,
+            status: "success",
+        });
     } catch (error) {
-        res.status(500).json({ message: error.message ,  });
+        res.status(500).json({ message: error.message });
     }
 };
 
@@ -70,6 +74,20 @@ export const getOrders = async (req, res) => {
         const farmer = await Farmer.findById(orders[0].farmer);
         const pickupLocation = farmer.location;
         res.status(200).json({ orders, pickupLocation });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+export const getFarmerOrders = async (req, res) => {
+    try {
+        const orders = await Order.find({ farmer: req.user._id }).select(
+            "totalAmount quantity status"
+        );
+        res.status(200).json({
+            message: "Orders retrieved successfully",
+            orders,
+        });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

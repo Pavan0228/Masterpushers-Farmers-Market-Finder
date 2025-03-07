@@ -584,7 +584,7 @@ const ProductDetailPage = () => {
               <p className="text-gray-700 mb-6">{product.description}</p>
               
               <div className="flex items-baseline space-x-2 mb-6">
-                <span className="text-3xl font-bold text-green-700">${product.price.toFixed(2)}</span>
+                <span className="text-3xl font-bold text-green-700">₹{product.price.toFixed(2)}</span>
                 <span className="text-gray-500">per {product.unit}</span>
               </div>
               

@@ -461,4 +461,26 @@ const updateUserProfile = asyncHandler(async (req, res) => {
     }
 });
 
-export { registerUser, loginUser, logoutUser, updateUserProfile };
+
+const getUser = asyncHandler(async (req, res) => {
+    const userId = req?.user?._id;
+    const user = await User.findById(userId);
+    if (!user) {
+        return res.status(404).json({ message: "User not found" });
+    }
+    let roleProfile;
+    if (user.role === "customer") {
+        roleProfile = await Customer.findOne({ user: userId });
+    } else if (user.role === "farmer") {
+        roleProfile = await Farmer.findOne({ user: userId });
+    } else if (user.role === "courier") {
+        roleProfile = await Courier.findOne({ user: userId });
+    }
+    const userData = user.toObject();
+    delete userData.password;
+    delete userData.refreshToken;
+    userData.profile = roleProfile;
+    return res.status(200).json({ user: userData });
+});
+
+export { registerUser, loginUser, logoutUser, updateUserProfile, getUser };

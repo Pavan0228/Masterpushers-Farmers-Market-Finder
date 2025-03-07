@@ -17,7 +17,6 @@ const productSchema = new mongoose.Schema(
             required: true,
         },
         stock: { type: Number, required: true },
-        isAvailable: { type: Boolean, default: true },
         userId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "User",

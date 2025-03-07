@@ -39,6 +39,15 @@ const orderSchema = new mongoose.Schema(
             type: String,
             required: true,
         },
+        isAvailable: {
+            type: Boolean,
+            default: true,
+        },
+        courier: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Courier",
+            required: false,
+        },
     },
     {
         timestamps: true,

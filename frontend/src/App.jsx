@@ -18,7 +18,8 @@ import CourierDetails from "./components/admin/CourierDetails";
 import AdminLogin from "./components/admin/adminLogin";
 import Dashboard from "./components/admin/adminDashboard";
 import CouriersList from "./components/admin/CouriersList";
-import CourierMap from "./assets/Nikhil/CourierMap";
+import CourierMap from "./assets/Nikhil/CourierMap";import CourierProfilePage from "./assets/Nikhil/CourierProfilePage";
+import CartPage from "./assets/Nikhil/CartPage";
 const App = () => {
     return (
         <Router>
@@ -36,7 +37,6 @@ const App = () => {
                         path="/product/listing"
                         element={<ProductListingPage />}
                     />
-                    <Route path="/profile" element={<FarmerProfilePage />} />
                     <Route path="/map" element={<MapPage />} />
                     <Route path="/product-show" element={<ProductShowPage />} />
                     <Route
@@ -52,9 +52,22 @@ const App = () => {
                         path="/customer/register"
                         element={<CustomerRegister />}
                     />
+                     <Route path="/cart" element={<CartPage />} />
                     <Route path="/allRegister" element={<AllRegister />} />
                     <Route path="/courier/register" element={<CourierRegister />} />
                     <Route path="/courier/map" element={<CourierMap/>} />
+                    <Route
+                        path="/courier/register"
+                        element={<CourierRegister />}
+                    />
+                    <Route
+                        path="/profile/farmer"
+                        element={<FarmerProfilePage />}
+                    />
+                    <Route
+                        path="/profile/courier"
+                        element={<CourierProfilePage />}
+                    />
                 </Route>
 
                 <Route path="/admin/login" element={<AdminLogin />} />
@@ -64,6 +77,12 @@ const App = () => {
 
 
 
+                <Route path="/admin/dashboard" element={<Dashboard />} />
+                <Route path="/admin/couriers" element={<CouriersList />} />
+                <Route
+                    path="/admin/couriers/:id"
+                    element={<CourierDetails />}
+                />
             </Routes>
         </Router>
     );

@@ -19,6 +19,7 @@ export const addToWishlist = async (req, res) => {
         res.status(200).json({
             message: "Product added to wishlist",
             wishlist: customer.wishlist,
+            status: "success",
         });
     } catch (error) {
         res.status(500).json({
@@ -47,6 +48,7 @@ export const removeFromWishlist = async (req, res) => {
         res.status(200).json({
             message: "Product removed from wishlist",
             wishlist: customer.wishlist,
+            status: "success",
         });
     } catch (error) {
         res.status(500).json({
@@ -60,12 +62,16 @@ export const getWishlist = async (req, res) => {
     const userId = req.user._id;
 
     try {
-        const customer = await Customer.findOne({ user: userId });
+        const customer = await Customer.findOne({ user: userId }).populate("wishlist");
         if (!customer) {
             return res.status(404).json({ message: "Customer not found" });
         }
 
-        res.status(200).json({ wishlist: customer.wishlist });
+        res.status(200).json({ 
+            message: "Wishlist retrieved successfully",
+            wishlist: customer.wishlist,
+            status: "success",
+        });
     } catch (error) {
         res.status(500).json({ message: "Error retrieving wishlist", error });
     }

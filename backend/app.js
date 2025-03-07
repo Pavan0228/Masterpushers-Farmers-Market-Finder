@@ -9,6 +9,9 @@ import productRouter from "./routers/product.routes.js";
 import { paymentRouter } from "./routers/payment.routes.js";
 import { orderRouter } from "./routers/order.routes.js";
 import axios from "axios";
+import { farmerRouter } from "./routers/farmer.routes.js";
+import { wishlistRouter } from "./routers/wishlist.routes.js";
+
 dotenv.config({
     path: "./.env",
 });
@@ -35,7 +38,8 @@ app.use("/api/v1/courier", courierRouter);
 app.use("/api/v1/product", productRouter);
 app.use("/api/v1/payment", paymentRouter);
 app.use("/api/v1/order", orderRouter);
-
+app.use("/api/v1/farmer", farmerRouter);
+app.use("/api/v1/wishlist", wishlistRouter);
 
 
 

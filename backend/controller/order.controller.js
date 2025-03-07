@@ -1,6 +1,7 @@
 import { Order } from "../models/order.model.js";
 import { Customer } from "../models/customer.model.js";
 import Product from "../models/product.model.js";
+import { Courier } from "../models/courier.model.js";
 
 export const orderProducts = async (req, res) => {
     try {
@@ -40,3 +41,22 @@ export const orderProducts = async (req, res) => {
     }
 };
 
+export const orderAssign = async (req, res) => {
+    try {
+        const { orderId } = req.params;
+        const courier = await Courier.findOne({ user: req.user._id });
+        if (!courier) {
+            return res.status(404).json({ message: "Courier not found" });
+        }
+        const order = await Order.findById(orderId);
+        if (!order) {
+            return res.status(404).json({ message: "Order not found" });
+        }
+        order.courier = courier._id;
+        order.isAvailable = false;
+        await order.save();
+        res.status(200).json({ message: "Order assigned to courier" });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};

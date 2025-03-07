@@ -22,6 +22,11 @@ import {
     ArrowDown,
     ExternalLink,
 } from "lucide-react";
+import { Bar } from 'react-chartjs-2';
+import { Chart, registerables } from 'chart.js';
+
+// Register Chart.js components
+Chart.register(...registerables);
 
 const FarmerProfilePage = () => {
     // Replace static farmer state with API data
@@ -100,6 +105,14 @@ const FarmerProfilePage = () => {
                     completedOrders: dashboardData.completedOrders,
                     averageOrderValue: dashboardData.averageOrderValue,
                     recentOrders: dashboardData.recentOrders,
+                    cashOrders: dashboardData.cashOrders,
+                    onlineOrders: dashboardData.onlineOrders,
+                    pendingPayments: dashboardData.pendingPayments,
+                    revenueFromCash: dashboardData.revenueFromCash,
+                    revenueFromOnline: dashboardData.revenueFromOnline,
+                    pendingRevenue: dashboardData.pendingRevenue,
+                    highestOrderAmount: dashboardData.highestOrderAmount,
+                    lowestOrderAmount: dashboardData.lowestOrderAmount,
                 });
             } catch (error) {
                 console.error("Error fetching farmer data:", error);
@@ -140,7 +153,6 @@ const FarmerProfilePage = () => {
             reader.readAsDataURL(file);
         }
     };
-
     // Update the stats section to show more details
     const statsSection = (
         <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
@@ -217,10 +229,10 @@ const FarmerProfilePage = () => {
                     <span className="text-gray-600">Cash Orders</span>
                     <div className="text-right">
                         <div className="font-medium text-gray-800">
-                            {dashboardStats.cashOrders}
+                            {dashboardStats?.cashOrders || 0} 
                         </div>
                         <div className="text-sm text-gray-500">
-                            ₹{dashboardStats.revenueFromCash}
+                            ₹{dashboardStats?.revenueFromCash || 0}
                         </div>
                     </div>
                 </div>
@@ -250,6 +262,48 @@ const FarmerProfilePage = () => {
             </div>
         </div>
     );
+
+    // Chart data for orders
+    const orderChartData = {
+        labels: ['Total Orders', 'Pending Orders', 'Completed Orders', 'Canceled Orders'],
+        datasets: [
+            {
+                label: 'Order Statistics',
+                data: [
+                    dashboardStats.totalOrders,
+                    dashboardStats.pendingOrders,
+                    dashboardStats.completedOrders,
+                    dashboardStats.canceledOrders || 0,
+                ],
+                backgroundColor: [
+                    'rgba(75, 192, 192, 0.6)',
+                    'rgba(255, 206, 86, 0.6)',
+                    'rgba(54, 162, 235, 0.6)',
+                    'rgba(255, 99, 132, 0.6)',
+                ],
+            },
+        ],
+    };
+
+    // Chart data for payments
+    const paymentChartData = {
+        labels: ['Cash Orders', 'Online Orders', 'Pending Payments'],
+        datasets: [
+            {
+                label: 'Payment Statistics',
+                data: [
+                    dashboardStats.cashOrders || 0,
+                    dashboardStats.onlineOrders || 0,
+                    dashboardStats.pendingPayments || 0,
+                ],
+                backgroundColor: [
+                    'rgba(153, 102, 255, 0.6)',
+                    'rgba(255, 159, 64, 0.6)',
+                    'rgba(255, 99, 132, 0.6)',
+                ],
+            },
+        ],
+    };
 
     return (
         <div className="min-h-screen bg-gray-100 py-8 px-4 sm:px-6 lg:px-8">
@@ -354,6 +408,18 @@ const FarmerProfilePage = () => {
                                 {paymentStatsSection}
                             </div>
                         </div>
+                    </div>
+                </div>
+
+                {/* Charts Section */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                    <div className="bg-white shadow-lg rounded-xl p-6">
+                        <h2 className="text-xl font-bold text-gray-800 mb-4">Order Statistics</h2>
+                        <Bar data={orderChartData} options={{ responsive: true }} />
+                    </div>
+                    <div className="bg-white shadow-lg rounded-xl p-6">
+                        <h2 className="text-xl font-bold text-gray-800 mb-4">Payment Statistics</h2>
+                        <Bar data={paymentChartData} options={{ responsive: true }} />
                     </div>
                 </div>
 
@@ -567,7 +633,7 @@ const FarmerProfilePage = () => {
                                                 Cash Orders
                                             </td>
                                             <td className="px-4 py-3 text-sm text-gray-600">
-                                                {dashboardStats.cashOrders || 0}
+                                                {dashboardStats?.cashOrders || 0}
                                             </td>
                                             <td className="px-4 py-3 text-sm text-gray-600">
                                                 ₹

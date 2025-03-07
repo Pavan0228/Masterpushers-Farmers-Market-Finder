@@ -4,12 +4,24 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MapPin, Search, Truck, Apple } from "lucide-react";
 import ProductShowPage from "@/assets/Nikhil/ProductShowPage";
+import MarketMap from "@/components/MarketMap";
 
 const HomePage = () => {
     const [location, setLocation] = useState("");
+    const [suggestions, setSuggestions] = useState([]);
 
-    const handleSearch = () => {
+    const handleSearch = async () => {
         console.log(`Searching for markets near ${location}`);
+        try {
+            const response = await fetch(`http://localhost:3000/api/v1/ampc?location=${location}`);
+            if (!response.ok) {
+                throw new Error("Failed to fetch data");
+            }
+            const data = await response.json();
+            setSuggestions(data);
+        } catch (error) {
+            console.error("Error fetching data:", error);
+        }
     };
 
     return (
@@ -23,7 +35,7 @@ const HomePage = () => {
                     <p className="text-green-600 text-xl">
                         Connect with local farmers and fresh, seasonal produce
                         in your area
-                    </p>
+                    </p>    
                 </header>
 
                 {/* <GoogleTranslate /> */}
@@ -44,6 +56,32 @@ const HomePage = () => {
                             <Search className="mr-2" /> Find Markets
                         </Button>
                     </div>
+                </div>
+
+                {/* Display suggestions above the local markets section */}
+                <div className="mt-8">
+                    {suggestions.length > 0 && (
+                        <div className="mb-12">
+                            <h2 className="text-2xl font-bold mb-4">Market Suggestions</h2>
+                            <ul className="space-y-4">
+                                {suggestions.map((ampc, index) => (
+                                    <li key={index} className="p-4 bg-white shadow rounded-lg">
+                                        <h3 className="text-xl font-semibold">{ampc.ApmcFullCode}</h3>
+                                        <p>{ampc.AddressE || ampc.AddressM}</p>
+                                        <p>Phone: {ampc.Phone}</p>
+                                        <p>Pin Code: {ampc.PinCode}</p>
+                                        {ampc.MarketList.length > 0 && (
+                                            <MarketMap
+                                                addressE={ampc.AddressE}
+                                                addressM={ampc.AddressM}
+                                                marketName={ampc.MarketList[0].MainMarketNameE || ampc.MarketList[0].MainMarketNameM}
+                                            />
+                                        )}
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
                 </div>
 
                 <div className="grid md:grid-cols-3 gap-6">

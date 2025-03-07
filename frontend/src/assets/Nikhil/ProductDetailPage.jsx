@@ -234,7 +234,8 @@ const ProductDetailPage = () => {
             {/* Product Images Section */}
             <div className="relative">
               <img 
-                src={product.images[currentImageIndex]} 
+                // src={product.images[currentImageIndex]} 
+                src = "https://zamaorganics.com/cdn/shop/files/Untitleddesign-2024-01-03T171511.626.png?v=1704282357&width=1080"
                 alt={product.name} 
                 className="w-full h-full object-cover"
               />

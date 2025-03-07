@@ -14,13 +14,19 @@ import {
     Building,
     MapPinned,
 } from "lucide-react";
+import { toast } from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
 const CourierRegistrationPage = () => {
     const fileInputRef = useRef(null);
+    const profileInputRef = useRef(null);
+    const licenseInputRef = useRef(null);
+    const idProofInputRef = useRef(null);
     const [profilePreview, setProfilePreview] = useState(null);
     const [locationMethod, setLocationMethod] = useState("manual");
     const [isGettingLocation, setIsGettingLocation] = useState(false);
     const [locationError, setLocationError] = useState("");
+    const navigate = useNavigate();
 
     const [formData, setFormData] = useState({
         displayName: "",
@@ -29,13 +35,13 @@ const CourierRegistrationPage = () => {
         password: "",
         confirmPassword: "",
         profilePhoto: null,
-        vehicleType: "bike", // bike, scooter, car
+        vehicleType: "Bike", // bike, scooter, car
         licenseNumber: "",
         dateOfBirth: "",
         address: "",
         city: "",
         district: "",
-        idType: "aadhar", // aadhar, pan, or ration
+        idType: "Aadhar Card", // aadhar, pan, or ration
         idNumber: "",
         idProof: null,
         licenseProof: null, // New field for license document
@@ -55,16 +61,16 @@ const CourierRegistrationPage = () => {
 
     // Vehicle type options
     const vehicleTypes = [
-        { value: "bike", label: "Bike" },
-        { value: "scooter", label: "Scooter" },
-        { value: "car", label: "Car" },
+        { value: "Bike", label: "Bike" },
+        { value: "Scooter", label: "Scooter" },
+        { value: "Car", label: "Car" },
     ];
 
     // Add ID type options
     const idTypes = [
-        { value: "aadhar", label: "Aadhar Card" },
-        { value: "pan", label: "PAN Card" },
-        { value: "ration", label: "Ration Card" },
+        { value: "Aadhar Card", label: "Aadhar Card" },
+        { value: "PAN Card", label: "PAN Card" },
+        { value: "Ration Card", label: "Ration Card" },
     ];
 
     const handleChange = (e) => {
@@ -126,39 +132,87 @@ const CourierRegistrationPage = () => {
     const handleFileChange = (e, fileType) => {
         const file = e.target.files[0];
         if (file) {
-            switch (fileType) {
-                case "profile":
-                    setFormData((prev) => ({
-                        ...prev,
-                        profilePhoto: file,
-                    }));
-                    const reader = new FileReader();
-                    reader.onloadend = () => {
-                        setProfilePreview(reader.result);
-                    };
-                    reader.readAsDataURL(file);
-                    break;
-                case "idProof":
-                    setFormData((prev) => ({
-                        ...prev,
-                        idProof: file,
-                    }));
-                    break;
-                case "licenseProof":
-                    setFormData((prev) => ({
-                        ...prev,
-                        licenseProof: file,
-                    }));
-                    break;
+            try {
+                switch (fileType) {
+                    case "profile":
+                        setFormData((prev) => ({
+                            ...prev,
+                            profilePhoto: file,
+                        }));
+                        // Show preview for profile photo
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                            setProfilePreview(reader.result);
+                        };
+                        reader.readAsDataURL(file);
+                        break;
+                    case "licenseProof":
+                        setFormData((prev) => ({
+                            ...prev,
+                            licenseProof: file,
+                        }));
+                        break;
+                    case "idProof":
+                        setFormData((prev) => ({
+                            ...prev,
+                            idProof: file,
+                        }));
+                        break;
+                    default:
+                        break;
+                }
+            } catch (error) {
+                console.error("File handling error:", error);
+                setErrors((prev) => ({
+                    ...prev,
+                    [fileType]: "Error handling file. Please try again.",
+                }));
             }
+        }
+    };
+
+    const resetForm = () => {
+        setFormData({
+            displayName: "",
+            email: "",
+            phoneNumber: "",
+            password: "",
+            confirmPassword: "",
+            profilePhoto: null,
+            licenseNumber: "",
+            licenseProof: null,
+            idType: "PAN Card",
+            idNumber: "",
+            idProof: null,
+            dateOfBirth: "",
+            vehicleType: "Bike",
+            address: "",
+            city: "",
+            district: "",
+        });
+        setProfilePreview(null);
+        // Safely reset file inputs
+        try {
+            if (profileInputRef.current) {
+                profileInputRef.current.value = "";
+            }
+            if (licenseInputRef.current) {
+                licenseInputRef.current.value = "";
+            }
+            if (idProofInputRef.current) {
+                idProofInputRef.current.value = "";
+            }
+        } catch (error) {
+            console.error("Error resetting file inputs:", error);
         }
     };
 
     const validateForm = () => {
         let formErrors = {};
 
+        // Required fields validation
         if (!formData.displayName.trim()) {
-            formErrors.displayName = "Name is required";
+            formErrors.displayName = "Full name is required";
         }
 
         if (!formData.email.trim()) {
@@ -172,57 +226,33 @@ const CourierRegistrationPage = () => {
         }
 
         if (!formData.licenseNumber.trim()) {
-            formErrors.licenseNumber = "License number is required";
+            formErrors.licenseNumber = "Driving license number is required";
         }
 
         if (!formData.licenseProof) {
-            formErrors.licenseProof = "License document proof is required";
+            formErrors.licenseProof = "License document is required";
         }
 
         if (!formData.idType) {
-            formErrors.idType = "Please select an ID type";
+            formErrors.idType = "Identity verification type is required";
         }
 
         if (!formData.idNumber.trim()) {
             formErrors.idNumber = "ID number is required";
-        } else {
-            // Validate ID number format based on type
-            switch (formData.idType) {
-                case "aadhar":
-                    if (!/^\d{12}$/.test(formData.idNumber.trim())) {
-                        formErrors.idNumber =
-                            "Aadhar number should be 12 digits";
-                    }
-                    break;
-                case "pan":
-                    if (
-                        !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(
-                            formData.idNumber.trim()
-                        )
-                    ) {
-                        formErrors.idNumber = "Invalid PAN format";
-                    }
-                    break;
-                case "ration":
-                    if (!formData.idNumber.trim().length >= 8) {
-                        formErrors.idNumber = "Invalid Ration card number";
-                    }
-                    break;
-            }
         }
 
-        // Location validation
-        if (locationMethod === "manual" && !formData.address.trim()) {
-            formErrors.address = "Address is required";
-        } else if (
-            locationMethod === "cityDistrict" &&
-            (!formData.city.trim() || !formData.district.trim())
-        ) {
-            formErrors.location = "Both city and district are required";
+        if (!formData.idProof) {
+            formErrors.idProof = "ID proof document is required";
         }
 
-        if (formData.password.length < 8) {
-            formErrors.password = "Password must be at least 8 characters";
+        if (!formData.dateOfBirth) {
+            formErrors.dateOfBirth = "Date of birth is required";
+        }
+
+        if (!formData.password) {
+            formErrors.password = "Password is required";
+        } else if (formData.password.length < 6) {
+            formErrors.password = "Password must be at least 6 characters";
         }
 
         if (formData.password !== formData.confirmPassword) {
@@ -233,84 +263,123 @@ const CourierRegistrationPage = () => {
         return Object.keys(formErrors).length === 0;
     };
 
+    const prepareFormData = () => {
+        const formDataToSend = new FormData();
+
+        // Add basic fields
+        const basicFields = {
+            fullName: formData.displayName,
+            email: formData.email,
+            password: formData.password,
+            role: "courier",
+            phoneNumber: formData.phoneNumber,
+            drivingLicenseNumber: formData.licenseNumber,
+            vehicleType: formData.vehicleType,
+            cardNumber: formData.idNumber,
+            identityVerification: formData.idType,
+        };
+
+        Object.entries(basicFields).forEach(([key, value]) => {
+            formDataToSend.append(key, value);
+        });
+
+        // Add date of birth
+        const formattedDate = new Date(formData.dateOfBirth)
+            .toISOString()
+            .split("T")[0];
+        formDataToSend.append("dateOfBirth", formattedDate);
+
+        // Add location
+        const location =
+            locationMethod === "cityDistrict"
+                ? `${formData.city}, ${formData.district}`
+                : formData.address;
+        formDataToSend.append("location", location);
+
+        // Add description
+        formDataToSend.append(
+            "description",
+            "Professional courier service provider"
+        );
+
+        return formDataToSend;
+    };
+
+    const appendFilesToFormData = (formDataToSend) => {
+        const files = {
+            profile: formData.profilePhoto,
+            licenseDocument: formData.licenseProof,
+            idProof: formData.idProof,
+        };
+
+        Object.entries(files).forEach(([key, file]) => {
+            if (file) {
+                formDataToSend.append(key, file);
+            }
+        });
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        if (validateForm()) {
-            setIsSubmitting(true);
-            try {
-                const formDataToSend = new FormData();
-                formDataToSend.append("fullName", formData.displayName);
-                formDataToSend.append("email", formData.email);
-                formDataToSend.append("password", formData.password);
-                formDataToSend.append("role", "courier");
-                formDataToSend.append("phoneNumber", formData.phoneNumber);
-                formDataToSend.append("vehicleType", formData.vehicleType);
-                formDataToSend.append("licenseNumber", formData.licenseNumber);
-                formDataToSend.append("dateOfBirth", formData.dateOfBirth);
+        if (!validateForm()) return;
 
-                // Append location based on method
-                if (locationMethod === "manual") {
-                    formDataToSend.append("location", formData.address);
-                } else if (locationMethod === "cityDistrict") {
-                    formDataToSend.append(
-                        "location",
-                        `${formData.city}, ${formData.district}`
-                    );
-                } else {
-                    formDataToSend.append("location", formData.address); // Contains coordinates
-                }
+        setIsSubmitting(true);
 
-                formDataToSend.append("idType", formData.idType);
-                formDataToSend.append("idNumber", formData.idNumber);
+        try {
+            const formDataToSend = prepareFormData();
+            appendFilesToFormData(formDataToSend);
 
-                if (formData.profilePhoto) {
-                    formDataToSend.append("profile", formData.profilePhoto);
+            const response = await fetch(
+                "http://localhost:3000/api/v1/auth/signup",
+                {
+                    method: "POST",
+                    body: formDataToSend,
+                    headers: { Accept: "application/json" }
                 }
-                if (formData.idProof) {
-                    formDataToSend.append("idProof", formData.idProof);
-                }
-                if (formData.licenseProof) {
-                    formDataToSend.append(
-                        "licenseProof",
-                        formData.licenseProof
-                    );
-                }
+            );
 
-                const response = await fetch(
-                    "http://localhost:3000/api/v1/auth/signup",
-                    {
-                        method: "POST",
-                        headers: {
-                            Accept: "application/json",
-                        },
-                        credentials: "include",
-                        body: formDataToSend,
-                    }
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(
+                    errorData.message ||
+                        "Registration failed. Please try again."
                 );
-
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.message || "Registration failed");
-                }
-
-                const data = await response.json();
-                console.log("Registration successful:", data);
-                alert("Registration successful! Please login.");
-                window.location.href = "/login";
-            } catch (error) {
-                console.error("Registration error:", error);
-                setErrors((prev) => ({
-                    ...prev,
-                    submit:
-                        error.message ||
-                        "Registration failed. Please try again.",
-                }));
-            } finally {
-                setIsSubmitting(false);
             }
+
+            const data = await response.json();
+
+            if (data.accessToken) {
+                localStorage.setItem("accessToken", data.accessToken);
+            }
+
+            toast.success("Registration successful!");
+            resetForm();
+            setTimeout(() => navigate("/login"), 2000);
+        } catch (error) {
+            console.error("Registration error:", error);
+            toast.error(
+                error.message || "Registration failed. Please try again."
+            );
+            setErrors((prev) => ({
+                ...prev,
+                submit:
+                    error.message || "Registration failed. Please try again.",
+            }));
+        } finally {
+            setIsSubmitting(false);
         }
     };
+
+    // Add error display component
+    const ErrorMessage = ({ message }) => (
+        <div
+            className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mt-4"
+            role="alert"
+        >
+            <span className="block sm:inline">{message}</span>
+        </div>
+    );
 
     return (
         <div
@@ -348,14 +417,14 @@ const CourierRegistrationPage = () => {
                     </div>
                     <input
                         type="file"
-                        ref={fileInputRef}
+                        ref={profileInputRef}
                         accept="image/*"
                         onChange={(e) => handleFileChange(e, "profile")}
                         className="hidden"
                     />
                     <button
                         type="button"
-                        onClick={() => fileInputRef.current.click()}
+                        onClick={() => profileInputRef.current?.click()}
                         className="py-2 px-4 rounded-lg text-base flex items-center justify-center transition duration-300 bg-white border"
                         style={{
                             borderColor: theme.light,
@@ -530,6 +599,7 @@ const CourierRegistrationPage = () => {
                             </label>
                             <input
                                 type="file"
+                                ref={licenseInputRef}
                                 accept="image/*,.pdf"
                                 onChange={(e) =>
                                     handleFileChange(e, "licenseProof")
@@ -612,6 +682,7 @@ const CourierRegistrationPage = () => {
                             </label>
                             <input
                                 type="file"
+                                ref={idProofInputRef}
                                 accept="image/*,.pdf"
                                 onChange={(e) => handleFileChange(e, "idProof")}
                                 className="w-full"
@@ -901,16 +972,7 @@ const CourierRegistrationPage = () => {
                         )}
                     </div>
 
-                    {errors.submit && (
-                        <div
-                            className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative"
-                            role="alert"
-                        >
-                            <span className="block sm:inline">
-                                {errors.submit}
-                            </span>
-                        </div>
-                    )}
+                    {errors.submit && <ErrorMessage message={errors.submit} />}
 
                     <button
                         type="submit"

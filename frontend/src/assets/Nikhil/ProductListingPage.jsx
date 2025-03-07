@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import {
     User,
     Mail,
@@ -15,6 +15,7 @@ import {
     Tag,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useLoadScript, GoogleMap, Marker } from '@react-google-maps/api';
 
 // Add Indian Rupee icon (you can create this as a custom component)
 const RupeeIcon = () => (
@@ -61,6 +62,171 @@ const ProductListingPage = () => {
     const [success, setSuccess] = useState(false);
     const [apiError, setApiError] = useState(null);
     const navigate = useNavigate();
+    const locationInputRef = useRef(null);
+    const [locationCoords, setLocationCoords] = useState(null);
+    
+    // Add these for Google Maps
+    const mapContainerStyle = useMemo(() => ({
+        width: '100%',
+        height: '160px',
+    }), []);
+    
+    const defaultCenter = useMemo(() => ({ 
+        lat: 20.5937, 
+        lng: 78.9629 
+    }), []);
+
+    // Replace the existing location functionality with Google Maps
+    const { isLoaded, loadError } = useLoadScript({
+        googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
+        libraries: ['places'],
+    });
+
+    // Add autocomplete initialization
+    useEffect(() => {
+        if (isLoaded && locationInputRef.current && window.google) {
+            try {
+                console.log("Initializing autocomplete...");
+                // Remove any existing autocomplete
+                if (locationInputRef.current.autocomplete) {
+                    google.maps.event.clearInstanceListeners(locationInputRef.current.autocomplete);
+                }
+                
+                const autocomplete = new window.google.maps.places.Autocomplete(locationInputRef.current, {
+                    // Restrict to addresses/geographical locations
+                    types: ["geocode"],
+                    fields: ['address_components', 'formatted_address', 'geometry', 'name'],
+                });
+                
+                // Store reference to autocomplete
+                locationInputRef.current.autocomplete = autocomplete;
+
+                autocomplete.addListener('place_changed', () => {
+                    const place = autocomplete.getPlace();
+                    console.log("Place selected:", place);
+                    
+                    if (place.geometry && place.geometry.location) {
+                        const lat = place.geometry.location.lat();
+                        const lng = place.geometry.location.lng();
+                        
+                        console.log("Location coordinates:", { lat, lng });
+                        setLocationCoords({ lat, lng });
+                        
+                        setFormData({
+                            ...formData,
+                            location: place.formatted_address,
+                        });
+                    } else {
+                        console.warn("No geometry found for the selected place");
+                    }
+                });
+                
+                console.log("Autocomplete initialized successfully");
+            } catch (error) {
+                console.error("Error initializing autocomplete:", error);
+            }
+        }
+    }, [isLoaded, formData]);
+
+    // Update the get live location function
+    const handleGetLiveLocation = () => {
+        setIsGettingLocation(true);
+        setLocationError("");
+
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                async (position) => {
+                    const { latitude, longitude } = position.coords;
+                    
+                    // Update the map with the current location
+                    setLocationCoords({ lat: latitude, lng: longitude });
+                    
+                    try {
+                        // Use Vite's environment variable format
+                        const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+                        const response = await fetch(
+                            `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${apiKey}`
+                        );
+                        
+                        const data = await response.json();
+                        
+                        if (data.results && data.results.length > 0) {
+                            const address = data.results[0].formatted_address;
+                            setFormData({
+                                ...formData,
+                                location: address,
+                            });
+                        } else {
+                            setLocationError("Could not find address for your location");
+                        }
+                    } catch (error) {
+                        console.error('Error getting address:', error);
+                        setLocationError("Could not convert your location to an address");
+                    }
+                    setIsGettingLocation(false);
+                },
+                (error) => {
+                    console.error('Error getting location:', error);
+                    let errorMessage = 'Could not get your location.';
+                    
+                    switch(error.code) {
+                        case error.PERMISSION_DENIED:
+                            errorMessage += ' Please allow location access in your browser settings.';
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            errorMessage += ' Location information is unavailable.';
+                            break;
+                        case error.TIMEOUT:
+                            errorMessage += ' The request to get location timed out.';
+                            break;
+                        default:
+                            errorMessage += ' Please check permissions.';
+                    }
+                    
+                    setLocationError(errorMessage);
+                    setIsGettingLocation(false);
+                },
+                { 
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
+                }
+            );
+        } else {
+            setLocationError("Geolocation is not supported by your browser");
+            setIsGettingLocation(false);
+        }
+    };
+
+    // Add a render map function
+    const renderMap = () => {
+        if (loadError) {
+            return <div className="w-full h-40 flex items-center justify-center bg-gray-100 rounded-md border border-gray-300">
+                <p className="text-red-500">Error loading maps</p>
+            </div>;
+        }
+        
+        if (!isLoaded) {
+            return <div className="w-full h-40 flex items-center justify-center bg-gray-100 rounded-md border border-gray-300">
+                <div className="animate-spin h-6 w-6 border-2 border-gray-500 border-t-transparent rounded-full" />
+            </div>;
+        }
+        
+        return (
+            <GoogleMap
+                mapContainerStyle={mapContainerStyle}
+                zoom={15}
+                center={locationCoords || defaultCenter}
+                options={{
+                    mapTypeControl: false,
+                    streetViewControl: false,
+                    fullscreenControl: false,
+                }}
+            >
+                {locationCoords && <Marker position={locationCoords} />}
+            </GoogleMap>
+        );
+    };
 
     // Add category-specific UI elements
     const getCategoryIcon = (category) => {
@@ -175,38 +341,6 @@ const ProductListingPage = () => {
         return Object.keys(formErrors).length === 0;
     };
 
-    const handleGetLiveLocation = () => {
-        setIsGettingLocation(true);
-        setLocationError("");
-
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    const location = `Latitude: ${position.coords.latitude.toFixed(
-                        4
-                    )}, Longitude: ${position.coords.longitude.toFixed(4)}`;
-                    setFormData((prev) => ({
-                        ...prev,
-                        location: location,
-                    }));
-                    setIsGettingLocation(false);
-                },
-                (error) => {
-                    setLocationError(
-                        "Unable to retrieve your location. Please try another method."
-                    );
-                    setIsGettingLocation(false);
-                    console.error("Error getting location:", error);
-                }
-            );
-        } else {
-            setLocationError(
-                "Geolocation is not supported by your browser. Please try another method."
-            );
-            setIsGettingLocation(false);
-        }
-    };
-
     const handleMarketSearch = (e) => {
         const query = e.target.value;
         setFormData((prev) => ({
@@ -262,11 +396,23 @@ const ProductListingPage = () => {
                     "isAvailable",
                     formData.isAvailable.toString()
                 );
+                
+                // Add location to the form data
+                if (formData.location) {
+                    formDataToSend.append("location", formData.location);
+                }
+                
+                // Add market name if available
+                if (formData.marketName) {
+                    formDataToSend.append("marketName", formData.marketName);
+                }
 
                 if (formData.image) {
                     formDataToSend.append("image", formData.image);
                 }
 
+                // Log all data being sent to server
+                console.log("=== Data Being Sent to Server ===");
                 for (let pair of formDataToSend.entries()) {
                     console.log(pair[0] + ": " + pair[1]);
                 }
@@ -711,106 +857,58 @@ const ProductListingPage = () => {
                                     Product Location
                                 </div>
 
-                                <div className="flex flex-col md:flex-row space-y-3 md:space-y-0 md:space-x-4">
-                                    <button
-                                        type="button"
-                                        onClick={() =>
-                                            handleLocationMethodChange("manual")
-                                        }
-                                        className={`flex-1 py-3 px-4 rounded-lg text-base flex items-center justify-center transition duration-300 ${
-                                            locationMethod === "manual"
-                                                ? "bg-green-600 text-white shadow-md"
-                                                : "bg-white text-gray-700 hover:bg-green-100 border border-green-200"
-                                        }`}
-                                    >
-                                        <MapPin className="mr-2 h-5 w-5" />
-                                        Enter Location
-                                    </button>
-
-                                    <button
-                                        type="button"
-                                        onClick={() =>
-                                            handleLocationMethodChange("live")
-                                        }
-                                        className={`flex-1 py-3 px-4 rounded-lg text-base flex items-center justify-center transition duration-300 ${
-                                            locationMethod === "live"
-                                                ? "bg-green-600 text-white shadow-md"
-                                                : "bg-white text-gray-700 hover:bg-green-100 border border-green-200"
-                                        }`}
-                                    >
-                                        <Navigation className="mr-2 h-5 w-5" />
-                                        Live Location
-                                    </button>
-                                </div>
-
-                                <div className="mt-4">
-                                    {locationMethod === "manual" && (
-                                        <div className="relative">
-                                            <MapPin className="absolute left-4 top-4 text-green-600 h-6 w-6" />
+                                <div className="relative">
+                                    <div className="flex items-center">
+                                        <div className="relative flex-grow">
+                                            <MapPin className="absolute left-4 top-4 text-gray-600 h-6 w-6" />
                                             <input
                                                 type="text"
                                                 name="location"
-                                                placeholder="Enter Location"
+                                                placeholder="Enter Product Location"
                                                 value={formData.location}
                                                 onChange={handleChange}
-                                                className={`w-full pl-14 pr-5 py-4 text-lg border-2 rounded-xl focus:outline-none ${
+                                                ref={locationInputRef}
+                                                className={`w-full pl-14 pr-5 py-4 text-lg border-2 rounded-l-xl focus:outline-none ${
                                                     errors.location
                                                         ? "border-red-500 focus:border-red-500"
-                                                        : "border-green-200 focus:border-green-600 bg-white"
+                                                        : "bg-white border-green-200 focus:border-green-600"
                                                 }`}
+                                                onKeyDown={(e) => { 
+                                                    if (e.key === 'Enter') {
+                                                        e.preventDefault();
+                                                    }
+                                                }}
+                                                autoComplete="off"
                                             />
-                                            {errors.location && (
-                                                <p className="text-red-500 text-base mt-2 ml-2">
-                                                    {errors.location}
-                                                </p>
-                                            )}
                                         </div>
-                                    )}
-
-                                    {locationMethod === "live" && (
-                                        <div>
-                                            <button
-                                                type="button"
-                                                onClick={handleGetLiveLocation}
-                                                disabled={isGettingLocation}
-                                                className={`w-full bg-white text-green-700 py-4 px-4 rounded-xl hover:bg-green-100 transition duration-300 flex items-center justify-center text-lg border border-green-200 ${
-                                                    isGettingLocation
-                                                        ? "opacity-70"
-                                                        : ""
-                                                }`}
-                                            >
-                                                <Navigation
-                                                    className={`mr-3 h-6 w-6 ${
-                                                        isGettingLocation
-                                                            ? "animate-spin"
-                                                            : ""
-                                                    }`}
-                                                />
-                                                {isGettingLocation
-                                                    ? "Getting Location..."
-                                                    : "Get Current Location"}
-                                            </button>
-
-                                            {formData.location &&
-                                                locationMethod === "live" && (
-                                                    <div className="mt-4 p-4 bg-white rounded-xl border border-green-200 animate-fade-in">
-                                                        <p className="text-base text-green-800">
-                                                            <span className="font-medium">
-                                                                Location
-                                                                captured:
-                                                            </span>{" "}
-                                                            {formData.location}
-                                                        </p>
-                                                    </div>
-                                                )}
-
-                                            {locationError && (
-                                                <p className="text-red-500 text-base mt-2 ml-2">
-                                                    {locationError}
-                                                </p>
+                                        <button
+                                            type="button"
+                                            onClick={handleGetLiveLocation}
+                                            disabled={isGettingLocation}
+                                            className="bg-white py-4 px-4 rounded-r-xl transition duration-300 flex items-center justify-center text-lg border-2 border-l-0 h-full border-green-200 text-green-700"
+                                        >
+                                            {isGettingLocation ? (
+                                                <div className="animate-spin h-6 w-6 border-2 border-current border-t-transparent rounded-full" />
+                                            ) : (
+                                                <Navigation className="h-6 w-6" />
                                             )}
-                                        </div>
+                                        </button>
+                                    </div>
+                                    {errors.location && (
+                                        <p className="text-red-500 text-base mt-2 ml-2">
+                                            {errors.location}
+                                        </p>
                                     )}
+                                    {locationError && (
+                                        <p className="text-red-500 text-base mt-2 ml-2">
+                                            {locationError}
+                                        </p>
+                                    )}
+                                </div>
+
+                                {/* Map component */}
+                                <div className="w-full mt-2 rounded-md overflow-hidden">
+                                    {renderMap()}
                                 </div>
                             </div>
 

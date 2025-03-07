@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import {
     User,
     Mail,
@@ -12,6 +12,7 @@ import {
     FileImage,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useLoadScript, GoogleMap, Marker } from '@react-google-maps/api';
 
 const CustomerRegistrationPage = () => {
     const fileInputRef = useRef(null);
@@ -19,6 +20,8 @@ const CustomerRegistrationPage = () => {
     const [locationMethod, setLocationMethod] = useState("manual");
     const [isGettingLocation, setIsGettingLocation] = useState(false);
     const [locationError, setLocationError] = useState("");
+    const locationInputRef = useRef(null);
+    const [locationCoords, setLocationCoords] = useState(null);
 
     const [formData, setFormData] = useState({
         displayName: "",
@@ -28,8 +31,6 @@ const CustomerRegistrationPage = () => {
         confirmPassword: "",
         profilePhoto: null,
         address: "",
-        city: "",
-        district: "",
     });
 
     const [errors, setErrors] = useState({});
@@ -44,6 +45,93 @@ const CustomerRegistrationPage = () => {
         secondary: "#757575", // Gray
         accent: "#03A9F4", // Lighter blue
         backgroundLight: "#E3F2FD",
+    };
+
+    // Load Google Maps script
+    const { isLoaded, loadError } = useLoadScript({
+        googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
+        libraries: ['places'],
+    });
+    
+    // Define map container style
+    const mapContainerStyle = useMemo(() => ({
+        width: '100%',
+        height: '160px',
+    }), []);
+    
+    // Default center for the map (India)
+    const defaultCenter = useMemo(() => ({ 
+        lat: 20.5937, 
+        lng: 78.9629 
+    }), []);
+
+    // Initialize autocomplete for address input
+    useEffect(() => {
+        if (isLoaded && locationInputRef.current && window.google) {
+            try {
+                console.log("Initializing autocomplete...");
+                // Remove any existing autocomplete
+                if (locationInputRef.current.autocomplete) {
+                    google.maps.event.clearInstanceListeners(locationInputRef.current.autocomplete);
+                }
+                
+                const autocomplete = new window.google.maps.places.Autocomplete(locationInputRef.current, {
+                    // Allow all types of locations including plus codes
+                    types: [],
+                    fields: ['address_components', 'formatted_address', 'geometry', 'name', 'place_id'],
+                });
+                
+                // Store reference to autocomplete
+                locationInputRef.current.autocomplete = autocomplete;
+
+                autocomplete.addListener('place_changed', () => {
+                    const place = autocomplete.getPlace();
+                    console.log("Place selected:", place);
+                    
+                    if (place.geometry && place.geometry.location) {
+                        const lat = place.geometry.location.lat();
+                        const lng = place.geometry.location.lng();
+                        
+                        console.log("Location coordinates:", { lat, lng });
+                        setLocationCoords({ lat, lng });
+                        
+                        // Use the formatted_address or the input value if formatted_address is not available
+                        const addressValue = place.formatted_address || locationInputRef.current.value;
+                        
+                        setFormData({
+                            ...formData,
+                            address: addressValue,
+                        });
+                    } else if (locationInputRef.current.value) {
+                        // If no geometry is found but there's text in the input, use that
+                        console.log("Using manual input value as address");
+                        setFormData({
+                            ...formData,
+                            address: locationInputRef.current.value,
+                        });
+                    }
+                });
+                
+                console.log("Autocomplete initialized successfully");
+            } catch (error) {
+                console.error("Error initializing autocomplete:", error);
+            }
+        }
+    }, [isLoaded, formData]);
+
+    // Add a function to handle manual address input
+    const handleAddressInput = (e) => {
+        const value = e.target.value;
+        setFormData(prev => ({
+            ...prev,
+            address: value
+        }));
+        
+        // If the user is typing a Plus Code or other non-standard format,
+        // we should still accept it even if autocomplete doesn't recognize it
+        if (value && !locationCoords) {
+            console.log("Manual address input without coordinates");
+        }
     };
 
     const handleChange = (e) => {
@@ -74,51 +162,103 @@ const CustomerRegistrationPage = () => {
         fileInputRef.current.click();
     };
 
-    const handleLocationMethodChange = (method) => {
-        setLocationMethod(method);
-        setLocationError("");
-
-        if (method === "live") {
-            setFormData((prev) => ({
-                ...prev,
-                address: "",
-                city: "",
-                district: "",
-            }));
-        } else if (method === "manual") {
-            setFormData((prev) => ({ ...prev, city: "", district: "" }));
-        } else if (method === "cityDistrict") {
-            setFormData((prev) => ({ ...prev, address: "" }));
-        }
-    };
-
     const handleGetLiveLocation = () => {
         setIsGettingLocation(true);
         setLocationError("");
 
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    const location = `Latitude: ${position.coords.latitude}, Longitude: ${position.coords.longitude}`;
-                    setFormData((prev) => ({
-                        ...prev,
-                        address: location,
-                    }));
+                async (position) => {
+                    const { latitude, longitude } = position.coords;
+                    
+                    // Update the map with the current location
+                    setLocationCoords({ lat: latitude, lng: longitude });
+                    
+                    try {
+                        // Use Vite's environment variable format
+                        const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+                        const response = await fetch(
+                            `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${apiKey}`
+                        );
+                        
+                        const data = await response.json();
+                        
+                        if (data.results && data.results.length > 0) {
+                            const address = data.results[0].formatted_address;
+                            setFormData({
+                                ...formData,
+                                address: address,
+                            });
+                        } else {
+                            setLocationError("Could not find address for your location");
+                        }
+                    } catch (error) {
+                        console.error('Error getting address:', error);
+                        setLocationError("Could not convert your location to an address");
+                    }
                     setIsGettingLocation(false);
                 },
                 (error) => {
-                    setLocationError(
-                        "Unable to retrieve your location. Please try another method."
-                    );
+                    console.error('Error getting location:', error);
+                    let errorMessage = 'Could not get your location.';
+                    
+                    switch(error.code) {
+                        case error.PERMISSION_DENIED:
+                            errorMessage += ' Please allow location access in your browser settings.';
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            errorMessage += ' Location information is unavailable.';
+                            break;
+                        case error.TIMEOUT:
+                            errorMessage += ' The request to get location timed out.';
+                            break;
+                        default:
+                            errorMessage += ' Please check permissions.';
+                    }
+                    
+                    setLocationError(errorMessage);
                     setIsGettingLocation(false);
+                },
+                { 
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
                 }
             );
         } else {
-            setLocationError(
-                "Geolocation is not supported by your browser. Please try another method."
-            );
+            setLocationError("Geolocation is not supported by your browser");
             setIsGettingLocation(false);
         }
+    };
+
+    // Render map component
+    const renderMap = () => {
+        if (loadError) {
+            return <div className="w-full h-40 flex items-center justify-center bg-gray-100 rounded-md border border-gray-300">
+                <p className="text-red-500">Error loading maps</p>
+            </div>;
+        }
+        
+        if (!isLoaded) {
+            return <div className="w-full h-40 flex items-center justify-center bg-gray-100 rounded-md border border-gray-300">
+                <div className="animate-spin h-6 w-6 border-2 border-gray-500 border-t-transparent rounded-full" />
+            </div>;
+        }
+        
+        return (
+            <GoogleMap
+                mapContainerStyle={mapContainerStyle}
+                zoom={15}
+                center={locationCoords || defaultCenter}
+                options={{
+                    mapTypeControl: false,
+                    streetViewControl: false,
+                    fullscreenControl: false,
+                }}
+            >
+                {locationCoords && <Marker position={locationCoords} />}
+            </GoogleMap>
+        );
     };
 
     const validateForm = () => {
@@ -168,22 +308,8 @@ const CustomerRegistrationPage = () => {
                 formDataToSend.append("role", "customer");
                 formDataToSend.append("phoneNumber", formData.phoneNumber);
 
-                // Optional location field - only append if there's a value
-                if (locationMethod === "manual" && formData.address.trim()) {
-                    formDataToSend.append("location", formData.address);
-                } else if (
-                    locationMethod === "cityDistrict" &&
-                    (formData.city.trim() || formData.district.trim())
-                ) {
-                    const locationString = [formData.city, formData.district]
-                        .filter(Boolean)
-                        .join(", ");
-                    if (locationString) {
-                        formDataToSend.append("location", locationString);
-                    }
-                } else if (locationMethod === "live" && formData.address) {
-                    formDataToSend.append("location", formData.address);
-                }
+                // Always send the address value, even if it's a Plus Code or other format
+                formDataToSend.append("location", formData.address || "");
 
                 // Optional fields
                 formDataToSend.append("description", "");
@@ -192,6 +318,15 @@ const CustomerRegistrationPage = () => {
                 if (formData.profilePhoto) {
                     formDataToSend.append("profile", formData.profilePhoto);
                 }
+
+                console.log("Sending registration data:", {
+                    fullName: formData.displayName,
+                    email: formData.email,
+                    role: "customer",
+                    phoneNumber: formData.phoneNumber,
+                    location: formData.address || "",
+                    hasProfile: !!formData.profilePhoto
+                });
 
                 const response = await fetch(
                     "http://localhost:3000/api/v1/auth/signup",
@@ -206,6 +341,10 @@ const CustomerRegistrationPage = () => {
                 if (!response.ok) {
                     throw new Error(data.message || "Registration failed");
                 }
+
+                // Store token and user role in localStorage
+                localStorage.setItem("token", data.accessToken);
+                localStorage.setItem("userRole", JSON.stringify(data.user.role));
 
                 // Handle successful registration
                 console.log("Registration successful:", data);
@@ -281,182 +420,75 @@ const CustomerRegistrationPage = () => {
                     </button>
                 </div>
 
-                {/* Add Location Section (Optional) */}
+                {/* Location section - similar to UserRegistrationPage */}
                 <div
-                    className="space-y-4 p-6 border-2 rounded-xl mb-6"
-                    style={{ borderColor: theme.light }}
+                    className="space-y-5 border-2 p-6 rounded-xl mb-6"
+                    style={{
+                        borderColor: theme.light,
+                        backgroundColor: theme.backgroundLight,
+                    }}
                 >
-                    <div className="flex justify-between items-center">
-                        <div className="font-semibold flex items-center text-lg text-gray-700">
-                            <MapPinned className="mr-2 h-6 w-6" />
-                            Delivery Location
-                        </div>
-                        <span className="text-sm text-gray-500">
+                    <div
+                        className="font-medium flex items-center text-lg"
+                        style={{ color: theme.primary }}
+                    >
+                        <MapPinned className="mr-2 h-6 w-6" />
+                        Delivery Location
+                        <span className="text-sm text-gray-500 ml-2">
                             (Optional)
                         </span>
                     </div>
 
-                    <div className="flex flex-col md:flex-row space-y-3 md:space-y-0 md:space-x-4">
-                        <button
-                            type="button"
-                            onClick={() => handleLocationMethodChange("manual")}
-                            className={`flex-1 py-3 px-4 rounded-lg text-base flex items-center justify-center transition duration-300`}
-                            style={{
-                                backgroundColor:
-                                    locationMethod === "manual"
-                                        ? theme.primary
-                                        : "white",
-                                color:
-                                    locationMethod === "manual"
-                                        ? "white"
-                                        : "rgb(55, 65, 81)",
-                                border:
-                                    locationMethod === "manual"
-                                        ? "none"
-                                        : `1px solid ${theme.light}`,
-                            }}
-                        >
-                            <MapPin className="mr-2 h-5 w-5" />
-                            Enter Address
-                        </button>
-
-                        <button
-                            type="button"
-                            onClick={() => handleLocationMethodChange("live")}
-                            className={`flex-1 py-3 px-4 rounded-lg text-base flex items-center justify-center transition duration-300`}
-                            style={{
-                                backgroundColor:
-                                    locationMethod === "live"
-                                        ? theme.primary
-                                        : "white",
-                                color:
-                                    locationMethod === "live"
-                                        ? "white"
-                                        : "rgb(55, 65, 81)",
-                                border:
-                                    locationMethod === "live"
-                                        ? "none"
-                                        : `1px solid ${theme.light}`,
-                            }}
-                        >
-                            <Navigation className="mr-2 h-5 w-5" />
-                            Live Location
-                        </button>
-
-                        <button
-                            type="button"
-                            onClick={() =>
-                                handleLocationMethodChange("cityDistrict")
-                            }
-                            className={`flex-1 py-3 px-4 rounded-lg text-base flex items-center justify-center transition duration-300`}
-                            style={{
-                                backgroundColor:
-                                    locationMethod === "cityDistrict"
-                                        ? theme.primary
-                                        : "white",
-                                color:
-                                    locationMethod === "cityDistrict"
-                                        ? "white"
-                                        : "rgb(55, 65, 81)",
-                                border:
-                                    locationMethod === "cityDistrict"
-                                        ? "none"
-                                        : `1px solid ${theme.light}`,
-                            }}
-                        >
-                            <Building className="mr-2 h-5 w-5" />
-                            City/District
-                        </button>
-                    </div>
-
-                    <div className="mt-4">
-                        {locationMethod === "manual" && (
-                            <div className="relative">
+                    <div className="relative">
+                        <div className="flex items-center">
+                            <div className="relative flex-grow">
                                 <MapPin className="absolute left-4 top-4 text-gray-600 h-6 w-6" />
-                                <textarea
+                                <input
+                                    type="text"
                                     name="address"
                                     placeholder="Enter Your Delivery Address"
                                     value={formData.address}
-                                    onChange={handleChange}
-                                    className={`w-full pl-14 pr-5 py-4 text-lg border-2 rounded-xl focus:outline-none resize-none`}
+                                    onChange={handleAddressInput}
+                                    ref={locationInputRef}
+                                    className="w-full pl-14 pr-5 py-4 text-lg border-2 rounded-l-xl focus:outline-none"
                                     style={{
                                         borderColor: theme.light,
-                                        minHeight: "100px",
                                     }}
+                                    onKeyDown={(e) => { 
+                                        if (e.key === 'Enter') {
+                                            e.preventDefault();
+                                        }
+                                    }}
+                                    autoComplete="off"
                                 />
                             </div>
-                        )}
-
-                        {locationMethod === "live" && (
-                            <div>
-                                <button
-                                    type="button"
-                                    onClick={handleGetLiveLocation}
-                                    disabled={isGettingLocation}
-                                    className="w-full bg-white py-4 px-4 rounded-xl transition duration-300 flex items-center justify-center text-lg border"
-                                    style={{
-                                        borderColor: theme.light,
-                                        color: theme.primary,
-                                    }}
-                                >
-                                    <Navigation className="mr-3 h-6 w-6" />
-                                    {isGettingLocation
-                                        ? "Getting Location..."
-                                        : "Get Current Location"}
-                                </button>
-
-                                {formData.address &&
-                                    locationMethod === "live" && (
-                                        <div
-                                            className="mt-4 p-4 bg-white rounded-xl border"
-                                            style={{ borderColor: theme.light }}
-                                        >
-                                            <p className="text-base text-gray-700">
-                                                <span className="font-medium">
-                                                    Location captured:
-                                                </span>{" "}
-                                                {formData.address}
-                                            </p>
-                                        </div>
-                                    )}
-
-                                {locationError && (
-                                    <p className="text-red-500 text-sm mt-2">
-                                        {locationError}
-                                    </p>
+                            <button
+                                type="button"
+                                onClick={handleGetLiveLocation}
+                                disabled={isGettingLocation}
+                                className="bg-white py-4 px-4 rounded-r-xl transition duration-300 flex items-center justify-center text-lg border-2 border-l-0 h-full"
+                                style={{
+                                    borderColor: theme.light,
+                                    color: theme.primary,
+                                }}
+                            >
+                                {isGettingLocation ? (
+                                    <div className="animate-spin h-6 w-6 border-2 border-current border-t-transparent rounded-full" />
+                                ) : (
+                                    <Navigation className="h-6 w-6" />
                                 )}
-                            </div>
+                            </button>
+                        </div>
+                        {locationError && (
+                            <p className="text-red-500 text-base mt-2 ml-2">
+                                {locationError}
+                            </p>
                         )}
+                    </div>
 
-                        {locationMethod === "cityDistrict" && (
-                            <div className="space-y-4">
-                                <div className="relative">
-                                    <Building className="absolute left-4 top-4 text-gray-600 h-6 w-6" />
-                                    <input
-                                        type="text"
-                                        name="city"
-                                        placeholder="City"
-                                        value={formData.city}
-                                        onChange={handleChange}
-                                        className="w-full pl-14 pr-5 py-4 text-lg border-2 rounded-xl focus:outline-none"
-                                        style={{ borderColor: theme.light }}
-                                    />
-                                </div>
-
-                                <div className="relative">
-                                    <MapPinned className="absolute left-4 top-4 text-gray-600 h-6 w-6" />
-                                    <input
-                                        type="text"
-                                        name="district"
-                                        placeholder="District"
-                                        value={formData.district}
-                                        onChange={handleChange}
-                                        className="w-full pl-14 pr-5 py-4 text-lg border-2 rounded-xl focus:outline-none"
-                                        style={{ borderColor: theme.light }}
-                                    />
-                                </div>
-                            </div>
-                        )}
+                    {/* Map component */}
+                    <div className="w-full mt-2 rounded-md overflow-hidden">
+                        {renderMap()}
                     </div>
                 </div>
 

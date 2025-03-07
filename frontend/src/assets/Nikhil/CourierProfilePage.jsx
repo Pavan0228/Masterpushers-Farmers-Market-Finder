@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
     User,
     Mail,
@@ -18,33 +18,153 @@ import {
     Shield,
     Award,
     Package,
+    AlertCircle,
 } from "lucide-react";
 
 const CourierProfilePage = () => {
-    // Sample courier data
-    const [courier, setCourier] = useState({
-        displayName: "Anastasia Grady",
-        email: "curr@gmail.com",
-        phoneNumber: "800-486-4619",
-        address: "9276 Eleazar Lodge",
-        description: "Professional courier service provider",
-        memberSince: "March 2025",
-        profileImage:
-            "https://autofinancetrack-pennytracker.s3.ap-south-1.amazonaws.com/profiles/1741374991144-zoro3.jpg",
-        vehicleType: "Bike",
-        rating: 0,
-        totalDeliveries: 0,
-        verifiedStatus: false,
-        documents: {
-            licenseDocument:
-                "https://autofinancetrack-pennytracker.s3.ap-south-1.amazonaws.com/profiles/1741375011349-zoro2.jpg",
-            drivingLicenseNumber: "452",
-            identityType: "Aadhar Card",
-            cardNumber: "650",
-            idProof:
-                "https://autofinancetrack-pennytracker.s3.ap-south-1.amazonaws.com/profiles/1741375011936-Sukuna1.jpg",
-        },
+    const [courier, setCourier] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [dashboardStats, setDashboardStats] = useState({
+        // ... existing dashboard stats
     });
+
+    useEffect(() => {
+        const fetchCourierData = async () => {
+            try {
+                const token = localStorage.getItem("token");
+                if (!token) {
+                    throw new Error("No token found");
+                }
+
+                const userRole = localStorage.getItem("userRole");
+                if (userRole !== "courier") {
+                    throw new Error("Unauthorized: Not a courier account");
+                }
+
+                const API_URL =
+                    process.env.REACT_APP_API_URL || "http://localhost:3000";
+                const response = await fetch(`${API_URL}/api/v1/auth`, {
+                    method: "GET",
+                    credentials: "include",
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        "Content-Type": "application/json",
+                        "Cache-Control": "no-cache",
+                        Pragma: "no-cache",
+                    },
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(
+                        errorData.message || "Failed to fetch courier data"
+                    );
+                }
+
+                const data = await response.json();
+                console.log("API Response:", data);
+
+                // Transform the API response into our courier state structure
+                setCourier({
+                    displayName: data.user.profile.fullName,
+                    email: data.user.email,
+                    phoneNumber: data.user.profile.phoneNumber,
+                    address: data.user.profile.location,
+                    description: data.user.profile.description,
+                    memberSince: new Date(
+                        data.user.createdAt
+                    ).toLocaleDateString("en-US", {
+                        month: "long",
+                        year: "numeric",
+                    }),
+                    profileImage: data.user.profile.profile,
+                    vehicleType: data.user.profile.vehicleType,
+                    rating: data.user.profile.ratings,
+                    totalDeliveries: 0,
+                    verifiedStatus: data.user.profile.isVerified,
+                    documents: {
+                        licenseDocument: data.user.profile.licenseDocument,
+                        drivingLicenseNumber:
+                            data.user.profile.drivingLicenseNumber,
+                        identityType: data.user.profile.identityVerification,
+                        cardNumber: data.user.profile.cardNumber,
+                        idProof: data.user.profile.idProof,
+                    },
+                    dateOfBirth: data.user.profile.dateOfBirth
+                        ? new Date(
+                              data.user.profile.dateOfBirth
+                          ).toLocaleDateString("en-US", {
+                              month: "long",
+                              day: "numeric",
+                              year: "numeric",
+                          })
+                        : "Not provided",
+                });
+
+                setIsLoading(false);
+            } catch (err) {
+                console.error("Error details:", {
+                    message: err.message,
+                    stack: err.stack,
+                });
+                setError(err.message);
+                setIsLoading(false);
+            }
+        };
+
+        fetchCourierData();
+    }, []);
+
+    useEffect(() => {
+        console.log("LocalStorage items:", {
+            token: localStorage.getItem("token"),
+            userRole: localStorage.getItem("userRole"),
+            user: localStorage.getItem("user"),
+        });
+    }, []);
+
+    // Loading state
+    if (isLoading) {
+        return (
+            <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+                    <p className="mt-4 text-gray-700">
+                        Loading courier profile...
+                    </p>
+                </div>
+            </div>
+        );
+    }
+
+    // Error state
+    if (error) {
+        return (
+            <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+                <div className="bg-white rounded-lg shadow-lg p-6 max-w-md w-full">
+                    <div className="text-center text-red-500 mb-4">
+                        <AlertCircle className="h-12 w-12 mx-auto" />
+                    </div>
+                    <h2 className="text-xl font-bold text-center mb-2">
+                        Error Loading Profile
+                    </h2>
+                    <p className="text-gray-600 text-center mb-4">{error}</p>
+                    <button
+                        onClick={() => window.location.reload()}
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg"
+                    >
+                        Try Again
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    // If no courier data
+    if (!courier) {
+        return null;
+    }
 
     // Sample recent activities
     const [recentActivities, setRecentActivities] = useState([

@@ -18,8 +18,9 @@ import CourierDetails from "./components/admin/CourierDetails";
 import AdminLogin from "./components/admin/adminLogin";
 import Dashboard from "./components/admin/adminDashboard";
 import CouriersList from "./components/admin/CouriersList";
-import CourierMap from "./assets/Nikhil/CourierMap";import CourierProfilePage from "./assets/Nikhil/CourierProfilePage";
+import CourierMap from "./assets/Nikhil/CourierMap";
 import CartPage from "./assets/Nikhil/CartPage";
+import ProfileCourier from "./components/ProfileCourier";
 const App = () => {
     return (
         <Router>
@@ -66,7 +67,7 @@ const App = () => {
                     />
                     <Route
                         path="/profile/courier"
-                        element={<CourierProfilePage />}
+                        element={<ProfileCourier />}
                     />
                 </Route>
 

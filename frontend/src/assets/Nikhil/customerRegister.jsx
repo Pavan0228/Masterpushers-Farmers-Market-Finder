@@ -11,10 +11,14 @@ import {
     Building,
     FileImage,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const CustomerRegistrationPage = () => {
     const fileInputRef = useRef(null);
     const [profilePreview, setProfilePreview] = useState(null);
+    const [locationMethod, setLocationMethod] = useState("manual");
+    const [isGettingLocation, setIsGettingLocation] = useState(false);
+    const [locationError, setLocationError] = useState("");
 
     const [formData, setFormData] = useState({
         displayName: "",
@@ -23,10 +27,15 @@ const CustomerRegistrationPage = () => {
         password: "",
         confirmPassword: "",
         profilePhoto: null,
+        address: "",
+        city: "",
+        district: "",
     });
 
     const [errors, setErrors] = useState({});
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const navigate = useNavigate();
 
     // Color theme for customers
     const theme = {
@@ -65,6 +74,53 @@ const CustomerRegistrationPage = () => {
         fileInputRef.current.click();
     };
 
+    const handleLocationMethodChange = (method) => {
+        setLocationMethod(method);
+        setLocationError("");
+
+        if (method === "live") {
+            setFormData((prev) => ({
+                ...prev,
+                address: "",
+                city: "",
+                district: "",
+            }));
+        } else if (method === "manual") {
+            setFormData((prev) => ({ ...prev, city: "", district: "" }));
+        } else if (method === "cityDistrict") {
+            setFormData((prev) => ({ ...prev, address: "" }));
+        }
+    };
+
+    const handleGetLiveLocation = () => {
+        setIsGettingLocation(true);
+        setLocationError("");
+
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const location = `Latitude: ${position.coords.latitude}, Longitude: ${position.coords.longitude}`;
+                    setFormData((prev) => ({
+                        ...prev,
+                        address: location,
+                    }));
+                    setIsGettingLocation(false);
+                },
+                (error) => {
+                    setLocationError(
+                        "Unable to retrieve your location. Please try another method."
+                    );
+                    setIsGettingLocation(false);
+                }
+            );
+        } else {
+            setLocationError(
+                "Geolocation is not supported by your browser. Please try another method."
+            );
+            setIsGettingLocation(false);
+        }
+    };
+
     const validateForm = () => {
         let formErrors = {};
 
@@ -82,8 +138,10 @@ const CustomerRegistrationPage = () => {
             formErrors.phoneNumber = "Phone number is required";
         }
 
-        if (formData.password.length < 8) {
-            formErrors.password = "Password must be at least 8 characters";
+        if (!formData.password) {
+            formErrors.password = "Password is required";
+        } else if (formData.password.length < 6) {
+            formErrors.password = "Password must be at least 6 characters";
         }
 
         if (formData.password !== formData.confirmPassword) {
@@ -97,80 +155,72 @@ const CustomerRegistrationPage = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        // Log form data before validation
-        console.log("Form Data before validation:", {
-            displayName: formData.displayName,
-            email: formData.email,
-            password: formData.password,
-            phoneNumber: formData.phoneNumber,
-            profilePhoto: formData.profilePhoto,
-        });
-
         if (validateForm()) {
             setIsSubmitting(true);
+
             try {
                 const formDataToSend = new FormData();
+
+                // Required fields
                 formDataToSend.append("fullName", formData.displayName);
                 formDataToSend.append("email", formData.email);
                 formDataToSend.append("password", formData.password);
                 formDataToSend.append("role", "customer");
                 formDataToSend.append("phoneNumber", formData.phoneNumber);
 
+                // Optional location field - only append if there's a value
+                if (locationMethod === "manual" && formData.address.trim()) {
+                    formDataToSend.append("location", formData.address);
+                } else if (
+                    locationMethod === "cityDistrict" &&
+                    (formData.city.trim() || formData.district.trim())
+                ) {
+                    const locationString = [formData.city, formData.district]
+                        .filter(Boolean)
+                        .join(", ");
+                    if (locationString) {
+                        formDataToSend.append("location", locationString);
+                    }
+                } else if (locationMethod === "live" && formData.address) {
+                    formDataToSend.append("location", formData.address);
+                }
+
+                // Optional fields
+                formDataToSend.append("description", "");
+
+                // Add profile photo if exists
                 if (formData.profilePhoto) {
                     formDataToSend.append("profile", formData.profilePhoto);
                 }
-
-                // Log FormData entries
-                console.log("FormData entries:");
-                for (let pair of formDataToSend.entries()) {
-                    console.log(pair[0] + ": " + pair[1]);
-                }
-
-                console.log(
-                    "Sending request to:",
-                    "http://localhost:3000/api/v1/auth/signup"
-                );
 
                 const response = await fetch(
                     "http://localhost:3000/api/v1/auth/signup",
                     {
                         method: "POST",
-                        headers: {
-                            Accept: "application/json",
-                        },
-                        credentials: "include",
                         body: formDataToSend,
                     }
                 );
 
-                console.log("Response status:", response.status);
-                console.log("Response headers:", response.headers);
+                const data = await response.json();
 
                 if (!response.ok) {
-                    const errorData = await response.json();
-                    console.log("Error data:", errorData);
-                    throw new Error(errorData.message || "Registration failed");
+                    throw new Error(data.message || "Registration failed");
                 }
 
-                const data = await response.json();
-                console.log("Registration successful, server response:", data);
-
-                alert("Registration successful! Please login.");
-                window.location.href = "/login";
+                // Handle successful registration
+                console.log("Registration successful:", data);
+                navigate("/login"); // Redirect to login page after successful registration
             } catch (error) {
-                console.error("Registration error details:", error);
                 setErrors((prev) => ({
                     ...prev,
                     submit:
                         error.message ||
                         "Registration failed. Please try again.",
                 }));
+                console.error("Registration error:", error);
             } finally {
                 setIsSubmitting(false);
-                console.log("Submission process completed");
             }
-        } else {
-            console.log("Form validation failed. Current errors:", errors);
         }
     };
 
@@ -229,6 +279,185 @@ const CustomerRegistrationPage = () => {
                             ? "Change Profile Photo"
                             : "Add Profile Photo"}
                     </button>
+                </div>
+
+                {/* Add Location Section (Optional) */}
+                <div
+                    className="space-y-4 p-6 border-2 rounded-xl mb-6"
+                    style={{ borderColor: theme.light }}
+                >
+                    <div className="flex justify-between items-center">
+                        <div className="font-semibold flex items-center text-lg text-gray-700">
+                            <MapPinned className="mr-2 h-6 w-6" />
+                            Delivery Location
+                        </div>
+                        <span className="text-sm text-gray-500">
+                            (Optional)
+                        </span>
+                    </div>
+
+                    <div className="flex flex-col md:flex-row space-y-3 md:space-y-0 md:space-x-4">
+                        <button
+                            type="button"
+                            onClick={() => handleLocationMethodChange("manual")}
+                            className={`flex-1 py-3 px-4 rounded-lg text-base flex items-center justify-center transition duration-300`}
+                            style={{
+                                backgroundColor:
+                                    locationMethod === "manual"
+                                        ? theme.primary
+                                        : "white",
+                                color:
+                                    locationMethod === "manual"
+                                        ? "white"
+                                        : "rgb(55, 65, 81)",
+                                border:
+                                    locationMethod === "manual"
+                                        ? "none"
+                                        : `1px solid ${theme.light}`,
+                            }}
+                        >
+                            <MapPin className="mr-2 h-5 w-5" />
+                            Enter Address
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={() => handleLocationMethodChange("live")}
+                            className={`flex-1 py-3 px-4 rounded-lg text-base flex items-center justify-center transition duration-300`}
+                            style={{
+                                backgroundColor:
+                                    locationMethod === "live"
+                                        ? theme.primary
+                                        : "white",
+                                color:
+                                    locationMethod === "live"
+                                        ? "white"
+                                        : "rgb(55, 65, 81)",
+                                border:
+                                    locationMethod === "live"
+                                        ? "none"
+                                        : `1px solid ${theme.light}`,
+                            }}
+                        >
+                            <Navigation className="mr-2 h-5 w-5" />
+                            Live Location
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={() =>
+                                handleLocationMethodChange("cityDistrict")
+                            }
+                            className={`flex-1 py-3 px-4 rounded-lg text-base flex items-center justify-center transition duration-300`}
+                            style={{
+                                backgroundColor:
+                                    locationMethod === "cityDistrict"
+                                        ? theme.primary
+                                        : "white",
+                                color:
+                                    locationMethod === "cityDistrict"
+                                        ? "white"
+                                        : "rgb(55, 65, 81)",
+                                border:
+                                    locationMethod === "cityDistrict"
+                                        ? "none"
+                                        : `1px solid ${theme.light}`,
+                            }}
+                        >
+                            <Building className="mr-2 h-5 w-5" />
+                            City/District
+                        </button>
+                    </div>
+
+                    <div className="mt-4">
+                        {locationMethod === "manual" && (
+                            <div className="relative">
+                                <MapPin className="absolute left-4 top-4 text-gray-600 h-6 w-6" />
+                                <textarea
+                                    name="address"
+                                    placeholder="Enter Your Delivery Address"
+                                    value={formData.address}
+                                    onChange={handleChange}
+                                    className={`w-full pl-14 pr-5 py-4 text-lg border-2 rounded-xl focus:outline-none resize-none`}
+                                    style={{
+                                        borderColor: theme.light,
+                                        minHeight: "100px",
+                                    }}
+                                />
+                            </div>
+                        )}
+
+                        {locationMethod === "live" && (
+                            <div>
+                                <button
+                                    type="button"
+                                    onClick={handleGetLiveLocation}
+                                    disabled={isGettingLocation}
+                                    className="w-full bg-white py-4 px-4 rounded-xl transition duration-300 flex items-center justify-center text-lg border"
+                                    style={{
+                                        borderColor: theme.light,
+                                        color: theme.primary,
+                                    }}
+                                >
+                                    <Navigation className="mr-3 h-6 w-6" />
+                                    {isGettingLocation
+                                        ? "Getting Location..."
+                                        : "Get Current Location"}
+                                </button>
+
+                                {formData.address &&
+                                    locationMethod === "live" && (
+                                        <div
+                                            className="mt-4 p-4 bg-white rounded-xl border"
+                                            style={{ borderColor: theme.light }}
+                                        >
+                                            <p className="text-base text-gray-700">
+                                                <span className="font-medium">
+                                                    Location captured:
+                                                </span>{" "}
+                                                {formData.address}
+                                            </p>
+                                        </div>
+                                    )}
+
+                                {locationError && (
+                                    <p className="text-red-500 text-sm mt-2">
+                                        {locationError}
+                                    </p>
+                                )}
+                            </div>
+                        )}
+
+                        {locationMethod === "cityDistrict" && (
+                            <div className="space-y-4">
+                                <div className="relative">
+                                    <Building className="absolute left-4 top-4 text-gray-600 h-6 w-6" />
+                                    <input
+                                        type="text"
+                                        name="city"
+                                        placeholder="City"
+                                        value={formData.city}
+                                        onChange={handleChange}
+                                        className="w-full pl-14 pr-5 py-4 text-lg border-2 rounded-xl focus:outline-none"
+                                        style={{ borderColor: theme.light }}
+                                    />
+                                </div>
+
+                                <div className="relative">
+                                    <MapPinned className="absolute left-4 top-4 text-gray-600 h-6 w-6" />
+                                    <input
+                                        type="text"
+                                        name="district"
+                                        placeholder="District"
+                                        value={formData.district}
+                                        onChange={handleChange}
+                                        className="w-full pl-14 pr-5 py-4 text-lg border-2 rounded-xl focus:outline-none"
+                                        style={{ borderColor: theme.light }}
+                                    />
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6">

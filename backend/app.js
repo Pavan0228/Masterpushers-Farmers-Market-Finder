@@ -6,6 +6,7 @@ import { userRouter } from "./routers/user.routes.js";
 import { ampcRouter } from "./routers/ampc.routes.js";
 import { courierRouter } from "./routers/courier.routes.js";
 import productRouter from "./routers/product.routes.js";
+import { paymentRouter } from "./routers/payment.routes.js";
 
 dotenv.config({
     path: "./.env",
@@ -31,5 +32,6 @@ app.use("/api/v1/auth", userRouter);
 app.use("/api/v1/ampc", ampcRouter);
 app.use("/api/v1/courier", courierRouter);
 app.use("/api/v1/product", productRouter);
+app.use("/api/v1/payment", paymentRouter);
 
 export { app };

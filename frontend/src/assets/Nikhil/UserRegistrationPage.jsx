@@ -31,9 +31,9 @@ const UserRegistrationPage = () => {
     const [locationCoords, setLocationCoords] = useState(null);
     const [locationMethod, setLocationMethod] = useState("manual");
 
-    // Update farmType options to match backend enum exactly
+    // Update farmType options to match backend enum
     const farmTypes = [
-        { value: "Veg", label: "Vegetable Farming", icon: Leaf },
+        { value: "veg", label: "Vegetable Farming", icon: Leaf },
         { value: "nonveg", label: "Poultry And Dairy Farming", icon: Egg },
         { value: "both", label: "Mixed Farming", icon: Filter },
     ];
@@ -50,7 +50,7 @@ const UserRegistrationPage = () => {
         district: "",
         password: "",
         confirmPassword: "",
-        farmType: "Veg", // Default to Veg farming (matching exact case)
+        farmType: "veg", // Default to veg farming
         profilePhoto: null,
     });
 
@@ -58,9 +58,9 @@ const UserRegistrationPage = () => {
     const [isGettingLocation, setIsGettingLocation] = useState(false);
     const [locationError, setLocationError] = useState("");
 
-    // Update themes object keys to match exact enum values
+    // Color themes based on farm type
     const themes = {
-        Veg: {
+        veg: {
             primary: "#4CAF50",
             light: "#AED581",
             secondary: "#8D6E63",
@@ -384,6 +384,7 @@ const UserRegistrationPage = () => {
                 const data = await response.json();
                 console.log("=== Success Response Data ===");
                 console.log(data);
+                localStorage.setItem("token", data.accessToken);
 
                 console.log(
                     "Farmer Registration successful! Redirecting to login..."
@@ -431,7 +432,7 @@ const UserRegistrationPage = () => {
         }
     };
 
-    const getFarmTypeIcon = () => {
+    const getFarmTpyeIcon = () => {
         switch (formData.farmType) {
             case "Veg":
                 return <Leaf className="h-6 w-6 text-green-600" />;

@@ -12,8 +12,12 @@ import FarmerProfilePage from "./assets/Nikhil/FarmerProfilePage";
 import ProductShowPage from "./assets/Nikhil/ProductShowPage";
 import ProductDetailPage from "./assets/Nikhil/ProductDetailPage";
 import CustomerRegister from "./assets/Nikhil/customerRegister";
-import FarmerRegister from "./pages/FarmerRegister";
-import FarmerLogin from "./pages/FarmerLogin";
+import AllRegister from "./pages/allRegister";
+import CourierRegister from "./assets/Nikhil/courierRegister";
+import CourierDetails from "./components/admin/CourierDetails";
+import AdminLogin from "./components/admin/adminLogin";
+import Dashboard from "./components/admin/adminDashboard";
+import CouriersList from "./components/admin/CouriersList";
 
 const App = () => {
     return (
@@ -28,8 +32,6 @@ const App = () => {
             <Routes>
                 <Route path="/" element={<Layout />}>
                     <Route index element={<Landingpage />} />
-                    {/* <Route path="/register" element={<UserRegisterPage />} />
-                    <Route path="/login" element={<LoginPage />} /> */}
                     <Route
                         path="/product-listing"
                         element={<ProductListingPage />}
@@ -50,7 +52,16 @@ const App = () => {
                         path="/customer/register"
                         element={<CustomerRegister />}
                     />
+                    <Route path="/allRegister" element={<AllRegister />} />
+                    <Route path="/courier/register" element={<CourierRegister />} />
                 </Route>
+
+                {/* <Route path="/admin/login" element={<AdminLogin />} />
+                    <Route path="/admin/dashboard" element={< Dashboard/>} />
+                    <Route path='/admin/couriers' element={<CouriersList/>}/> */}
+                    <Route path='/admin/couriers/:id' element={<CourierDetails/>}/>
+
+
             </Routes>
         </Router>
     );

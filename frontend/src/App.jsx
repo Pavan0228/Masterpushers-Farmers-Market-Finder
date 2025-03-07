@@ -18,7 +18,7 @@ import CourierDetails from "./components/admin/CourierDetails";
 import AdminLogin from "./components/admin/adminLogin";
 import Dashboard from "./components/admin/adminDashboard";
 import CouriersList from "./components/admin/CouriersList";
-
+import CourierMap from "./assets/Nikhil/CourierMap";
 const App = () => {
     return (
         <Router>
@@ -54,13 +54,14 @@ const App = () => {
                     />
                     <Route path="/allRegister" element={<AllRegister />} />
                     <Route path="/courier/register" element={<CourierRegister />} />
-
+                    <Route path="/courier/map" element={<CourierMap/>} />
                 </Route>
 
                 <Route path="/admin/login" element={<AdminLogin />} />
-                    <Route path="/admin/dashboard" element={< Dashboard/>} />
-                    <Route path='/admin/couriers' element={<CouriersList/>}/>
-                    <Route path='/admin/couriers/:id' element={<CourierDetails/>}/>
+                <Route path="/admin/dashboard" element={< Dashboard />} />
+                <Route path='/admin/couriers' element={<CouriersList />} />
+                <Route path='/admin/couriers/:id' element={<CourierDetails />} />
+
 
 
             </Routes>

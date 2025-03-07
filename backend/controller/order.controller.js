@@ -2,6 +2,7 @@ import { Order } from "../models/order.model.js";
 import { Customer } from "../models/customer.model.js";
 import Product from "../models/product.model.js";
 import { Courier } from "../models/courier.model.js";
+import { Farmer } from "../models/farmer.model.js";
 
 export const orderProducts = async (req, res) => {
     try {
@@ -58,6 +59,17 @@ export const orderAssign = async (req, res) => {
         order.isAvailable = false;
         await order.save();
         res.status(200).json({ message: "Order assigned to courier" });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+export const getOrders = async (req, res) => {
+    try {
+        const orders = await Order.find();
+        const farmer = await Farmer.findById(orders[0].farmer);
+        const pickupLocation = farmer.location;
+        res.status(200).json({ orders, pickupLocation });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

@@ -12,6 +12,11 @@ const orderSchema = new mongoose.Schema(
             ref: "Product",
             required: true,
         },
+        farmer: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Farmer",
+            required: true,
+        },
         totalAmount: {
             type: Number,
             required: true,

@@ -26,18 +26,20 @@ export const orderProducts = async (req, res) => {
 
         const newOrder = new Order({
             customer: customer._id,
+            farmer: product.farmerId,
             product: productId,
             totalAmount: totalAmount,
             quantity: quantity,
             paymentMethod: paymentMethod,
             paymentStatus: paymentStatus,
             location: location,
+            isAvailable: true,
         });
 
         await newOrder.save();
-        res.status(201).json(newOrder);
+        res.status(201).json({ message: "Order created successfully", order: newOrder, status: "success" });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: error.message ,  });
     }
 };
 

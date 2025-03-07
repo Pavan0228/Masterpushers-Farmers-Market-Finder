@@ -33,7 +33,7 @@ const App = () => {
                 <Route path="/" element={<Layout />}>
                     <Route index element={<Landingpage />} />
                     <Route
-                        path="/product-listing"
+                        path="/product/listing"
                         element={<ProductListingPage />}
                     />
                     <Route path="/profile" element={<FarmerProfilePage />} />
@@ -43,7 +43,7 @@ const App = () => {
                         path="/product-detail"
                         element={<ProductDetailPage />}
                     />
-                    <Route path="/farmer/login" element={<LoginPage />} />
+                    <Route path="/login" element={<LoginPage />} />
                     <Route
                         path="/farmer/register"
                         element={<UserRegisterPage />}
@@ -54,11 +54,12 @@ const App = () => {
                     />
                     <Route path="/allRegister" element={<AllRegister />} />
                     <Route path="/courier/register" element={<CourierRegister />} />
+
                 </Route>
 
-                {/* <Route path="/admin/login" element={<AdminLogin />} />
+                <Route path="/admin/login" element={<AdminLogin />} />
                     <Route path="/admin/dashboard" element={< Dashboard/>} />
-                    <Route path='/admin/couriers' element={<CouriersList/>}/> */}
+                    <Route path='/admin/couriers' element={<CouriersList/>}/>
                     <Route path='/admin/couriers/:id' element={<CourierDetails/>}/>
 
 

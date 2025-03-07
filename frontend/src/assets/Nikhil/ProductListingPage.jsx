@@ -12,18 +12,43 @@ import {
     Camera,
     DollarSign,
     FileText,
-    Tag
+    Tag,
 } from "lucide-react";
+
+// Add Indian Rupee icon (you can create this as a custom component)
+const RupeeIcon = () => (
+    <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 320 512"
+        className="h-6 w-6"
+        fill="currentColor"
+    >
+        <path d="M308 96c6.627 0 12-5.373 12-12V44c0-6.627-5.373-12-12-12H12C5.373 32 0 37.373 0 44v44.748c0 6.627 5.373 12 12 12h85.28c27.308 0 48.261 9.958 60.97 27.252H12c-6.627 0-12 5.373-12 12v40c0 6.627 5.373 12 12 12h158.757c-6.217 36.086-32.961 58.632-74.757 58.632H12c-6.627 0-12 5.373-12 12v53.012c0 3.349 1.4 6.546 3.861 8.818l165.052 152.356a12.001 12.001 0 0 0 8.139 3.182h82.562c10.924 0 16.166-13.408 8.139-20.818L116.871 319.906c76.499-2.34 131.144-53.395 138.670-127.906H308c6.627 0 12-5.373 12-12v-40c0-6.627-5.373-12-12-12h-58.69c-3.486-11.541-8.28-22.246-14.252-32H308z" />
+    </svg>
+);
 
 const ProductListingPage = () => {
     const [formData, setFormData] = useState({
-        productName: "",
+        name: "",
         description: "",
         price: "",
+        unit: "kg",
         location: "",
         marketName: "",
-        productPhoto: null,
+        image: null,
+        category: "vegetables",
+        stock: "",
+        isAvailable: true,
     });
+
+    const categories = [
+        { value: "vegetables", label: "Vegetables" },
+        { value: "fruits", label: "Fruits" },
+        { value: "nuts", label: "Nuts" },
+        { value: "dairy", label: "Dairy" },
+        { value: "non-veg", label: "Non-Vegetarian" },
+        { value: "other", label: "Other" },
+    ];
 
     const [errors, setErrors] = useState({});
     const [locationMethod, setLocationMethod] = useState("manual");
@@ -33,6 +58,42 @@ const ProductListingPage = () => {
     const [activeStep, setActiveStep] = useState(1);
     const [previewURL, setPreviewURL] = useState(null);
     const [success, setSuccess] = useState(false);
+    const [apiError, setApiError] = useState(null);
+
+    // Add category-specific UI elements
+    const getCategoryIcon = (category) => {
+        switch (category) {
+            case "vegetables":
+                return "🥬";
+            case "fruits":
+                return "🍎";
+            case "nuts":
+                return "🥜";
+            case "dairy":
+                return "🥛";
+            case "non-veg":
+                return "🍗";
+            default:
+                return "📦";
+        }
+    };
+
+    const getCategoryColor = (category) => {
+        switch (category) {
+            case "vegetables":
+                return "bg-green-100 text-green-800";
+            case "fruits":
+                return "bg-red-100 text-red-800";
+            case "nuts":
+                return "bg-amber-100 text-amber-800";
+            case "dairy":
+                return "bg-blue-100 text-blue-800";
+            case "non-veg":
+                return "bg-rose-100 text-rose-800";
+            default:
+                return "bg-gray-100 text-gray-800";
+        }
+    };
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -45,36 +106,45 @@ const ProductListingPage = () => {
     const handleFileChange = (e) => {
         const file = e.target.files[0];
         if (file) {
+            if (file.size > 5 * 1024 * 1024) {
+                // 5MB limit
+                setErrors((prev) => ({
+                    ...prev,
+                    image: "File size should be less than 5MB",
+                }));
+                return;
+            }
+
             setFormData((prev) => ({
                 ...prev,
-                productPhoto: file,
+                image: file,
             }));
             // Create URL for preview
-            setPreviewURL(URL.createObjectURL(file));
+            const url = URL.createObjectURL(file);
+            setPreviewURL(url);
+
+            // Clean up the old preview URL if it exists
+            return () => URL.revokeObjectURL(url);
         }
     };
 
     const validateForm = () => {
         let formErrors = {};
 
-        if (!formData.productName.trim()) {
-            formErrors.productName = "Product name is required";
+        if (!formData.name.trim()) {
+            formErrors.name = "Product name is required";
         }
 
         if (!formData.price || isNaN(formData.price) || formData.price <= 0) {
             formErrors.price = "Price must be a positive number";
         }
 
-        if (locationMethod === "manual" && !formData.location.trim()) {
-            formErrors.location = "Please enter your location";
+        if (!formData.stock || isNaN(formData.stock) || formData.stock < 0) {
+            formErrors.stock = "Stock must be a non-negative number";
         }
 
-        if (!formData.marketName.trim()) {
-            formErrors.marketName = "Market name is required";
-        }
-
-        if (!formData.productPhoto) {
-            formErrors.productPhoto = "Please upload a product photo";
+        if (!formData.image) {
+            formErrors.image = "Please upload a product photo";
         }
 
         setErrors(formErrors);
@@ -88,7 +158,9 @@ const ProductListingPage = () => {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
                 (position) => {
-                    const location = `Latitude: ${position.coords.latitude.toFixed(4)}, Longitude: ${position.coords.longitude.toFixed(4)}`;
+                    const location = `Latitude: ${position.coords.latitude.toFixed(
+                        4
+                    )}, Longitude: ${position.coords.longitude.toFixed(4)}`;
                     setFormData((prev) => ({
                         ...prev,
                         location: location,
@@ -126,7 +198,7 @@ const ProductListingPage = () => {
             "City Market",
             "Weekend Market",
             "Artisan Market",
-            "Green Market"
+            "Green Market",
         ];
         const filteredMarkets = allMarkets.filter((market) =>
             market.toLowerCase().includes(query.toLowerCase())
@@ -142,27 +214,79 @@ const ProductListingPage = () => {
         setSuggestedMarkets([]);
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         if (validateForm()) {
-            // Submit form logic
-            console.log("Product listed", formData);
-            setSuccess(true);
-            // Reset after 3 seconds
-            setTimeout(() => {
-                setSuccess(false);
-                // Reset form
-                setFormData({
-                    productName: "",
-                    description: "",
-                    price: "",
-                    location: "",
-                    marketName: "",
-                    productPhoto: null,
-                });
-                setPreviewURL(null);
-                setActiveStep(1);
-            }, 3000);
+            setApiError(null); // Reset any previous errors
+            try {
+                const formDataToSend = new FormData();
+                formDataToSend.append("name", formData.name);
+                formDataToSend.append("price", formData.price);
+                formDataToSend.append("unit", formData.unit);
+                formDataToSend.append("description", formData.description);
+                formDataToSend.append("image", formData.image);
+                formDataToSend.append("category", formData.category);
+                formDataToSend.append("stock", formData.stock);
+                formDataToSend.append("isAvailable", formData.isAvailable);
+
+                // Get token from localStorage or your auth management system
+                const token = localStorage.getItem("token"); // Adjust based on your auth setup
+
+                if (!token) {
+                    setApiError("Authentication required. Please login.");
+                    return;
+                }
+
+                const response = await fetch(
+                    "http://localhost:3000/api/v1/product",
+                    {
+                        method: "POST",
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                        },
+                        body: formDataToSend,
+                    }
+                );
+
+                if (response.ok) {
+                    setSuccess(true);
+                    // Reset form after 3 seconds
+                    setTimeout(() => {
+                        setSuccess(false);
+                        setFormData({
+                            name: "",
+                            description: "",
+                            price: "",
+                            unit: "kg",
+                            location: "",
+                            marketName: "",
+                            image: null,
+                            category: "vegetables",
+                            stock: "",
+                            isAvailable: true,
+                        });
+                        setPreviewURL(null);
+                        setActiveStep(1);
+                    }, 3000);
+                } else {
+                    const errorData = await response.json();
+                    throw new Error(
+                        errorData.message || "Failed to submit product"
+                    );
+                }
+            } catch (error) {
+                console.error("Error submitting product:", error);
+                if (error.message === "Failed to fetch") {
+                    setApiError(
+                        "Unable to connect to the server. Please check your internet connection or try again later."
+                    );
+                } else {
+                    setApiError(
+                        error.message ||
+                            "An error occurred while submitting the product."
+                    );
+                }
+            }
         }
     };
 
@@ -176,21 +300,126 @@ const ProductListingPage = () => {
     };
 
     const nextStep = () => {
-        setActiveStep(prev => Math.min(prev + 1, 3));
+        setActiveStep((prev) => Math.min(prev + 1, 3));
     };
 
     const prevStep = () => {
-        setActiveStep(prev => Math.max(prev - 1, 1));
+        setActiveStep((prev) => Math.max(prev - 1, 1));
     };
+
+    // Update Step 1 content
+    const renderCategorySelection = () => (
+        <div className="relative mb-6">
+            <label className="block text-gray-700 mb-2">Category</label>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                {categories.map((category) => (
+                    <button
+                        key={category.value}
+                        type="button"
+                        onClick={() =>
+                            setFormData((prev) => ({
+                                ...prev,
+                                category: category.value,
+                            }))
+                        }
+                        className={`p-4 rounded-xl border-2 transition-all duration-200 flex flex-col items-center gap-2
+                            ${
+                                formData.category === category.value
+                                    ? `${getCategoryColor(
+                                          category.value
+                                      )} border-current shadow-md`
+                                    : "border-gray-200 hover:border-gray-300"
+                            }`}
+                    >
+                        <span className="text-2xl">
+                            {getCategoryIcon(category.value)}
+                        </span>
+                        <span className="font-medium">{category.label}</span>
+                    </button>
+                ))}
+            </div>
+        </div>
+    );
+
+    // Update the price input field
+    const renderPriceInput = () => (
+        <div className="grid grid-cols-2 gap-4 mb-6">
+            <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-green-600">
+                    <RupeeIcon />
+                </div>
+                <input
+                    type="number"
+                    name="price"
+                    placeholder="Price"
+                    value={formData.price}
+                    onChange={handleChange}
+                    className={`w-full pl-14 pr-5 py-4 text-lg border-2 rounded-xl focus:outline-none 
+                    ${
+                        errors.price
+                            ? "border-red-500 focus:border-red-500"
+                            : "border-green-200 focus:border-green-600"
+                    }`}
+                    required
+                />
+                {errors.price && (
+                    <p className="text-red-500 text-sm mt-1">{errors.price}</p>
+                )}
+            </div>
+            <div className="relative">
+                <select
+                    name="unit"
+                    value={formData.unit}
+                    onChange={handleChange}
+                    className="w-full pl-4 pr-5 py-4 text-lg border-2 border-green-200 rounded-xl focus:outline-none focus:border-green-600"
+                >
+                    <option value="kg">Kilogram (kg)</option>
+                    <option value="g">Gram (g)</option>
+                    <option value="piece">Piece</option>
+                    <option value="dozen">Dozen</option>
+                </select>
+            </div>
+        </div>
+    );
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-green-50 to-green-100 flex items-center justify-center p-6">
             <div className="bg-white shadow-2xl rounded-2xl p-8 md:p-10 w-full max-w-2xl relative overflow-hidden">
+                {/* Show API Error if present */}
+                {apiError && (
+                    <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded">
+                        <div className="flex items-center">
+                            <div className="flex-shrink-0">
+                                <svg
+                                    className="h-5 w-5 text-red-400"
+                                    viewBox="0 0 20 20"
+                                    fill="currentColor"
+                                >
+                                    <path
+                                        fillRule="evenodd"
+                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                                        clipRule="evenodd"
+                                    />
+                                </svg>
+                            </div>
+                            <div className="ml-3">
+                                <p className="text-sm text-red-700">
+                                    {apiError}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {success && (
                     <div className="absolute inset-0 bg-white z-50 flex flex-col items-center justify-center p-8 animate-fade-in">
                         <CheckCircle className="text-green-500 h-24 w-24 mb-6" />
-                        <h2 className="text-3xl font-bold text-green-700 mb-3">Product Listed Successfully!</h2>
-                        <p className="text-gray-600 text-lg mb-8">Your product has been added to the marketplace.</p>
+                        <h2 className="text-3xl font-bold text-green-700 mb-3">
+                            Product Listed Successfully!
+                        </h2>
+                        <p className="text-gray-600 text-lg mb-8">
+                            Your product has been added to the marketplace.
+                        </p>
                     </div>
                 )}
 
@@ -206,21 +435,39 @@ const ProductListingPage = () => {
                 {/* Progress Steps */}
                 <div className="flex justify-between mb-8 px-4">
                     <div className="flex flex-col items-center">
-                        <div className={`rounded-full h-12 w-12 flex items-center justify-center ${activeStep >= 1 ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-500'}`}>
+                        <div
+                            className={`rounded-full h-12 w-12 flex items-center justify-center ${
+                                activeStep >= 1
+                                    ? "bg-green-600 text-white"
+                                    : "bg-gray-200 text-gray-500"
+                            }`}
+                        >
                             <Tag className="h-6 w-6" />
                         </div>
                         <span className="text-sm mt-2">Details</span>
                     </div>
                     <div className="flex-1 border-t-2 border-dashed self-center mx-3 border-green-200"></div>
                     <div className="flex flex-col items-center">
-                        <div className={`rounded-full h-12 w-12 flex items-center justify-center ${activeStep >= 2 ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-500'}`}>
+                        <div
+                            className={`rounded-full h-12 w-12 flex items-center justify-center ${
+                                activeStep >= 2
+                                    ? "bg-green-600 text-white"
+                                    : "bg-gray-200 text-gray-500"
+                            }`}
+                        >
                             <Camera className="h-6 w-6" />
                         </div>
                         <span className="text-sm mt-2">Photo</span>
                     </div>
                     <div className="flex-1 border-t-2 border-dashed self-center mx-3 border-green-200"></div>
                     <div className="flex flex-col items-center">
-                        <div className={`rounded-full h-12 w-12 flex items-center justify-center ${activeStep >= 3 ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-500'}`}>
+                        <div
+                            className={`rounded-full h-12 w-12 flex items-center justify-center ${
+                                activeStep >= 3
+                                    ? "bg-green-600 text-white"
+                                    : "bg-gray-200 text-gray-500"
+                            }`}
+                        >
                             <MapPinned className="h-6 w-6" />
                         </div>
                         <span className="text-sm mt-2">Location</span>
@@ -237,17 +484,46 @@ const ProductListingPage = () => {
                                 </div>
                                 <input
                                     type="text"
-                                    name="productName"
+                                    name="name"
                                     placeholder="Product Name"
-                                    value={formData.productName}
+                                    value={formData.name}
                                     onChange={handleChange}
                                     className={`w-full pl-14 pr-5 py-4 text-lg border-2 rounded-xl focus:outline-none 
-                                    ${errors.productName ? "border-red-500 focus:border-red-500" : "border-green-200 focus:border-green-600"}`}
+                                    ${
+                                        errors.name
+                                            ? "border-red-500 focus:border-red-500"
+                                            : "border-green-200 focus:border-green-600"
+                                    }`}
                                     required
                                 />
-                                {errors.productName && (
+                                {errors.name && (
                                     <p className="text-red-500 text-base mt-2 ml-2">
-                                        {errors.productName}
+                                        {errors.name}
+                                    </p>
+                                )}
+                            </div>
+
+                            {renderCategorySelection()}
+                            {renderPriceInput()}
+
+                            <div className="relative mb-6">
+                                <input
+                                    type="number"
+                                    name="stock"
+                                    placeholder="Stock Quantity"
+                                    value={formData.stock}
+                                    onChange={handleChange}
+                                    className={`w-full pl-4 pr-5 py-4 text-lg border-2 rounded-xl focus:outline-none 
+                                    ${
+                                        errors.stock
+                                            ? "border-red-500 focus:border-red-500"
+                                            : "border-green-200 focus:border-green-600"
+                                    }`}
+                                    required
+                                />
+                                {errors.stock && (
+                                    <p className="text-red-500 text-base mt-2 ml-2">
+                                        {errors.stock}
                                     </p>
                                 )}
                             </div>
@@ -266,27 +542,6 @@ const ProductListingPage = () => {
                                 />
                             </div>
 
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                    <DollarSign className="h-6 w-6 text-green-600" />
-                                </div>
-                                <input
-                                    type="number"
-                                    name="price"
-                                    placeholder="Price"
-                                    value={formData.price}
-                                    onChange={handleChange}
-                                    className={`w-full pl-14 pr-5 py-4 text-lg border-2 rounded-xl focus:outline-none 
-                                    ${errors.price ? "border-red-500 focus:border-red-500" : "border-green-200 focus:border-green-600"}`}
-                                    required
-                                />
-                                {errors.price && (
-                                    <p className="text-red-500 text-base mt-2 ml-2">
-                                        {errors.price}
-                                    </p>
-                                )}
-                            </div>
-                            
                             <div className="mt-8 flex justify-end">
                                 <button
                                     type="button"
@@ -305,13 +560,21 @@ const ProductListingPage = () => {
                             <div className="relative bg-green-50 p-6 rounded-xl border-2 border-dashed border-green-300 text-center">
                                 {previewURL ? (
                                     <div className="mb-4">
-                                        <img src="/api/placeholder/300/200" alt="Product preview" className="mx-auto rounded-lg shadow-md" />
-                                        <p className="text-green-700 mt-2">Product photo preview</p>
+                                        <img
+                                            src={previewURL}
+                                            alt="Product preview"
+                                            className="mx-auto rounded-lg shadow-md max-w-full h-auto max-h-[300px] object-contain"
+                                        />
+                                        <p className="text-green-700 mt-2">
+                                            Product photo preview
+                                        </p>
                                     </div>
                                 ) : (
                                     <div className="mb-4">
                                         <Camera className="h-16 w-16 text-green-500 mx-auto mb-2" />
-                                        <p className="text-green-700">Upload a photo of your product</p>
+                                        <p className="text-green-700">
+                                            Upload a photo of your product
+                                        </p>
                                     </div>
                                 )}
 
@@ -326,15 +589,17 @@ const ProductListingPage = () => {
                                     htmlFor="productPhoto"
                                     className="cursor-pointer bg-white text-green-700 py-3 px-4 rounded-xl hover:bg-green-100 transition duration-300 border border-green-200 inline-block"
                                 >
-                                    {previewURL ? "Change Photo" : "Select Photo"}
+                                    {previewURL
+                                        ? "Change Photo"
+                                        : "Select Photo"}
                                 </label>
-                                {errors.productPhoto && (
+                                {errors.image && (
                                     <p className="text-red-500 text-base mt-2">
-                                        {errors.productPhoto}
+                                        {errors.image}
                                     </p>
                                 )}
                             </div>
-                            
+
                             <div className="mt-8 flex justify-between">
                                 <button
                                     type="button"
@@ -369,7 +634,11 @@ const ProductListingPage = () => {
                                     value={formData.marketName}
                                     onChange={handleMarketSearch}
                                     className={`w-full pl-14 pr-5 py-4 text-lg border-2 rounded-xl focus:outline-none 
-                                    ${errors.marketName ? "border-red-500 focus:border-red-500" : "border-green-200 focus:border-green-600"}`}
+                                    ${
+                                        errors.marketName
+                                            ? "border-red-500 focus:border-red-500"
+                                            : "border-green-200 focus:border-green-600"
+                                    }`}
                                     required
                                 />
                                 {errors.marketName && (
@@ -379,18 +648,22 @@ const ProductListingPage = () => {
                                 )}
                                 {suggestedMarkets.length > 0 && (
                                     <ul className="absolute z-10 bg-white border border-gray-300 w-full max-h-40 overflow-y-auto rounded-lg shadow-lg">
-                                        {suggestedMarkets.map((market, index) => (
-                                            <li
-                                                key={index}
-                                                className="p-3 hover:bg-green-50 cursor-pointer border-b border-gray-100 last:border-b-0"
-                                                onClick={() => selectMarket(market)}
-                                            >
-                                                <div className="flex items-center">
-                                                    <Building className="h-5 w-5 text-green-600 mr-2" />
-                                                    {market}
-                                                </div>
-                                            </li>
-                                        ))}
+                                        {suggestedMarkets.map(
+                                            (market, index) => (
+                                                <li
+                                                    key={index}
+                                                    className="p-3 hover:bg-green-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                                                    onClick={() =>
+                                                        selectMarket(market)
+                                                    }
+                                                >
+                                                    <div className="flex items-center">
+                                                        <Building className="h-5 w-5 text-green-600 mr-2" />
+                                                        {market}
+                                                    </div>
+                                                </li>
+                                            )
+                                        )}
                                     </ul>
                                 )}
                             </div>
@@ -464,9 +737,19 @@ const ProductListingPage = () => {
                                                 type="button"
                                                 onClick={handleGetLiveLocation}
                                                 disabled={isGettingLocation}
-                                                className={`w-full bg-white text-green-700 py-4 px-4 rounded-xl hover:bg-green-100 transition duration-300 flex items-center justify-center text-lg border border-green-200 ${isGettingLocation ? 'opacity-70' : ''}`}
+                                                className={`w-full bg-white text-green-700 py-4 px-4 rounded-xl hover:bg-green-100 transition duration-300 flex items-center justify-center text-lg border border-green-200 ${
+                                                    isGettingLocation
+                                                        ? "opacity-70"
+                                                        : ""
+                                                }`}
                                             >
-                                                <Navigation className={`mr-3 h-6 w-6 ${isGettingLocation ? 'animate-spin' : ''}`} />
+                                                <Navigation
+                                                    className={`mr-3 h-6 w-6 ${
+                                                        isGettingLocation
+                                                            ? "animate-spin"
+                                                            : ""
+                                                    }`}
+                                                />
                                                 {isGettingLocation
                                                     ? "Getting Location..."
                                                     : "Get Current Location"}
@@ -477,7 +760,8 @@ const ProductListingPage = () => {
                                                     <div className="mt-4 p-4 bg-white rounded-xl border border-green-200 animate-fade-in">
                                                         <p className="text-base text-green-800">
                                                             <span className="font-medium">
-                                                                Location captured:
+                                                                Location
+                                                                captured:
                                                             </span>{" "}
                                                             {formData.location}
                                                         </p>

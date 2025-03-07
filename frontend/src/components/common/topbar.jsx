@@ -1,5 +1,6 @@
 import React from "react";
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import GoogleTranslate from "../../snippets/GoogleTranslate";
 import {
     Menu,
@@ -13,6 +14,7 @@ import {
 } from "lucide-react";
 
 const TopBar = () => {
+    const navigate = useNavigate();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
     const [isDarkMode, setIsDarkMode] = useState(false);
@@ -31,7 +33,15 @@ const TopBar = () => {
         return () => window.removeEventListener("scroll", handleScroll);
     }, []);
 
-    
+    // Add navigation handlers
+    const handleLogin = () => {
+        navigate("/login");
+    };
+
+    const handleRegister = () => {
+        navigate("/allregister");
+    };
+
     return (
         <div
             className={`sticky top-0 z-50 transition-all duration-300 ${
@@ -74,31 +84,21 @@ const TopBar = () => {
 
                 {/* Desktop Navigation */}
                 <div className="hidden md:flex items-center space-x-6">
-                    <a
-                        href="/about"
-                        className="flex items-center text-green-700 hover:text-green-900 font-medium transition-colors duration-200 relative group"
-                    >
-                        {/* <Info size={18} className="mr-1" />
-                        Why KisanKonnect?
-                        <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-green-600 transition-all duration-300 group-hover:w-full"></span> */}
-                    </a>
-                    {/* <a
-                        href="/download"
-                        className="flex items-center text-green-700 hover:text-green-900 font-medium transition-colors duration-200 relative group"
-                    >
-                        <Download size={18} className="mr-1" />
-                        Download App
-                        <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-green-600 transition-all duration-300 group-hover:w-full"></span>
-                    </a> */}
                     <div className="pl-4 border-l border-green-300 flex items-center">
                         <Globe size={16} className="mr-2 text-green-600" />
                         <GoogleTranslate />
                     </div>
-                    <button className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-6 rounded-full shadow-md transition-all duration-200 transform hover:scale-105 hover:shadow-lg">
+                    <button
+                        onClick={handleLogin}
+                        className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-6 rounded-full shadow-md transition-all duration-200 transform hover:scale-105 hover:shadow-lg"
+                    >
                         Login
                     </button>
-                    <button className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-6 rounded-full shadow-md transition-all duration-200 transform hover:scale-105 hover:shadow-lg">
-                        Get Started
+                    <button
+                        onClick={handleRegister}
+                        className="bg-white hover:bg-green-50 text-green-600 font-medium py-2 px-6 rounded-full shadow-md transition-all duration-200 transform hover:scale-105 hover:shadow-lg border-2 border-green-600"
+                    >
+                        Register
                     </button>
                 </div>
 
@@ -152,8 +152,17 @@ const TopBar = () => {
                                 )}
                             </button>
                         </div>
-                        <button className="bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 rounded-lg shadow-md w-full transition-colors duration-200">
-                            Get Started
+                        <button
+                            onClick={handleLogin}
+                            className="bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 rounded-lg shadow-md w-full transition-colors duration-200"
+                        >
+                            Login
+                        </button>
+                        <button
+                            onClick={handleRegister}
+                            className="bg-white hover:bg-green-50 text-green-600 font-medium py-3 px-4 rounded-lg shadow-md w-full transition-colors duration-200 border-2 border-green-600"
+                        >
+                            Register
                         </button>
                     </div>
                 </div>

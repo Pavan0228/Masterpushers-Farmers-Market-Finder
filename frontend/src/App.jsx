@@ -12,11 +12,8 @@ import FarmerProfilePage from "./assets/Nikhil/FarmerProfilePage";
 import ProductShowPage from "./assets/Nikhil/ProductShowPage";
 import ProductDetailPage from "./assets/Nikhil/ProductDetailPage";
 import CustomerRegister from "./assets/Nikhil/customerRegister";
-import FarmerRegister from "./pages/FarmerRegister";
-import FarmerLogin from "./pages/FarmerLogin";
-import AdminLogin from './components/admin/AdminLogin';
-import Dashboard from './components/admin/adminDashboard';
-import CouriersList from "./components/admin/CouriersList";
+import AllRegister from "./pages/allRegister";
+import CourierRegister from "./assets/Nikhil/courierRegister";
 import CourierDetails from "./components/admin/CourierDetails";
 
 const App = () => {
@@ -32,8 +29,6 @@ const App = () => {
             <Routes>
                 <Route path="/" element={<Layout />}>
                     <Route index element={<Landingpage />} />
-                    {/* <Route path="/register" element={<UserRegisterPage />} />
-                    <Route path="/login" element={<LoginPage />} /> */}
                     <Route
                         path="/product-listing"
                         element={<ProductListingPage />}
@@ -45,9 +40,17 @@ const App = () => {
                         path="/product-detail"
                         element={<ProductDetailPage />}
                     />
-                    <Route path="/farmer/login" element={<FarmerLogin />} />
-                    <Route path="/farmer/register" element={<FarmerRegister />} />
-                    
+                    <Route path="/farmer/login" element={<LoginPage />} />
+                    <Route
+                        path="/farmer/register"
+                        element={<UserRegisterPage />}
+                    />
+                    <Route
+                        path="/customer/register"
+                        element={<CustomerRegister />}
+                    />
+                    <Route path="/allRegister" element={<AllRegister />} />
+                    <Route path="/courier/register" element={<CourierRegister />} />
                 </Route>
                 <Route path="/admin/login" element={<AdminLogin />} />
                     <Route path="/admin/dashboard" element={< Dashboard/>} />

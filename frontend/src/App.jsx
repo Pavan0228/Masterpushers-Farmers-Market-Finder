@@ -13,6 +13,9 @@ import ProductShowPage from "./assets/Nikhil/ProductShowPage";
 import ProductDetailPage from "./assets/Nikhil/ProductDetailPage";
 import FarmerRegister from "./pages/FarmerRegister";
 import FarmerLogin from "./pages/FarmerLogin";
+import AdminLogin from './components/admin/AdminLogin';
+import Dashboard from './components/admin/adminDashboard';
+import CouriersList from "./components/admin/CouriersList";
 
 const App = () => {
     return (
@@ -42,7 +45,11 @@ const App = () => {
                     />
                     <Route path="/farmer/login" element={<FarmerLogin />} />
                     <Route path="/farmer/register" element={<FarmerRegister />} />
+                    
                 </Route>
+                <Route path="/admin/login" element={<AdminLogin />} />
+                    <Route path="/admin/dashboard" element={< Dashboard/>} />
+                    <Route path='/admin/couriers' element={<CouriersList/>}/>
             </Routes>
         </Router>
     );

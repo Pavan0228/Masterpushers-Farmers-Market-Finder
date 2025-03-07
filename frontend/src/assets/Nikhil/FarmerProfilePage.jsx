@@ -49,7 +49,7 @@ const FarmerProfilePage = () => {
     useEffect(() => {
         const fetchFarmerData = async () => {
             try {
-                const accessToken = localStorage.getItem("accessToken");
+                const accessToken = localStorage.getItem("token");
                 if (!accessToken) {
                     throw new Error("No access token found");
                 }
@@ -461,7 +461,7 @@ const FarmerProfilePage = () => {
                             </h2>
 
                             <div className="space-y-6">
-                                {dashboardStats.recentOrders.map((order) => (
+                                {dashboardStats?.recentOrders?.map((order) => (
                                     <div key={order._id} className="flex">
                                         <div className="mr-4">
                                             <div className="bg-green-100 p-3 rounded-full">

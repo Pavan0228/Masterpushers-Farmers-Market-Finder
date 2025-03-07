@@ -24,26 +24,26 @@ const Dashboard = () => {
   });
   const navigate = useNavigate();
   
-  useEffect(() => {
-    fetchDashboardStats();
-  }, []);
+  // useEffect(() => {
+  //   fetchDashboardStats();
+  // }, []);
   
-  const fetchDashboardStats = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(`${API_BASE_URL}/admin/stats`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setStats(response.data);
-    } catch (error) {
-      console.error('Error fetching dashboard stats:', error);
-      if (error.response?.status === 401) {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        navigate('/admin/login');
-      }
-    }
-  };
+  // const fetchDashboardStats = async () => {
+  //   try {
+  //     const token = localStorage.getItem('token');
+  //     const response = await axios.get(`${API_BASE_URL}/admin/stats`, {
+  //       headers: { Authorization: `Bearer ${token}` }
+  //     });
+  //     setStats(response.data);
+  //   } catch (error) {
+  //     console.error('Error fetching dashboard stats:', error);
+  //     if (error.response?.status === 401) {
+  //       localStorage.removeItem('token');
+  //       localStorage.removeItem('user');
+  //       navigate('/admin/login');
+  //     }
+  //   }
+  // };
 
   const handleLogout = () => {
     localStorage.removeItem('token');

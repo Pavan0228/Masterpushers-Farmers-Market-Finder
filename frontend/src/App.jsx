@@ -17,6 +17,7 @@ import FarmerLogin from "./pages/FarmerLogin";
 import AdminLogin from './components/admin/AdminLogin';
 import Dashboard from './components/admin/adminDashboard';
 import CouriersList from "./components/admin/CouriersList";
+import CourierDetails from "./components/admin/CourierDetails";
 
 const App = () => {
     return (
@@ -51,6 +52,9 @@ const App = () => {
                 <Route path="/admin/login" element={<AdminLogin />} />
                     <Route path="/admin/dashboard" element={< Dashboard/>} />
                     <Route path='/admin/couriers' element={<CouriersList/>}/>
+                    <Route path='/admin/couriers/:id' element={<CourierDetails/>}/>
+
+
             </Routes>
         </Router>
     );

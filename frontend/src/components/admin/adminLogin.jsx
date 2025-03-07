@@ -28,12 +28,12 @@ const AdminLogin = () => {
     setLoading(true);
     
     try {
-      const response = await axios.post(`${API_BASE_URL}/auth/login`, { 
+      const response = await axios.post(`${API_BASE_URL}/api/v1/auth/login`, { 
         email, 
         password 
       });
       
-      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('token', response.data.accessToken);
       localStorage.setItem('user', JSON.stringify(response.data.user));
       toast.success('Login successful!');
       navigate('/admin/dashboard');

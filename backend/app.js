@@ -38,7 +38,8 @@ app.use("/api/v1/courier", courierRouter);
 app.use("/api/v1/product", productRouter);
 app.use("/api/v1/payment", paymentRouter);
 app.use("/api/v1/order", orderRouter);
-
+app.use("/api/v1/farmer", farmerRouter);
+app.use("/api/v1/wishlist", wishlistRouter);
 
 
 
@@ -80,7 +81,5 @@ app.post("/api/directions", async (req, res) => {
         res.status(500).json({ error: "Failed to fetch directions" });
     }
 });
-app.use("/api/v1/farmer", farmerRouter);
-app.use("/api/v1/wishlist", wishlistRouter);
 
 export { app };

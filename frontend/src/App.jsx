@@ -51,6 +51,9 @@ const App = () => {
                     <Route path="/allRegister" element={<AllRegister />} />
                     <Route path="/courier/register" element={<CourierRegister />} />
                 </Route>
+                <Route path="/admin/login" element={<AdminLogin />} />
+                    <Route path="/admin/dashboard" element={< Dashboard/>} />
+                    <Route path='/admin/couriers' element={<CouriersList/>}/>
             </Routes>
         </Router>
     );

@@ -18,6 +18,13 @@ const TopBar = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
     const [isDarkMode, setIsDarkMode] = useState(false);
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+    // Check for token on component mount
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        setIsLoggedIn(!!token);
+    }, []);
 
     // Handle scroll effect
     useEffect(() => {
@@ -40,6 +47,13 @@ const TopBar = () => {
 
     const handleRegister = () => {
         navigate("/allregister");
+    };
+
+    // Handle logout
+    const handleLogout = () => {
+        localStorage.removeItem('token');
+        setIsLoggedIn(false);
+        navigate('/');
     };
 
     return (
@@ -88,18 +102,29 @@ const TopBar = () => {
                         <Globe size={16} className="mr-2 text-green-600" />
                         <GoogleTranslate />
                     </div>
-                    <button
-                        onClick={handleLogin}
-                        className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-6 rounded-full shadow-md transition-all duration-200 transform hover:scale-105 hover:shadow-lg"
-                    >
-                        Login
-                    </button>
-                    <button
-                        onClick={handleRegister}
-                        className="bg-white hover:bg-green-50 text-green-600 font-medium py-2 px-6 rounded-full shadow-md transition-all duration-200 transform hover:scale-105 hover:shadow-lg border-2 border-green-600"
-                    >
-                        Register
-                    </button>
+                    {isLoggedIn ? (
+                        <button
+                            onClick={handleLogout}
+                            className="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-6 rounded-full shadow-md transition-all duration-200 transform hover:scale-105 hover:shadow-lg"
+                        >
+                            Logout
+                        </button>
+                    ) : (
+                        <>
+                            <button
+                                onClick={handleLogin}
+                                className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-6 rounded-full shadow-md transition-all duration-200 transform hover:scale-105 hover:shadow-lg"
+                            >
+                                Login
+                            </button>
+                            <button
+                                onClick={handleRegister}
+                                className="bg-white hover:bg-green-50 text-green-600 font-medium py-2 px-6 rounded-full shadow-md transition-all duration-200 transform hover:scale-105 hover:shadow-lg border-2 border-green-600"
+                            >
+                                Register
+                            </button>
+                        </>
+                    )}
                 </div>
 
                 {/* Mobile Menu Button */}
@@ -152,18 +177,29 @@ const TopBar = () => {
                                 )}
                             </button>
                         </div>
-                        <button
-                            onClick={handleLogin}
-                            className="bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 rounded-lg shadow-md w-full transition-colors duration-200"
-                        >
-                            Login
-                        </button>
-                        <button
-                            onClick={handleRegister}
-                            className="bg-white hover:bg-green-50 text-green-600 font-medium py-3 px-4 rounded-lg shadow-md w-full transition-colors duration-200 border-2 border-green-600"
-                        >
-                            Register
-                        </button>
+                        {isLoggedIn ? (
+                            <button
+                                onClick={handleLogout}
+                                className="bg-red-600 hover:bg-red-700 text-white font-medium py-3 px-4 rounded-lg shadow-md w-full transition-colors duration-200"
+                            >
+                                Logout
+                            </button>
+                        ) : (
+                            <>
+                                <button
+                                    onClick={handleLogin}
+                                    className="bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 rounded-lg shadow-md w-full transition-colors duration-200"
+                                >
+                                    Login
+                                </button>
+                                <button
+                                    onClick={handleRegister}
+                                    className="bg-white hover:bg-green-50 text-green-600 font-medium py-3 px-4 rounded-lg shadow-md w-full transition-colors duration-200 border-2 border-green-600"
+                                >
+                                    Register
+                                </button>
+                            </>
+                        )}
                     </div>
                 </div>
             )}

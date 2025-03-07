@@ -1,6 +1,5 @@
 import { Courier } from "../models/courier.model.js";
 
-
 export const getCouriers = async (req, res) => {
     try {
         const couriers = await Courier.find().populate("user");

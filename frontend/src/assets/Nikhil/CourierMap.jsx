@@ -86,7 +86,7 @@ const CourierMap = () => {
     };
 
     // Fetch directions with address
-    const fetchDirectionsWithAddress = async (origin, destinationAddress) => {
+    const fetchDirectionsWithAddress = async (origin, destinationAddress, isPickupRoute) => {
         console.log("Fetching directions with:");
         console.log("Origin:", origin);
         console.log("Destination:", destinationAddress);
@@ -114,21 +114,29 @@ const CourierMap = () => {
             if (data.routes && data.routes.length > 0) {
                 const encoded = data.routes[0].polyline.encodedPolyline;
                 const decodedPath = window.google.maps.geometry.encoding.decodePath(encoded);
-                setRouteToPickup(decodedPath);
-
-                if (data.routes[0].legs && data.routes[0].legs.length > 0 && data.routes[0].legs[0].steps) {
-                    // You can set directions instructions here if needed
+                
+                // Set the route based on whether it's a pickup route or destination route
+                if (isPickupRoute) {
+                    setRouteToPickup(decodedPath); // Green route to pickup
                 } else {
-                    // Handle no steps case
+                    setRouteToDestination(decodedPath); // Red route to destination
                 }
             } else {
                 toast.error("No routes found.");
-                setRouteToPickup(null);
+                if (isPickupRoute) {
+                    setRouteToPickup(null);
+                } else {
+                    setRouteToDestination(null);
+                }
             }
         } catch (error) {
             console.error("Error fetching directions: ", error);
             toast.error("Could not fetch directions.");
-            setRouteToPickup(null);
+            if (isPickupRoute) {
+                setRouteToPickup(null);
+            } else {
+                setRouteToDestination(null);
+            }
         }
     };
 
@@ -193,7 +201,7 @@ const CourierMap = () => {
         const pickupCoordinates = {currentLocation};
 
         // Calculate route to the selected pickup location
-        await fetchDirectionsWithAddress(courierAddress, location);
+        await fetchDirectionsWithAddress(courierAddress, location, true);
     };
 
     // Select an order and calculate route from current location to pickup and then to destination
@@ -203,10 +211,10 @@ const CourierMap = () => {
 
         // Ensure pickupCoordinates are set before calculating the route
         if (pickupCoordinates && currentLocation) {
-            // Fetch directions from current location to pickup location
-            await fetchDirectionsWithAddress(courierAddress, pickupLocation); // From current location to pickup
-            // Fetch directions from pickup location to order destination
-            await fetchDirectionsWithAddress(pickupLocation, order.location); // From pickup to destination
+            // Fetch directions from current location to pickup location (green route)
+            await fetchDirectionsWithAddress(courierAddress, pickupLocation, true); // From current location to pickup
+            // Fetch directions from pickup location to order destination (red route)
+            await fetchDirectionsWithAddress(pickupLocation, order.location, false); // From pickup to destination
         } else {
             toast.error("Pickup location coordinates or current location are missing.");
         }
@@ -292,12 +300,12 @@ const CourierMap = () => {
                                 />
                             ))}
                             
-                            {/* Route from courier to pickup */}
+                            {/* Route from current location to pickup (green) */}
                             {routeToPickup && (
                                 <Polyline
                                     path={routeToPickup}
                                     options={{
-                                        strokeColor: "#4285F4", // Blue route to pickup
+                                        strokeColor: "#00FF00", // Green route to pickup
                                         strokeOpacity: 0.8,
                                         strokeWeight: 5,
                                         icons: [{
@@ -311,12 +319,12 @@ const CourierMap = () => {
                                 />
                             )}
                             
-                            {/* Route from pickup to destination */}
+                            {/* Route from pickup to destination (red) */}
                             {routeToDestination && (
                                 <Polyline
                                     path={routeToDestination}
                                     options={{
-                                        strokeColor: "#FF4500", // Orange-red route to destination
+                                        strokeColor: "#FF4500", // Red route to destination
                                         strokeOpacity: 0.8,
                                         strokeWeight: 5,
                                         icons: [{

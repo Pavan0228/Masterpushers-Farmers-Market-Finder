@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import {
     User,
     Mail,
@@ -17,11 +17,19 @@ import {
     Home,
     Info,
 } from "lucide-react";
+import { useLoadScript, GoogleMap, Marker } from '@react-google-maps/api';
 
-const FarmRegistrationPage = () => {
+const UserRegistrationPage = () => {
     const fileInputRef = useRef(null);
     const [profilePreview, setProfilePreview] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const locationInputRef = useRef(null);
+    const mapRef = useRef(null);
+    const [scriptLoaded, setScriptLoaded] = useState(false);
+    const [map, setMap] = useState(null);
+    const [marker, setMarker] = useState(null);
+    const [locationCoords, setLocationCoords] = useState(null);
+    const [locationMethod, setLocationMethod] = useState("manual");
 
     // Update farmType options to match backend enum
     const farmTypes = [
@@ -47,7 +55,6 @@ const FarmRegistrationPage = () => {
     });
 
     const [errors, setErrors] = useState({});
-    const [locationMethod, setLocationMethod] = useState("manual"); // 'manual', 'live', 'cityDistrict'
     const [isGettingLocation, setIsGettingLocation] = useState(false);
     const [locationError, setLocationError] = useState("");
 
@@ -77,8 +84,78 @@ const FarmRegistrationPage = () => {
     };
 
     // Get current theme based on farm type with fallback
-    const currentTheme = themes[formData.farmType] || themes.veg;
+    const currentTheme = themes[formData.farmType] || themes.Veg;
 
+    // Replace scriptLoaded state with useLoadScript hook
+    const { isLoaded, loadError } = useLoadScript({
+        googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
+        libraries: ['places'],
+    });
+    
+    // Define map container style
+    const mapContainerStyle = useMemo(() => ({
+        width: '100%',
+        height: '160px',
+    }), []);
+    
+    // Default center for the map (India)
+    const defaultCenter = useMemo(() => ({ 
+        lat: 20.5937, 
+        lng: 78.9629 
+    }), []);
+
+    // Update the autocomplete initialization
+    useEffect(() => {
+        if (isLoaded && locationInputRef.current && window.google) {
+            try {
+                console.log("Initializing autocomplete...");
+                // Remove any existing autocomplete
+                if (locationInputRef.current.autocomplete) {
+                    google.maps.event.clearInstanceListeners(locationInputRef.current.autocomplete);
+                }
+                
+                const autocomplete = new window.google.maps.places.Autocomplete(locationInputRef.current, {
+                    // Restrict to addresses/geographical locations
+                    types: ["geocode"],
+                    fields: ['address_components', 'formatted_address', 'geometry', 'name'],
+                });
+                
+                // Store reference to autocomplete
+                locationInputRef.current.autocomplete = autocomplete;
+
+                autocomplete.addListener('place_changed', () => {
+                    const place = autocomplete.getPlace();
+                    console.log("Place selected:", place);
+                    
+                    if (place.geometry && place.geometry.location) {
+                        const lat = place.geometry.location.lat();
+                        const lng = place.geometry.location.lng();
+                        
+                        console.log("Location coordinates:", { lat, lng });
+                        setLocationCoords({ lat, lng });
+                        
+                        setFormData({
+                            ...formData,
+                            address: place.formatted_address,
+                            city: "",
+                            district: "",
+                        });
+                    } else {
+                        console.warn("No geometry found for the selected place");
+                    }
+                });
+                
+                console.log("Autocomplete initialized successfully");
+            } catch (error) {
+                console.error("Error initializing autocomplete:", error);
+            }
+        }
+    }, [isLoaded, formData]);
+
+    // Remove the old map initialization useEffect
+    
+    // Remove the old marker update useEffect
+    
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData((prev) => ({
@@ -123,16 +200,9 @@ const FarmRegistrationPage = () => {
             formErrors.farmName = "Please enter your farm name";
         }
 
-        // Location validation based on selected method
-        if (locationMethod === "manual" && !formData.address.trim()) {
+        // Only validate address field now
+        if (!formData.address.trim()) {
             formErrors.address = "Please enter your address";
-        } else if (
-            locationMethod === "cityDistrict" &&
-            !formData.city.trim() &&
-            !formData.district.trim()
-        ) {
-            formErrors.cityDistrict =
-                "Please enter either city or district name";
         }
 
         setErrors(formErrors);
@@ -145,28 +215,67 @@ const FarmRegistrationPage = () => {
 
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    // In a real application, you might want to use a reverse geocoding service
-                    // to convert coordinates to an address. For demonstration, we'll just store coordinates.
-                    const location = `Latitude: ${position.coords.latitude}, Longitude: ${position.coords.longitude}`;
-                    setFormData((prev) => ({
-                        ...prev,
-                        address: location,
-                    }));
+                async (position) => {
+                    const { latitude, longitude } = position.coords;
+                    
+                    // Update the map with the current location
+                    setLocationCoords({ lat: latitude, lng: longitude });
+                    
+                    try {
+                        // Use Vite's environment variable format
+                        const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+                        const response = await fetch(
+                            `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${apiKey}`
+                        );
+                        
+                        const data = await response.json();
+                        
+                        if (data.results && data.results.length > 0) {
+                            const address = data.results[0].formatted_address;
+                            setFormData({
+                                ...formData,
+                                address: address,
+                                city: "",
+                                district: "",
+                            });
+                        } else {
+                            setLocationError("Could not find address for your location");
+                        }
+                    } catch (error) {
+                        console.error('Error getting address:', error);
+                        setLocationError("Could not convert your location to an address");
+                    }
                     setIsGettingLocation(false);
                 },
                 (error) => {
-                    setLocationError(
-                        "Unable to retrieve your location. Please try another method."
-                    );
+                    console.error('Error getting location:', error);
+                    let errorMessage = 'Could not get your location.';
+                    
+                    switch(error.code) {
+                        case error.PERMISSION_DENIED:
+                            errorMessage += ' Please allow location access in your browser settings.';
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            errorMessage += ' Location information is unavailable.';
+                            break;
+                        case error.TIMEOUT:
+                            errorMessage += ' The request to get location timed out.';
+                            break;
+                        default:
+                            errorMessage += ' Please check permissions.';
+                    }
+                    
+                    setLocationError(errorMessage);
                     setIsGettingLocation(false);
-                    console.error("Error getting location:", error);
+                },
+                { 
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
                 }
             );
         } else {
-            setLocationError(
-                "Geolocation is not supported by your browser. Please try another method."
-            );
+            setLocationError("Geolocation is not supported by your browser");
             setIsGettingLocation(false);
         }
     };
@@ -191,10 +300,10 @@ const FarmRegistrationPage = () => {
             farmType: formData.farmType,
             profilePhoto: formData.profilePhoto
                 ? {
-                      name: formData.profilePhoto.name,
-                      type: formData.profilePhoto.type,
-                      size: formData.profilePhoto.size,
-                  }
+                    name: formData.profilePhoto.name,
+                    type: formData.profilePhoto.type,
+                    size: formData.profilePhoto.size,
+                }
                 : null,
         });
 
@@ -336,6 +445,36 @@ const FarmRegistrationPage = () => {
         }
     };
 
+    // Replace the map div with GoogleMap component
+    const renderMap = () => {
+        if (loadError) {
+            return <div className="w-full h-40 flex items-center justify-center bg-gray-100 rounded-md border border-gray-300">
+                <p className="text-red-500">Error loading maps</p>
+            </div>;
+        }
+        
+        if (!isLoaded) {
+            return <div className="w-full h-40 flex items-center justify-center bg-gray-100 rounded-md border border-gray-300">
+                <div className="animate-spin h-6 w-6 border-2 border-gray-500 border-t-transparent rounded-full" />
+            </div>;
+        }
+        
+        return (
+            <GoogleMap
+                mapContainerStyle={mapContainerStyle}
+                zoom={15}
+                center={locationCoords || defaultCenter}
+                options={{
+                    mapTypeControl: false,
+                    streetViewControl: false,
+                    fullscreenControl: false,
+                }}
+            >
+                {locationCoords && <Marker position={locationCoords} />}
+            </GoogleMap>
+        );
+    };
+
     return (
         <div
             className="min-h-screen flex items-center justify-center p-6"
@@ -415,25 +554,22 @@ const FarmRegistrationPage = () => {
                                             type.value
                                         ); // Log selection
                                     }}
-                                    className={`p-4 rounded-xl border-2 transition duration-300 flex flex-col items-center justify-center space-y-2 ${
-                                        formData.farmType === type.value
+                                    className={`p-4 rounded-xl border-2 transition duration-300 flex flex-col items-center justify-center space-y-2 ${formData.farmType === type.value
                                             ? "border-green-500 bg-green-50"
                                             : "border-gray-200 hover:border-green-300"
-                                    }`}
+                                        }`}
                                 >
                                     <Icon
-                                        className={`h-8 w-8 ${
-                                            formData.farmType === type.value
+                                        className={`h-8 w-8 ${formData.farmType === type.value
                                                 ? "text-green-500"
                                                 : "text-gray-500"
-                                        }`}
+                                            }`}
                                     />
                                     <span
-                                        className={`text-sm font-medium ${
-                                            formData.farmType === type.value
+                                        className={`text-sm font-medium ${formData.farmType === type.value
                                                 ? "text-green-700"
                                                 : "text-gray-600"
-                                        }`}
+                                            }`}
                                     >
                                         {type.label}
                                     </span>
@@ -470,19 +606,18 @@ const FarmRegistrationPage = () => {
                             placeholder="Farm Name"
                             value={formData.farmName}
                             onChange={handleChange}
-                            className={`w-full pl-14 pr-5 py-4 text-lg border-2 rounded-xl focus:outline-none ${
-                                errors.farmName
+                            className={`w-full pl-14 pr-5 py-4 text-lg border-2 rounded-xl focus:outline-none ${errors.farmName
                                     ? "border-red-500 focus:border-red-500"
                                     : ""
-                            }`}
+                                }`}
                             style={
                                 !errors.farmName
                                     ? {
-                                          borderColor: currentTheme.light,
-                                          ":focus": {
-                                              borderColor: currentTheme.primary,
-                                          },
-                                      }
+                                        borderColor: currentTheme.light,
+                                        ":focus": {
+                                            borderColor: currentTheme.primary,
+                                        },
+                                    }
                                     : {}
                             }
                             required
@@ -545,7 +680,7 @@ const FarmRegistrationPage = () => {
                         />
                     </div>
 
-                    {/* Location section */}
+                    {/* Location section - simplified */}
                     <div
                         className="space-y-5 border-2 p-6 rounded-xl"
                         style={{
@@ -561,86 +696,9 @@ const FarmRegistrationPage = () => {
                             Farm Location
                         </div>
 
-                        <div className="flex flex-col md:flex-row space-y-3 md:space-y-0 md:space-x-4">
-                            <button
-                                type="button"
-                                onClick={() =>
-                                    handleLocationMethodChange("manual")
-                                }
-                                className={`flex-1 py-3 px-4 rounded-lg text-base flex items-center justify-center transition duration-300`}
-                                style={{
-                                    backgroundColor:
-                                        locationMethod === "manual"
-                                            ? currentTheme.primary
-                                            : "white",
-                                    color:
-                                        locationMethod === "manual"
-                                            ? "white"
-                                            : "rgb(55, 65, 81)",
-                                    border:
-                                        locationMethod === "manual"
-                                            ? "none"
-                                            : `1px solid ${currentTheme.light}`,
-                                }}
-                            >
-                                <MapPin className="mr-2 h-5 w-5" />
-                                Enter Address
-                            </button>
-
-                            <button
-                                type="button"
-                                onClick={() =>
-                                    handleLocationMethodChange("live")
-                                }
-                                className={`flex-1 py-3 px-4 rounded-lg text-base flex items-center justify-center transition duration-300`}
-                                style={{
-                                    backgroundColor:
-                                        locationMethod === "live"
-                                            ? currentTheme.primary
-                                            : "white",
-                                    color:
-                                        locationMethod === "live"
-                                            ? "white"
-                                            : "rgb(55, 65, 81)",
-                                    border:
-                                        locationMethod === "live"
-                                            ? "none"
-                                            : `1px solid ${currentTheme.light}`,
-                                }}
-                            >
-                                <Navigation className="mr-2 h-5 w-5" />
-                                Live Location
-                            </button>
-
-                            <button
-                                type="button"
-                                onClick={() =>
-                                    handleLocationMethodChange("cityDistrict")
-                                }
-                                className={`flex-1 py-3 px-4 rounded-lg text-base flex items-center justify-center transition duration-300`}
-                                style={{
-                                    backgroundColor:
-                                        locationMethod === "cityDistrict"
-                                            ? currentTheme.primary
-                                            : "white",
-                                    color:
-                                        locationMethod === "cityDistrict"
-                                            ? "white"
-                                            : "rgb(55, 65, 81)",
-                                    border:
-                                        locationMethod === "cityDistrict"
-                                            ? "none"
-                                            : `1px solid ${currentTheme.light}`,
-                                }}
-                            >
-                                <Building className="mr-2 h-5 w-5" />
-                                City/District
-                            </button>
-                        </div>
-
-                        <div className="mt-4">
-                            {locationMethod === "manual" && (
-                                <div className="relative">
+                        <div className="relative">
+                            <div className="flex items-center">
+                                <div className="relative flex-grow">
                                     <MapPin className="absolute left-4 top-4 text-gray-600 h-6 w-6" />
                                     <input
                                         type="text"
@@ -648,7 +706,8 @@ const FarmRegistrationPage = () => {
                                         placeholder="Enter Farm Address"
                                         value={formData.address}
                                         onChange={handleChange}
-                                        className={`w-full pl-14 pr-5 py-4 text-lg border-2 rounded-xl focus:outline-none ${
+                                        ref={locationInputRef}
+                                        className={`w-full pl-14 pr-5 py-4 text-lg border-2 rounded-l-xl focus:outline-none ${
                                             errors.address
                                                 ? "border-red-500 focus:border-red-500"
                                                 : "bg-white"
@@ -656,120 +715,53 @@ const FarmRegistrationPage = () => {
                                         style={
                                             !errors.address
                                                 ? {
-                                                      borderColor:
-                                                          currentTheme.light,
-                                                      ":focus": {
-                                                          borderColor:
-                                                              currentTheme.primary,
-                                                      },
-                                                  }
+                                                    borderColor: currentTheme.light,
+                                                    ":focus": {
+                                                        borderColor: currentTheme.primary,
+                                                    },
+                                                }
                                                 : {}
                                         }
-                                    />
-                                    {errors.address && (
-                                        <p className="text-red-500 text-base mt-2 ml-2">
-                                            {errors.address}
-                                        </p>
-                                    )}
-                                </div>
-                            )}
-
-                            {locationMethod === "live" && (
-                                <div>
-                                    <button
-                                        type="button"
-                                        onClick={handleGetLiveLocation}
-                                        disabled={isGettingLocation}
-                                        className="w-full bg-white py-4 px-4 rounded-xl transition duration-300 flex items-center justify-center text-lg border"
-                                        style={{
-                                            borderColor: currentTheme.light,
-                                            color: currentTheme.primary,
+                                        onKeyDown={(e) => { 
+                                            if (e.key === 'Enter') {
+                                                e.preventDefault();
+                                            }
                                         }}
-                                    >
-                                        <Navigation className="mr-3 h-6 w-6" />
-                                        {isGettingLocation
-                                            ? "Getting Location..."
-                                            : "Get Current Location"}
-                                    </button>
-
-                                    {formData.address &&
-                                        locationMethod === "live" && (
-                                            <div
-                                                className="mt-4 p-4 bg-white rounded-xl border"
-                                                style={{
-                                                    borderColor:
-                                                        currentTheme.light,
-                                                }}
-                                            >
-                                                <p
-                                                    className="text-base"
-                                                    style={{
-                                                        color: currentTheme.secondary,
-                                                    }}
-                                                >
-                                                    <span className="font-medium">
-                                                        Location captured:
-                                                    </span>{" "}
-                                                    {formData.address}
-                                                </p>
-                                            </div>
-                                        )}
-
-                                    {locationError && (
-                                        <p className="text-red-500 text-base mt-2 ml-2">
-                                            {locationError}
-                                        </p>
-                                    )}
+                                        autoComplete="off"
+                                    />
                                 </div>
-                            )}
-
-                            {locationMethod === "cityDistrict" && (
-                                <div className="space-y-4">
-                                    <div className="relative">
-                                        <Building className="absolute left-4 top-4 text-gray-600 h-6 w-6" />
-                                        <input
-                                            type="text"
-                                            name="city"
-                                            placeholder="City"
-                                            value={formData.city}
-                                            onChange={handleChange}
-                                            className="w-full pl-14 pr-5 py-4 text-lg border-2 rounded-xl focus:outline-none bg-white"
-                                            style={{
-                                                borderColor: currentTheme.light,
-                                                ":focus": {
-                                                    borderColor:
-                                                        currentTheme.primary,
-                                                },
-                                            }}
-                                        />
-                                    </div>
-
-                                    <div className="relative">
-                                        <MapPinned className="absolute left-4 top-4 text-gray-600 h-6 w-6" />
-                                        <input
-                                            type="text"
-                                            name="district"
-                                            placeholder="District"
-                                            value={formData.district}
-                                            onChange={handleChange}
-                                            className="w-full pl-14 pr-5 py-4 text-lg border-2 rounded-xl focus:outline-none bg-white"
-                                            style={{
-                                                borderColor: currentTheme.light,
-                                                ":focus": {
-                                                    borderColor:
-                                                        currentTheme.primary,
-                                                },
-                                            }}
-                                        />
-                                    </div>
-
-                                    {errors.cityDistrict && (
-                                        <p className="text-red-500 text-base ml-2">
-                                            {errors.cityDistrict}
-                                        </p>
+                                <button
+                                    type="button"
+                                    onClick={handleGetLiveLocation}
+                                    disabled={isGettingLocation}
+                                    className="bg-white py-4 px-4 rounded-r-xl transition duration-300 flex items-center justify-center text-lg border-2 border-l-0 h-full"
+                                    style={{
+                                        borderColor: currentTheme.light,
+                                        color: currentTheme.primary,
+                                    }}
+                                >
+                                    {isGettingLocation ? (
+                                        <div className="animate-spin h-6 w-6 border-2 border-current border-t-transparent rounded-full" />
+                                    ) : (
+                                        <Navigation className="h-6 w-6" />
                                     )}
-                                </div>
+                                </button>
+                            </div>
+                            {errors.address && (
+                                <p className="text-red-500 text-base mt-2 ml-2">
+                                    {errors.address}
+                                </p>
                             )}
+                            {locationError && (
+                                <p className="text-red-500 text-base mt-2 ml-2">
+                                    {locationError}
+                                </p>
+                            )}
+                        </div>
+
+                        {/* Replace the map div with the renderMap function */}
+                        <div className="w-full mt-2 rounded-md overflow-hidden">
+                            {renderMap()}
                         </div>
                     </div>
 
@@ -782,17 +774,16 @@ const FarmRegistrationPage = () => {
                             value={formData.password}
                             onChange={handleChange}
                             className={`w-full pl-14 pr-5 py-4 text-lg border-2 rounded-xl focus:outline-none 
-                ${
-                    errors.password ? "border-red-500 focus:border-red-500" : ""
-                }`}
+                ${errors.password ? "border-red-500 focus:border-red-500" : ""
+                                }`}
                             style={
                                 !errors.password
                                     ? {
-                                          borderColor: currentTheme.light,
-                                          ":focus": {
-                                              borderColor: currentTheme.primary,
-                                          },
-                                      }
+                                        borderColor: currentTheme.light,
+                                        ":focus": {
+                                            borderColor: currentTheme.primary,
+                                        },
+                                    }
                                     : {}
                             }
                             required
@@ -813,19 +804,18 @@ const FarmRegistrationPage = () => {
                             value={formData.confirmPassword}
                             onChange={handleChange}
                             className={`w-full pl-14 pr-5 py-4 text-lg border-2 rounded-xl focus:outline-none 
-                ${
-                    errors.confirmPassword
-                        ? "border-red-500 focus:border-red-500"
-                        : ""
-                }`}
+                ${errors.confirmPassword
+                                    ? "border-red-500 focus:border-red-500"
+                                    : ""
+                                }`}
                             style={
                                 !errors.confirmPassword
                                     ? {
-                                          borderColor: currentTheme.light,
-                                          ":focus": {
-                                              borderColor: currentTheme.primary,
-                                          },
-                                      }
+                                        borderColor: currentTheme.light,
+                                        ":focus": {
+                                            borderColor: currentTheme.primary,
+                                        },
+                                    }
                                     : {}
                             }
                             required
@@ -840,9 +830,8 @@ const FarmRegistrationPage = () => {
                     <button
                         type="submit"
                         disabled={isSubmitting}
-                        className={`w-full text-white py-4 rounded-xl transition duration-300 flex items-center justify-center text-lg font-medium mt-6 shadow-md ${
-                            isSubmitting ? "opacity-70" : ""
-                        }`}
+                        className={`w-full text-white py-4 rounded-xl transition duration-300 flex items-center justify-center text-lg font-medium mt-6 shadow-md ${isSubmitting ? "opacity-70" : ""
+                            }`}
                         style={{ backgroundColor: currentTheme.primary }}
                     >
                         {isSubmitting ? (
@@ -873,4 +862,4 @@ const FarmRegistrationPage = () => {
     );
 };
 
-export default FarmRegistrationPage;
+export default UserRegistrationPage;

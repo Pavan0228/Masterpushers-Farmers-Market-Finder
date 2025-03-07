@@ -52,7 +52,7 @@ const App = () => {
                         element={<CustomerRegister />}
                     />
                     <Route path="/allRegister" element={<AllRegister />} />
-                    <Route path="/courier/register" element={<CourierRegister />} />
+                    <Route path="/courier/register" element={<CourierRegister   />} />
                     <Route path="/courier/map" element={<CourierMap/>} />
                     <Route
                         path="/courier/register"

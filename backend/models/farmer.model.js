@@ -6,21 +6,21 @@ import jwt from "jsonwebtoken";
 const farmerSchema = new mongoose.Schema(
     {
         fullName: {
-            type:String,
-            required: true
-        },
-        fullName: {
             type: String,
             required: true,
             trim: true
         },
-        farmLocation: {
+        location: {
             type: String,
             required: true
         },
-        farmDescription: {
+        description: {
             type: String,
             required: true
+        },
+        farmName: {
+            type: String,
+            require: true
         },
         profile: {
             type: String,
@@ -37,7 +37,12 @@ const farmerSchema = new mongoose.Schema(
         reviews: [{
             type: mongoose.Schema.Types.ObjectId,
             ref: "Review"
-        }]
+        }],
+        farmType: {
+            type: String,
+            enum: ["Poultry", "Dairy Farming", "Vegetable Farming", "Mixed Farming"],
+            required: true
+        }
     },
     {
         timestamps: true

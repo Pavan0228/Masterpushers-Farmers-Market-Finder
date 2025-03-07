@@ -71,9 +71,20 @@ export const orderAssign = async (req, res) => {
 export const getOrders = async (req, res) => {
     try {
         const orders = await Order.find();
-        const farmer = await Farmer.findById(orders[0].farmer);
-        const pickupLocation = farmer.location;
-        res.status(200).json({ orders, pickupLocation });
+        const pickupLocations = {};
+
+        for (const order of orders) {
+            const farmer = await Farmer.findById(order.farmer);
+            if (farmer) {
+                const location = farmer.location;
+                if (!pickupLocations[location]) {
+                    pickupLocations[location] = [];
+                }
+                pickupLocations[location].push(order);
+            }
+        }
+
+        res.status(200).json({ pickupLocations });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

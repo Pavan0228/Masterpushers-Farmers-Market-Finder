@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { useLoadScript, GoogleMap, Marker, Polyline } from '@react-google-maps/api';
 import axios from 'axios';
@@ -17,6 +17,7 @@ const CourierMap = () => {
     const [loading, setLoading] = useState(true);
     const [geocoder, setGeocoder] = useState(null);
     const [courierAddress, setCourierAddress] = useState("");
+    const [pickupLocations, setPickupLocations] = useState({});
 
     // Load Google Maps script
     const { isLoaded, loadError } = useLoadScript({
@@ -51,8 +52,8 @@ const CourierMap = () => {
                         });
                     }
                     
-                    // After getting location, fetch orders and pickup location
-                    fetchOrdersAndPickupLocation();
+                    // After getting location, fetch pickup locations
+                    fetchPickupLocations();
                 },
                 (error) => {
                     console.error("Error getting location:", error);
@@ -63,8 +64,8 @@ const CourierMap = () => {
         }
     }, [isLoaded, geocoder]);
 
-    // Fetch orders and pickup location
-    const fetchOrdersAndPickupLocation = async () => {
+    // Fetch pickup locations
+    const fetchPickupLocations = async () => {
         try {
             setLoading(true);
             const response = await axios.get('http://localhost:3000/api/v1/order', {
@@ -73,185 +74,150 @@ const CourierMap = () => {
                 }
             });
             
-            if (response.data) {
-                // Set pickup location
-                if (response.data.pickupLocation) {
-                    setPickupLocation(response.data.pickupLocation);
-                    
-                    // Geocode pickup location to get coordinates
-                    if (geocoder) {
-                        try {
-                            const results = await new Promise((resolve, reject) => {
-                                geocoder.geocode({ address: response.data.pickupLocation }, (results, status) => {
-                                    if (status === window.google.maps.GeocoderStatus.OK && results[0]) {
-                                        resolve(results);
-                                    } else {
-                                        reject(status);
-                                    }
-                                });
+            if (response.data && response.data.pickupLocations) {
+                setPickupLocations(response.data.pickupLocations);
+            }
+        } catch (error) {
+            console.error("Error fetching pickup locations:", error);
+            toast.error("Failed to fetch pickup locations");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Fetch directions with address
+    const fetchDirectionsWithAddress = async (origin, destinationAddress, isPickupRoute) => {
+        console.log("Fetching directions with:");
+        console.log("Origin:", origin);
+        console.log("Destination:", destinationAddress);
+
+        try {
+            const response = await fetch(`http://localhost:3000/api/directions`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    origin: { address: origin },
+                    destination: { address: destinationAddress },
+                    travelMode: "DRIVE"
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to fetch directions");
+            }
+
+            const data = await response.json();
+            console.log("Directions response:", data);
+
+            if (data.routes && data.routes.length > 0) {
+                const encoded = data.routes[0].polyline.encodedPolyline;
+                const decodedPath = window.google.maps.geometry.encoding.decodePath(encoded);
+                
+                // Set the route based on whether it's a pickup route or destination route
+                if (isPickupRoute) {
+                    setRouteToPickup(decodedPath); // Green route to pickup
+                } else {
+                    setRouteToDestination(decodedPath); // Red route to destination
+                }
+            } else {
+                toast.error("No routes found.");
+                if (isPickupRoute) {
+                    setRouteToPickup(null);
+                } else {
+                    setRouteToDestination(null);
+                }
+            }
+        } catch (error) {
+            console.error("Error fetching directions: ", error);
+            toast.error("Could not fetch directions.");
+            if (isPickupRoute) {
+                setRouteToPickup(null);
+            } else {
+                setRouteToDestination(null);
+            }
+        }
+    };
+
+    // Select a pickup location and fetch orders
+    const handlePickupLocationSelect = async (location) => {
+        setPickupLocation(location);
+        const ordersAtLocation = pickupLocations[location] || [];
+        const ordersWithCoordinates = await Promise.all(
+            ordersAtLocation.map(async (order) => {
+                if (order.location && geocoder) {
+                    try {
+                        const results = await new Promise((resolve, reject) => {
+                            geocoder.geocode({ address: order.location }, (results, status) => {
+                                if (status === window.google.maps.GeocoderStatus.OK && results[0]) {
+                                    resolve(results);
+                                } else {
+                                    reject(status);
+                                }
                             });
-                            
-                            const location = results[0].geometry.location;
-                            const coordinates = {
+                        });
+                        const location = results[0].geometry.location;
+                        return {
+                            ...order,
+                            coordinates: {
                                 lat: location.lat(),
                                 lng: location.lng()
-                            };
-                            setPickupCoordinates(coordinates);
-                            
-                            // Calculate route to pickup location using backend API
-                            calculateRouteToPickup(coordinates);
-                        } catch (error) {
-                            console.error("Error geocoding pickup location:", error);
-                        }
+                            }
+                        };
+                    } catch (error) {
+                        console.error(`Error geocoding address for order ${order._id}:`, error);
+                        return order; // Return order without coordinates
                     }
                 }
-                
-                // Process orders to get coordinates for each address
-                if (response.data.orders) {
-                    const ordersWithCoordinates = await Promise.all(
-                        response.data.orders
-                            .filter(order => order.isAvailable)
-                            .map(async (order) => {
-                                if (order.location && geocoder) {
-                                    try {
-                                        // Convert address string to coordinates
-                                        const results = await new Promise((resolve, reject) => {
-                                            geocoder.geocode({ address: order.location }, (results, status) => {
-                                                if (status === window.google.maps.GeocoderStatus.OK && results[0]) {
-                                                    resolve(results);
-                                                } else {
-                                                    reject(status);
-                                                }
-                                            });
-                                        });
-                                        
-                                        // Add coordinates to the order object
-                                        const location = results[0].geometry.location;
-                                        return {
-                                            ...order,
-                                            coordinates: {
-                                                lat: location.lat(),
-                                                lng: location.lng()
-                                            }
-                                        };
-                                    } catch (error) {
-                                        console.error(`Error geocoding address for order ${order._id}:`, error);
-                                        return order; // Return order without coordinates
-                                    }
-                                }
-                                return order;
-                            })
-                    );
-                    
-                    // Filter out orders without coordinates
-                    const validOrders = ordersWithCoordinates.filter(order => order.coordinates);
-                    setAvailableOrders(validOrders);
-                }
-            }
-        } catch (error) {
-            console.error("Error fetching orders and pickup location:", error);
-            toast.error("Failed to fetch orders and pickup location");
-        } finally {
-            setLoading(false);
-        }
-    };
+                return order;
+            })
+        );
 
-    // Calculate route from courier to pickup location using backend API
-    const calculateRouteToPickup = async (pickupCoords) => {
-        if (!currentLocation || !pickupCoords || !courierAddress) {
-            toast.error("Missing location information for route calculation");
-            return;
-        }
+        // Filter out orders without coordinates
+        const validOrders = ordersWithCoordinates.filter(order => order.coordinates);
+        setAvailableOrders(validOrders);
         
+        // Geocode the selected pickup location to get its coordinates
         try {
-            setLoading(true);
-            
-            // Use backend API to fetch directions
-            const response = await axios.post('http://localhost:3000/api/directions', {
-                origin: { address: courierAddress },
-                destination: { address: pickupLocation },
-                travelMode: "DRIVE"
+            const results = await new Promise((resolve, reject) => {
+                geocoder.geocode({ address: location }, (results, status) => {
+                    if (status === window.google.maps.GeocoderStatus.OK && results[0]) {
+                        resolve(results);
+                    } else {
+                        reject(status);
+                    }
+                });
             });
-            
-            if (response.data && response.data.routes && response.data.routes.length > 0) {
-                // Extract polyline from the response
-                const encoded = response.data.routes[0].polyline.encodedPolyline;
-                
-                // Decode the polyline to get the path
-                const decodedPath = window.google.maps.geometry.encoding.decodePath(encoded);
-                setRouteToPickup(decodedPath);
-                
-                // Extract and display route information
-                const distance = response.data.routes[0].legs[0].distance.text;
-                const duration = response.data.routes[0].legs[0].duration.text;
-                
-                toast.success(`Route to pickup found: ${distance} (${duration})`);
-            } else {
-                toast.error("No route found to pickup location");
-            }
+            const pickupLocationCoords = results[0].geometry.location;
+            setPickupCoordinates({
+                lat: pickupLocationCoords.lat(),
+                lng: pickupLocationCoords.lng()
+            });
         } catch (error) {
-            console.error("Error fetching directions from backend:", error);
-            toast.error("Could not fetch directions to pickup location");
-        } finally {
-            setLoading(false);
+            console.error(`Error geocoding pickup location:`, error);
+            setPickupCoordinates(null); // Reset if there's an error
         }
+        const pickupCoordinates = {currentLocation};
+
+        // Calculate route to the selected pickup location
+        await fetchDirectionsWithAddress(courierAddress, location, true);
     };
 
-    // Select an order and calculate route from pickup to destination
+    // Select an order and calculate route from current location to pickup and then to destination
     const handleOrderSelect = async (order) => {
         setSelectedOrder(order);
         toast.success(`Selected order #${order._id}`);
-        
-        // Calculate route from pickup location to order destination
-        if (pickupCoordinates && order.coordinates) {
-            calculateRouteToDestination(pickupCoordinates, order.coordinates);
-        }
-    };
 
-    // Calculate route from pickup to destination using backend API
-    const calculateRouteToDestination = async (pickupCoords, destinationCoords) => {
-        if (!pickupCoords || !destinationCoords) {
-            toast.error("Missing location information for route calculation");
-            return;
+        // Ensure pickupCoordinates are set before calculating the route
+        if (pickupCoordinates && currentLocation) {
+            // Fetch directions from current location to pickup location (green route)
+            await fetchDirectionsWithAddress(courierAddress, pickupLocation, true); // From current location to pickup
+            // Fetch directions from pickup location to order destination (red route)
+            await fetchDirectionsWithAddress(pickupLocation, order.location, false); // From pickup to destination
+        } else {
+            toast.error("Pickup location coordinates or current location are missing.");
         }
-        
-        try {
-            setLoading(true);
-            
-            // Use backend API to fetch directions
-            const response = await axios.post('http://localhost:3000/api/directions', {
-                origin: { address: pickupLocation },
-                destination: { address: selectedOrder.location },
-                travelMode: "DRIVE"
-            });
-            
-            if (response.data && response.data.routes && response.data.routes.length > 0) {
-                // Extract polyline from the response
-                const encoded = response.data.routes[0].polyline.encodedPolyline;
-                
-                // Decode the polyline to get the path
-                const decodedPath = window.google.maps.geometry.encoding.decodePath(encoded);
-                setRouteToDestination(decodedPath);
-                
-                // Extract and display route information
-                const distance = response.data.routes[0].legs[0].distance.text;
-                const duration = response.data.routes[0].legs[0].duration.text;
-                
-                toast.success(`Route to destination found: ${distance} (${duration})`);
-            } else {
-                toast.error("No route found to destination");
-            }
-        } catch (error) {
-            console.error("Error fetching directions from backend:", error);
-            toast.error("Could not fetch directions to destination");
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    // Assign order to courier - temporarily disabled
-    const assignOrderToCourier = async (orderId) => {
-        toast.info("Order assignment feature coming soon!");
     };
 
     if (loadError) {
@@ -334,12 +300,12 @@ const CourierMap = () => {
                                 />
                             ))}
                             
-                            {/* Route from courier to pickup */}
+                            {/* Route from current location to pickup (green) */}
                             {routeToPickup && (
                                 <Polyline
                                     path={routeToPickup}
                                     options={{
-                                        strokeColor: "#4285F4", // Blue route to pickup
+                                        strokeColor: "#00FF00", // Green route to pickup
                                         strokeOpacity: 0.8,
                                         strokeWeight: 5,
                                         icons: [{
@@ -353,12 +319,12 @@ const CourierMap = () => {
                                 />
                             )}
                             
-                            {/* Route from pickup to destination */}
+                            {/* Route from pickup to destination (red) */}
                             {routeToDestination && (
                                 <Polyline
                                     path={routeToDestination}
                                     options={{
-                                        strokeColor: "#FF4500", // Orange-red route to destination
+                                        strokeColor: "#FF4500", // Red route to destination
                                         strokeOpacity: 0.8,
                                         strokeWeight: 5,
                                         icons: [{
@@ -378,22 +344,18 @@ const CourierMap = () => {
                 {/* Orders List */}
                 <div className="w-full md:w-1/3">
                     <div className="bg-white p-4 rounded-lg shadow mb-4">
-                        <h3 className="text-xl font-semibold mb-3">Pickup Location</h3>
-                        {pickupLocation ? (
-                            <div>
-                                <p>{pickupLocation}</p>
-                                {!routeToPickup && (
-                                    <button
-                                        className="mt-2 w-full bg-blue-500 text-white px-3 py-2 rounded hover:bg-blue-600"
-                                        onClick={() => calculateRouteToPickup(pickupCoordinates)}
-                                    >
-                                        Show Route to Pickup
-                                    </button>
-                                )}
+                        <h3 className="text-xl font-semibold mb-3">Pickup Locations</h3>
+                        {Object.keys(pickupLocations).map(location => (
+                            <div key={location}>
+                                <p>{location}</p>
+                                <button
+                                    className="mt-2 w-full bg-blue-500 text-white px-3 py-2 rounded hover:bg-blue-600"
+                                    onClick={() => handlePickupLocationSelect(location)}
+                                >
+                                    Show Orders at this Location
+                                </button>
                             </div>
-                        ) : (
-                            <p>No pickup location available</p>
-                        )}
+                        ))}
                     </div>
                     
                     <div className="bg-white p-4 rounded-lg shadow">

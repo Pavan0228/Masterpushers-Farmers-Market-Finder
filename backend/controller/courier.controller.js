@@ -51,15 +51,14 @@ export const updateCourier = async (req, res) => {
 
 export const makeVerify = async (req, res) => {
     try {
-        const courier = await Courier.findOneAndUpdate(
-            { user: req.user._id },
-            { isVerified: true },
-            { new: true }
-        );
+        const courier = await Courier.findById(req.params.id);
         if (!courier)
             return res
                 .status(404)
                 .json({ success: false, message: "Courier not found" });
+        courier.isVerified = !courier.isVerified;
+        await courier.save();
+
         res.status(200).json({ success: true, data: courier });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });

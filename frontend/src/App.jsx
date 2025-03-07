@@ -11,6 +11,7 @@ import Landingpage from "./pages/Landingpage";
 import FarmerProfilePage from "./assets/Nikhil/FarmerProfilePage";
 import ProductShowPage from "./assets/Nikhil/ProductShowPage";
 import ProductDetailPage from "./assets/Nikhil/ProductDetailPage";
+import CustomerRegister from "./assets/Nikhil/customerRegister";
 import FarmerRegister from "./pages/FarmerRegister";
 import FarmerLogin from "./pages/FarmerLogin";
 import AdminLogin from './components/admin/AdminLogin';
@@ -30,8 +31,8 @@ const App = () => {
             <Routes>
                 <Route path="/" element={<Layout />}>
                     <Route index element={<Landingpage />} />
-                    <Route path="/register" element={<UserRegisterPage />} />
-                    <Route path="/login" element={<LoginPage />} />
+                    {/* <Route path="/register" element={<UserRegisterPage />} />
+                    <Route path="/login" element={<LoginPage />} /> */}
                     <Route
                         path="/product-listing"
                         element={<ProductListingPage />}

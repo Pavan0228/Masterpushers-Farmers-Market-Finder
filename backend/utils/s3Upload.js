@@ -29,5 +29,9 @@ export const upload = multer({
             cb(null, fileName);
         }
     })
-}).single("profile");
+}).fields([
+    { name: 'licenseDocument', maxCount: 1 }, // Expecting a field named "licenseDocument"
+    { name: 'idProof', maxCount: 1 }, // Expecting a field named "idProof"
+    { name: 'profile', maxCount: 1 } // Expecting a field named "profile"
+]);
 

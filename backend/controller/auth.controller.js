@@ -19,7 +19,8 @@ const generateAccessTokenAndRefreshToken = async (userId) => {
         return { accessToken, refreshToken };
     } catch (error) {
         return res.status(500).json({
-            message: "Something went wrong while generating referesh and access token",
+            message:
+                "Something went wrong while generating referesh and access token",
         });
     }
 };
@@ -32,7 +33,8 @@ const registerUser = asyncHandler(async (req, res) => {
     if (!fullName?.trim() || !email?.trim() || !password?.trim()) {
         return res.status(400).json({
             success: false,
-            message: "Registration failed. Please provide all required information.",
+            message:
+                "Registration failed. Please provide all required information.",
             error: "Missing required fields: Full Name, Email, and Password are mandatory",
         });
     }
@@ -59,8 +61,8 @@ const registerUser = asyncHandler(async (req, res) => {
 
     // Handle profile image upload if provided
     let profileImageUrl = null;
-    if (req.file) {
-        profileImageUrl = req.file.location
+    if (req.files) {
+        profileImageUrl = req.files.profile[0].location;
     }
 
     // Create the base user account
@@ -76,7 +78,7 @@ const registerUser = asyncHandler(async (req, res) => {
 
     // Create role-specific profile
     let roleProfile;
-    
+
     try {
         if (role === "customer") {
             // Validate customer-specific fields
@@ -84,11 +86,12 @@ const registerUser = asyncHandler(async (req, res) => {
                 await User.findByIdAndDelete(user._id);
                 return res.status(400).json({
                     success: false,
-                    message: "Registration failed. Missing customer information.",
+                    message:
+                        "Registration failed. Missing customer information.",
                     error: "Phone number and location are required for customer registration",
                 });
             }
-            
+
             roleProfile = await Customer.create({
                 user: user._id,
                 fullName,
@@ -96,12 +99,11 @@ const registerUser = asyncHandler(async (req, res) => {
                 profile: profileImageUrl,
                 location,
                 orders: [],
-                wishlist: []
+                wishlist: [],
             });
-        } 
-        else if (role === "farmer") {
+        } else if (role === "farmer") {
             const { location, description, farmName, farmType } = req.body;
-            
+
             if (!location || !description || !farmName || !farmType) {
                 await User.findByIdAndDelete(user._id);
                 return res.status(400).json({
@@ -110,7 +112,7 @@ const registerUser = asyncHandler(async (req, res) => {
                     error: "Farm location and description are required for farmer registration",
                 });
             }
-            
+
             roleProfile = await Farmer.create({
                 user: user._id,
                 fullName,
@@ -121,35 +123,63 @@ const registerUser = asyncHandler(async (req, res) => {
                 profile: profileImageUrl,
                 products: [],
                 ratings: 0,
-                reviews: []
+                reviews: [],
             });
-        } 
-        else if (role === "courier") {
-            const { description } = req.body;
-            
+        } else if (role === "courier") {
+            const { description, drivingLicenseNumber, vehicleType, identityVerification, cardNumber, dateOfBirth } = req.body;
+
             // Validate courier-specific fields
-            if (!phoneNumber || !location) {
+            if (
+                !phoneNumber ||
+                !location ||
+                !drivingLicenseNumber ||
+                !vehicleType ||
+                !identityVerification ||
+                !cardNumber ||
+                !dateOfBirth
+            ) {
                 await User.findByIdAndDelete(user._id);
                 return res.status(400).json({
                     success: false,
-                    message: "Registration failed. Missing courier information.",
+                    message:
+                        "Registration failed. Missing courier information.",
                     error: "Phone number and location are required for courier registration",
                 });
             }
-            
+
+            // Handle document uploads
+            let licenseDocumentUrl = null;
+            let idProofUrl = null;
+
+            if (req.files) {
+                if (req.files.licenseDocument) {
+                    licenseDocumentUrl = req.files.licenseDocument[0].location; // Assuming you're using multer for file uploads
+                }
+                if (req.files.idProof) {
+                    idProofUrl = req.files.idProof[0].location; // Assuming you're using multer for file uploads
+                }
+            }
+
             roleProfile = await Courier.create({
                 user: user._id,
                 fullName,
                 location,
                 description: description || "",
                 profile: profileImageUrl,
+                licenseDocument: licenseDocumentUrl,
+                idProof: idProofUrl,
+                drivingLicenseNumber,
+                vehicleType,
+                identityVerification,
+                cardNumber,
+                dateOfBirth,
                 phoneNumber,
                 isVerified: false,
                 ratings: 0,
-                reviews: []
+                reviews: [],
             });
         }
-        
+
         if (!roleProfile) {
             await User.findByIdAndDelete(user._id);
             return res.status(400).json({
@@ -169,7 +199,8 @@ const registerUser = asyncHandler(async (req, res) => {
     }
 
     // Generate access token and refresh token
-    const { accessToken, refreshToken } = await generateAccessTokenAndRefreshToken(user._id);
+    const { accessToken, refreshToken } =
+        await generateAccessTokenAndRefreshToken(user._id);
 
     // Remove sensitive fields before sending response
     const userData = user.toObject();
@@ -250,7 +281,6 @@ const loginUser = asyncHandler(async (req, res) => {
         });
 });
 
-
 const logoutUser = asyncHandler(async (req, res) => {
     await User.findByIdAndUpdate(
         req?.user?._id,
@@ -279,7 +309,7 @@ const logoutUser = asyncHandler(async (req, res) => {
 });
 
 const updateUserProfile = asyncHandler(async (req, res) => {
-    const userId = req?.user?._id; 
+    const userId = req?.user?._id;
 
     // Fetch the user to get their role
     const user = await User.findById(userId);
@@ -287,28 +317,28 @@ const updateUserProfile = asyncHandler(async (req, res) => {
         return res.status(404).json({
             success: false,
             message: "User not found",
-            error: "The requested user account does not exist"
+            error: "The requested user account does not exist",
         });
     }
 
     // Extract common updateable fields
     const { fullName, email } = req.body;
-    
+
     // Prepare updates for base user
     const userUpdates = {};
     if (fullName?.trim()) userUpdates.fullName = fullName;
     if (email?.trim()) {
         // Check if new email is already in use by another user
-        const emailExists = await User.findOne({ 
+        const emailExists = await User.findOne({
             email: email.toLowerCase(),
-            _id: { $ne: userId } // Exclude current user
+            _id: { $ne: userId }, // Exclude current user
         });
-        
+
         if (emailExists) {
             return res.status(409).json({
                 success: false,
                 message: "Email already in use",
-                error: "This email is already registered to another account"
+                error: "This email is already registered to another account",
             });
         }
         userUpdates.email = email.toLowerCase();
@@ -328,46 +358,54 @@ const updateUserProfile = asyncHandler(async (req, res) => {
         case "customer":
             roleModel = Customer;
             roleDocument = await Customer.findOne({ user: userId });
-            
+
             // Extract customer-specific fields
             const { phoneNumber, location } = req.body;
-            
+
             if (phoneNumber?.trim()) roleUpdates.phoneNumber = phoneNumber;
             if (location?.trim()) roleUpdates.location = location;
             if (profileImageUrl) roleUpdates.profile = profileImageUrl;
             break;
-            
+
         case "farmer":
             roleModel = Farmer;
             roleDocument = await Farmer.findOne({ user: userId });
             // Extract farmer-specific fields
-            const { location: farmerLocation, description: farmDescription, farmName, farmType } = req.body;
-            
+            const {
+                location: farmerLocation,
+                description: farmDescription,
+                farmName,
+                farmType,
+            } = req.body;
+
             if (farmerLocation?.trim()) roleUpdates.location = farmerLocation;
-            if (farmDescription?.trim()) roleUpdates.description = farmDescription;
+            if (farmDescription?.trim())
+                roleUpdates.description = farmDescription;
             if (farmName?.trim()) roleUpdates.farmName = farmName;
             if (farmType?.trim()) roleUpdates.farmType = farmType;
             if (profileImageUrl) roleUpdates.profile = profileImageUrl;
             break;
-            
+
         case "courier":
             roleModel = Courier;
             roleDocument = await Courier.findOne({ user: userId });
-            
+
             // Extract courier-specific fields
-            const { courierPhoneNumber, courierLocation, description } = req.body;
-            
-            if (courierPhoneNumber?.trim()) roleUpdates.phoneNumber = courierPhoneNumber;
+            const { courierPhoneNumber, courierLocation, description } =
+                req.body;
+
+            if (courierPhoneNumber?.trim())
+                roleUpdates.phoneNumber = courierPhoneNumber;
             if (courierLocation?.trim()) roleUpdates.location = courierLocation;
             if (description?.trim()) roleUpdates.description = description;
             if (profileImageUrl) roleUpdates.profile = profileImageUrl;
             break;
-            
+
         default:
             return res.status(400).json({
                 success: false,
                 message: "Invalid user role",
-                error: "Cannot update profile for this user role"
+                error: "Cannot update profile for this user role",
             });
     }
 
@@ -375,7 +413,7 @@ const updateUserProfile = asyncHandler(async (req, res) => {
         return res.status(404).json({
             success: false,
             message: "Profile not found",
-            error: `${user.role} profile does not exist for this user`
+            error: `${user.role} profile does not exist for this user`,
         });
     }
 
@@ -405,16 +443,15 @@ const updateUserProfile = asyncHandler(async (req, res) => {
             success: true,
             message: "Profile updated successfully",
             user: updatedUser,
-            profile: updatedRoleProfile
+            profile: updatedRoleProfile,
         });
     } catch (error) {
         return res.status(500).json({
             success: false,
             message: "Failed to update profile",
-            error: error.message || "An unexpected error occurred"
+            error: error.message || "An unexpected error occurred",
         });
     }
 });
-
 
 export { registerUser, loginUser, logoutUser, updateUserProfile };

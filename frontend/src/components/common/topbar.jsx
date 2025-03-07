@@ -60,14 +60,14 @@ const TopBar = () => {
                                 scrolled ? "text-green-700" : "text-green-600"
                             } transition-colors duration-300`}
                         >
-                            Kisan
+                            Methi
                         </span>
                         <span
                             className={`${
                                 scrolled ? "text-green-900" : "text-green-800"
                             } transition-colors duration-300`}
                         >
-                            Konnect
+                            Bazzar
                         </span>
                     </h1>
                 </div>
@@ -94,7 +94,9 @@ const TopBar = () => {
                         <Globe size={16} className="mr-2 text-green-600" />
                         <GoogleTranslate />
                     </div>
-                    
+                    <button className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-6 rounded-full shadow-md transition-all duration-200 transform hover:scale-105 hover:shadow-lg">
+                        Login
+                    </button>
                     <button className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-6 rounded-full shadow-md transition-all duration-200 transform hover:scale-105 hover:shadow-lg">
                         Get Started
                     </button>

@@ -38,7 +38,7 @@ const registerUser = asyncHandler(async (req, res) => {
     }
 
     // Validate role
-    if (!["customer", "farmer", "courier"].includes(role)) {
+    if (!["customer", "farmer", "courier", "admin"].includes(role)) {
         return res.status(400).json({
             success: false,
             message: "Registration failed. Invalid role provided.",
@@ -150,13 +150,15 @@ const registerUser = asyncHandler(async (req, res) => {
             });
         }
         
-        if (!roleProfile) {
-            await User.findByIdAndDelete(user._id);
-            return res.status(400).json({
-                success: false,
-                message: "Registration failed. Could not create role profile.",
-                error: "Role profile creation unsuccessful",
-            });
+        if (role != "admin") {
+            if (!roleProfile) {
+                await User.findByIdAndDelete(user._id);
+                return res.status(400).json({
+                    success: false,
+                    message: "Registration failed. Could not create role profile.",
+                    error: "Role profile creation unsuccessful",
+                });
+            }
         }
     } catch (error) {
         // Clean up user if role profile creation fails
@@ -197,10 +199,10 @@ const registerUser = asyncHandler(async (req, res) => {
 });
 
 const loginUser = asyncHandler(async (req, res) => {
-    const { email, username, password } = req.body;
+    const { email, password } = req.body;
 
     // Check if all fields are provided
-    if ((!email && !username) || !password) {
+    if ((!email) || !password) {
         return res.status(400).json({ message: "All fields are required" });
     }
 
@@ -211,16 +213,10 @@ const loginUser = asyncHandler(async (req, res) => {
         if (!user) {
             return res.status(404).json({ message: "Email not found" });
         }
-    } else if (username) {
-        user = await User.findOne({ username });
-        if (!user) {
-            return res.status(404).json({ message: "Username not found" });
-        }
     }
 
     // Check if password is correct
     const isPasswordCorrect = await user.checkPassword(password);
-
     if (!isPasswordCorrect) {
         return res.status(401).json({ message: "Invalid password" });
     }
@@ -340,12 +336,13 @@ const updateUserProfile = asyncHandler(async (req, res) => {
         case "farmer":
             roleModel = Farmer;
             roleDocument = await Farmer.findOne({ user: userId });
-            
             // Extract farmer-specific fields
-            const { farmLocation, farmDescription } = req.body;
+            const { location: farmerLocation, description: farmDescription, farmName, farmType } = req.body;
             
-            if (farmLocation?.trim()) roleUpdates.farmLocation = farmLocation;
-            if (farmDescription?.trim()) roleUpdates.farmDescription = farmDescription;
+            if (farmerLocation?.trim()) roleUpdates.location = farmerLocation;
+            if (farmDescription?.trim()) roleUpdates.description = farmDescription;
+            if (farmName?.trim()) roleUpdates.farmName = farmName;
+            if (farmType?.trim()) roleUpdates.farmType = farmType;
             if (profileImageUrl) roleUpdates.profile = profileImageUrl;
             break;
             

@@ -23,9 +23,9 @@ const FarmRegistrationPage = () => {
     const [profilePreview, setProfilePreview] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // Update farmType options to match backend enum exactly
+    // Update farmType options to match backend enum
     const farmTypes = [
-        { value: "Veg", label: "Vegetable Farming", icon: Leaf },
+        { value: "veg", label: "Vegetable Farming", icon: Leaf },
         { value: "nonveg", label: "Poultry And Dairy Farming", icon: Egg },
         { value: "both", label: "Mixed Farming", icon: Filter },
     ];
@@ -42,7 +42,7 @@ const FarmRegistrationPage = () => {
         district: "",
         password: "",
         confirmPassword: "",
-        farmType: "Veg", // Default to Veg farming (matching exact case)
+        farmType: "veg", // Default to veg farming
         profilePhoto: null,
     });
 
@@ -51,9 +51,9 @@ const FarmRegistrationPage = () => {
     const [isGettingLocation, setIsGettingLocation] = useState(false);
     const [locationError, setLocationError] = useState("");
 
-    // Update themes object keys to match exact enum values
+    // Color themes based on farm type
     const themes = {
-        Veg: {
+        veg: {
             primary: "#4CAF50",
             light: "#AED581",
             secondary: "#8D6E63",
@@ -77,7 +77,7 @@ const FarmRegistrationPage = () => {
     };
 
     // Get current theme based on farm type with fallback
-    const currentTheme = themes[formData.farmType] || themes.Veg;
+    const currentTheme = themes[formData.farmType] || themes.veg;
 
     const handleChange = (e) => {
         const { name, value } = e.target;

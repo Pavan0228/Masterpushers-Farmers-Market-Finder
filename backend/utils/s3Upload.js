@@ -16,8 +16,21 @@ const s3 = new S3Client({
     },
 });
 
+// Create a product image upload middleware
+export const uploadProductImage = multer({
+    storage: multerS3({
+        s3,
+        bucket: process.env.AWS_BUCKET_NAME,
+        acl: "public-read",
+        contentType: multerS3.AUTO_CONTENT_TYPE,
+        key: (req, file, cb) => {
+            const fileName = `products/${Date.now()}-${file.originalname}`;
+            cb(null, fileName);
+        }
+    })
+}).single("image");
 
-// Multer storage configuration
+// Keep the original profile upload for user profiles
 export const upload = multer({
     storage: multerS3({
         s3,

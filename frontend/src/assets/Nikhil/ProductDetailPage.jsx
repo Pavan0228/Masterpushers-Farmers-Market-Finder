@@ -16,138 +16,11 @@ import {
   Phone,
   ArrowLeft
 } from 'lucide-react';
-
+import { useParams } from 'react-router-dom';
 // Static product data - in a real app, you would fetch this based on product ID
-const productsData = [
-  {
-    id: 1,
-    name: 'Organic Fresh Tomatoes',
-    description: 'Hand-picked organic tomatoes grown without pesticides. Perfect for salads and cooking. Our tomatoes are grown with care using sustainable farming practices, ensuring you get the best flavor and nutrition. These vibrant red tomatoes are harvested at peak ripeness to deliver maximum taste and freshness.',
-    price: 3.99,
-    unit: 'lb',
-    rating: 4.7,
-    reviews: 24,
-    seller: 'Green Valley Farms',
-    sellerBio: 'Family-owned farm operating since 1985, specializing in organic vegetables using sustainable farming practices.',
-    location: 'Springfield, CA',
-    market: 'Downtown Farmers Market',
-    marketHours: 'Sat-Sun: 8am-2pm',
-    harvestDate: '2025-03-03',
-    availableUntil: '2025-03-10',
-    phone: '555-123-4567',
-    category: 'Vegetables',
-    organic: true,
-    images: ['/api/placeholder/600/400', '/api/placeholder/600/400', '/api/placeholder/600/400'],
-    relatedProducts: [2, 4, 6]
-  },
-  {
-    id: 2,
-    name: 'Fresh Farm Eggs',
-    description: 'Free-range eggs from pasture-raised hens. Rich in flavor and nutrition. Our hens have access to open pastures where they can roam freely, resulting in eggs with deeper colored yolks and better taste. Each egg is carefully inspected for quality.',
-    price: 5.99,
-    unit: 'dozen',
-    rating: 4.9,
-    reviews: 32,
-    seller: 'Sunshine Poultry',
-    sellerBio: 'Small family poultry farm focusing on humane animal husbandry and sustainable practices.',
-    location: 'Riverside, CA',
-    market: 'Weekend Organic Market',
-    marketHours: 'Sat: 9am-3pm',
-    harvestDate: '2025-03-05',
-    availableUntil: '2025-03-15',
-    phone: '555-987-6543',
-    category: 'Dairy & Eggs',
-    organic: true,
-    images: ['/api/placeholder/600/400', '/api/placeholder/600/400'],
-    relatedProducts: [3, 5, 1]
-  },
-  {
-    id: 3,
-    name: 'Organic Honey',
-    description: 'Pure, unfiltered honey from local wildflower meadows. Perfect natural sweetener. Our bees forage in pristine meadows filled with a diversity of wildflowers, creating honey with complex flavors and aromas. Each jar contains raw, unprocessed honey with all its natural enzymes intact.',
-    price: 8.50,
-    unit: 'jar',
-    rating: 4.8,
-    reviews: 18,
-    seller: 'Buzz Bee Apiary',
-    sellerBio: 'Dedicated to sustainable beekeeping and producing high-quality honey products while supporting bee conservation.',
-    location: 'Meadowville, CA',
-    market: 'Artisan Market',
-    marketHours: 'Fri-Sun: 10am-4pm',
-    harvestDate: '2025-02-15',
-    availableUntil: '2025-06-15',
-    phone: '555-222-3333',
-    category: 'Honey & Preserves',
-    organic: true,
-    images: ['/api/placeholder/600/400'],
-    relatedProducts: [5, 2, 4]
-  },
-  {
-    id: 4,
-    name: 'Fresh Strawberries',
-    description: 'Sweet, juicy strawberries picked at peak ripeness. Perfect for desserts or eating fresh. Our strawberries are grown using sustainable methods and harvested only when fully ripe, ensuring maximum sweetness and flavor.',
-    price: 4.99,
-    unit: 'lb',
-    rating: 4.6,
-    reviews: 41,
-    seller: 'Berry Good Farms',
-    sellerBio: 'Specialized in growing premium berries using minimal intervention growing techniques.',
-    location: 'Fruitland, CA',
-    market: 'Downtown Farmers Market',
-    marketHours: 'Sat-Sun: 8am-2pm',
-    harvestDate: '2025-03-04',
-    availableUntil: '2025-03-09',
-    phone: '555-444-5555',
-    category: 'Fruits',
-    organic: true,
-    images: ['/api/placeholder/600/400', '/api/placeholder/600/400'],
-    relatedProducts: [1, 3, 6]
-  },
-  {
-    id: 5,
-    name: 'Sourdough Bread',
-    description: 'Artisanal sourdough bread made with organic flour and traditional fermentation methods. Our bread features a complex flavor profile with a perfect balance of sourness and a crisp, crackling crust. Each loaf is hand-shaped and baked in a stone hearth oven.',
-    price: 6.75,
-    unit: 'loaf',
-    rating: 4.9,
-    reviews: 56,
-    seller: 'Hearth & Home Bakery',
-    sellerBio: 'Artisan bakery specializing in traditional sourdough breads and pastries made with local ingredients.',
-    location: 'Bakersfield, CA',
-    market: 'Weekend Organic Market',
-    marketHours: 'Sat: 9am-3pm',
-    harvestDate: '2025-03-07',
-    availableUntil: '2025-03-08',
-    phone: '555-777-8888',
-    category: 'Bakery',
-    organic: true,
-    images: ['/api/placeholder/600/400', '/api/placeholder/600/400', '/api/placeholder/600/400'],
-    relatedProducts: [3, 2, 1]
-  },
-  {
-    id: 6,
-    name: 'Fresh Spinach',
-    description: 'Tender, nutrient-rich spinach leaves. Great for salads, smoothies, or cooking. Our spinach is grown in mineral-rich soil, resulting in exceptionally nutritious and flavorful leaves. Each bunch is harvested by hand in the early morning to ensure maximum freshness and crispness.',
-    price: 3.25,
-    unit: 'bunch',
-    rating: 4.7,
-    reviews: 29,
-    seller: 'Green Leaf Gardens',
-    sellerBio: 'Urban farm focused on growing nutrient-dense leafy greens using regenerative agriculture methods.',
-    location: 'Riverdale, CA',
-    market: 'Local Produce Market',
-    marketHours: 'Wed, Sat: 8am-1pm',
-    harvestDate: '2025-03-06',
-    availableUntil: '2025-03-11',
-    phone: '555-666-7777',
-    category: 'Vegetables',
-    organic: true,
-    images: ['/api/placeholder/600/400', '/api/placeholder/600/400'],
-    relatedProducts: [1, 4, 2]
-  }
-];
 
 const ProductDetailPage = () => {
+  const { id } = useParams();
   const [product, setProduct] = useState(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
@@ -159,20 +32,28 @@ const ProductDetailPage = () => {
   const productId = 1;
   
   useEffect(() => {
-    // Simulate fetching product by ID
-    const foundProduct = productsData.find(p => p.id === productId);
-    if (foundProduct) {
-      setProduct(foundProduct);
-      
-      // Get related products
-      if (foundProduct.relatedProducts) {
-        const related = foundProduct.relatedProducts.map(id => 
-          productsData.find(p => p.id === id)
-        ).filter(Boolean);
-        setRelatedProducts(related);
+    const fetchProduct = async () => {
+      try {
+        const response = await fetch(`http://localhost:3000/api/v1/product/${id}`);
+        const data = await response.json();
+        if (data.success) {
+          setProduct(data.product);
+          
+          // Get related products
+          if (data.product.relatedProducts) {
+            const related = data.product.relatedProducts.map(id => 
+              data.product.relatedProducts.find(p => p.id === id)
+            ).filter(Boolean);
+            setRelatedProducts(related);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching product:", error);
       }
-    }
-  }, [productId]);
+    };
+
+    fetchProduct();
+  }, [id]);
   
   if (!product) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
@@ -234,12 +115,12 @@ const ProductDetailPage = () => {
             {/* Product Images Section */}
             <div className="relative">
               <img 
-                src={product.images[currentImageIndex]} 
+                src={product.image} 
                 alt={product.name} 
                 className="w-full h-full object-cover"
               />
               
-              {product.images.length > 1 && (
+              {product.images && product.images.length > 1 && (
                 <>
                   <button 
                     onClick={prevImage}
@@ -257,7 +138,7 @@ const ProductDetailPage = () => {
               )}
               
               {/* Image gallery thumbnails */}
-              {product.images.length > 1 && (
+              {product.images && product.images.length > 1 && (
                 <div className="absolute bottom-4 left-0 right-0 flex justify-center space-x-2">
                   {product.images.map((_, index) => (
                     <button 

@@ -70,16 +70,16 @@ const CourierDetails = () => {
       const token = localStorage.getItem('token');
       await axios.patch(
         `${API_BASE_URL}/api/v1/courier/${id}/verify`,
-        { verified: !courier.verified },
+        { verified: !courier.isVerified },
         { headers: { Authorization: `Bearer ${token}` }}
       );
       
       setCourier(prev => ({
         ...prev,
-        verified: !prev.verified
+        isVerified: !prev.isVerified
       }));
       
-      toast.success(`Courier ${!courier.verified ? 'verified' : 'unverified'} successfully`);
+      toast.success(`Courier ${courier.isVerified ? 'unverified' : 'verified'} successfully`);
     } catch (error) {
       console.error('Error toggling verification:', error);
       toast.error('Failed to update verification status');

@@ -46,12 +46,12 @@ const CouriersList = () => {
   const verifyCourier = async (courierId) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.post(`${API_BASE_URL}/api/v1/courier/${courierId}/verify`, {}, {
+      await axios.patch(`${API_BASE_URL}/api/v1/courier/${courierId}/verify`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
-      toast.success('Courier verified successfully');
-      fetchCouriers(); // Refresh the list
+      toast.success('Redirecting to courier details...');
+      navigate(`/admin/couriers/${courierId}`); // Navigate to courier details instead of refreshing
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to verify courier');
       if (error.response?.status === 401) navigate('/admin/login');
@@ -134,12 +134,18 @@ const CouriersList = () => {
                       <TableCell className="p-3 font-medium">{courier?.user?.fullName || 'N/A'}</TableCell>
                       <TableCell className="p-3">{courier?.user?.email || 'N/A'}</TableCell>
                       <TableCell className="p-3">
-                        <Badge variant={courier.verified ? "success" : "warning"}>
-                          {courier.verified ? 'Verified' : 'Pending'}
+                        <Badge 
+                          className={
+                            courier.isVerified 
+                              ? "bg-green-500 text-white" 
+                              : "bg-yellow-500 text-white"
+                          }
+                        >
+                          {courier.isVerified ? 'Verified' : 'Pending'}
                         </Badge>
                       </TableCell>
                       <TableCell className="p-3 flex justify-end gap-2">
-                        {!courier.verified && (
+                        {!courier.isVerified && (
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <Button 

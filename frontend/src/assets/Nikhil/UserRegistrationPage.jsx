@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
+// import React, { useState, useRef, useEffect, useMemo } from "react";
 import {
     User,
     Mail,
@@ -33,7 +34,7 @@ const UserRegistrationPage = () => {
 
     // Update farmType options to match backend enum
     const farmTypes = [
-        { value: "veg", label: "Vegetable Farming", icon: Leaf },
+        { value: "Veg", label: "Vegetable Farming", icon: Leaf },
         { value: "nonveg", label: "Poultry And Dairy Farming", icon: Egg },
         { value: "both", label: "Mixed Farming", icon: Filter },
     ];
@@ -50,7 +51,7 @@ const UserRegistrationPage = () => {
         district: "",
         password: "",
         confirmPassword: "",
-        farmType: "veg", // Default to veg farming
+        farmType: "", // Default to veg farming
         profilePhoto: null,
     });
 
@@ -84,7 +85,7 @@ const UserRegistrationPage = () => {
     };
 
     // Get current theme based on farm type with fallback
-    const currentTheme = themes[formData.farmType] || themes.Veg;
+    const currentTheme = themes[formData.farmType?.toLowerCase()] || themes.veg;
 
     // Replace scriptLoaded state with useLoadScript hook
     const { isLoaded, loadError } = useLoadScript({
@@ -385,6 +386,7 @@ const UserRegistrationPage = () => {
                 console.log("=== Success Response Data ===");
                 console.log(data);
                 localStorage.setItem("token", data.accessToken);
+                localStorage.setItem("userRole", JSON.stringify(data.user.role));
 
                 console.log(
                     "Farmer Registration successful! Redirecting to login..."

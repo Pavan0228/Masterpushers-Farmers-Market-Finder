@@ -122,14 +122,14 @@ const ProfileCourier = () => {
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="space-y-4">
-                                        <div className="flex items-center space-x-3">
-                                            <Mail className="h-5 w-5 text-gray-400" />
-                                            <span className="text-gray-600">
+                                        <div className="flex items-start space-x-3">
+                                            <Mail className="h-5 w-5 text-gray-400 mt-1 flex-shrink-0" />
+                                            <span className="text-gray-600 break-all">
                                                 {courierData.email}
                                             </span>
                                         </div>
                                         <div className="flex items-center space-x-3">
-                                            <Phone className="h-5 w-5 text-gray-400" />
+                                            <Phone className="h-5 w-5 text-gray-400 flex-shrink-0" />
                                             <span className="text-gray-600">
                                                 {
                                                     courierData.profile
@@ -137,8 +137,8 @@ const ProfileCourier = () => {
                                                 }
                                             </span>
                                         </div>
-                                        <div className="flex items-center space-x-3">
-                                            <MapPin className="h-5 w-5 text-gray-400" />
+                                        <div className="flex items-start space-x-3">
+                                            <MapPin className="h-5 w-5 text-gray-400 mt-1 flex-shrink-0" />
                                             <span className="text-gray-600">
                                                 {courierData.profile?.location}
                                             </span>
@@ -147,17 +147,19 @@ const ProfileCourier = () => {
 
                                     <div className="space-y-4">
                                         <div className="flex items-center space-x-3">
-                                            <Truck className="h-5 w-5 text-gray-400" />
-                                            <span className="text-gray-600">
-                                                Vehicle:{" "}
-                                                {
-                                                    courierData.profile
-                                                        ?.vehicleType
-                                                }
-                                            </span>
+                                            <Truck className="h-5 w-5 text-gray-400 flex-shrink-0" />
+                                            <div className="flex flex-col">
+                                                <span className="text-gray-600">
+                                                    Vehicle Type:{" "}
+                                                    {
+                                                        courierData.profile
+                                                            ?.vehicleType
+                                                    }
+                                                </span>
+                                            </div>
                                         </div>
                                         <div className="flex items-center space-x-3">
-                                            <Star className="h-5 w-5 text-gray-400" />
+                                            <Star className="h-5 w-5 text-gray-400 flex-shrink-0" />
                                             <span className="text-gray-600">
                                                 Rating:{" "}
                                                 {courierData.profile?.ratings ||
@@ -165,7 +167,7 @@ const ProfileCourier = () => {
                                             </span>
                                         </div>
                                         <div className="flex items-center space-x-3">
-                                            <Shield className="h-5 w-5 text-gray-400" />
+                                            <Shield className="h-5 w-5 text-gray-400 flex-shrink-0" />
                                             <span className="text-gray-600">
                                                 {courierData.profile
                                                     ?.isVerified ? (

@@ -275,6 +275,7 @@ const FarmRegistrationPage = () => {
                 const data = await response.json();
                 console.log("=== Success Response Data ===");
                 console.log(data);
+                localStorage.setItem("token", data.accessToken);
 
                 console.log(
                     "Farmer Registration successful! Redirecting to login..."
@@ -322,7 +323,7 @@ const FarmRegistrationPage = () => {
         }
     };
 
-    const getFarmTypeIcon = () => {
+    const getFarmTpyeIcon = () => {
         switch (formData.farmType) {
             case "Veg":
                 return <Leaf className="h-6 w-6 text-green-600" />;

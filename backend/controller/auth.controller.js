@@ -116,6 +116,7 @@ const registerUser = asyncHandler(async (req, res) => {
 
             roleProfile = await Farmer.create({
                 user: user._id,
+                email: email,
                 fullName,
                 location,
                 description,

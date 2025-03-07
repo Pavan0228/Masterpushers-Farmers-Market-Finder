@@ -1,4 +1,3 @@
-// src/pages/admin/CouriersList.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
@@ -14,28 +13,46 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Eye, Pencil, Trash2, AlertCircle } from 'lucide-react';
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Eye,
+  Pencil,
+  Trash2,
+  Search,
+  UserCheck,
+  UserX,
+  RefreshCw,
+  Plus
+} from 'lucide-react';
+import { Toggle } from "@/components/ui/toggle";
+import { cn } from "@/lib/utils";
 
 const CouriersList = () => {
   const [couriers, setCouriers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
   const [selectedCourier, setSelectedCourier] = useState(null);
-  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
-  const [isEditOpen, setIsEditOpen] = useState(false);
-  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-  const [editForm, setEditForm] = useState({
-    fullName: '',
-    email: ''
-  });
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const navigate = useNavigate();
-  
+
   useEffect(() => {
     fetchCouriers();
   }, []);
-  
+
   const fetchCouriers = async () => {
     try {
       setLoading(true);
@@ -43,7 +60,13 @@ const CouriersList = () => {
       const response = await axios.get(`${API_BASE_URL}/api/v1/courier/`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setCouriers(response.data);
+      
+      const mappedCouriers = response.data.data.map(courier => ({
+        ...courier,
+        verified: courier.isVerified
+      }));
+
+      setCouriers(mappedCouriers);
     } catch (error) {
       console.error('Error fetching couriers:', error);
       toast.error('Failed to fetch couriers');
@@ -54,26 +77,7 @@ const CouriersList = () => {
       setLoading(false);
     }
   };
-  
-  const handleViewDetails = (courier) => {
-    setSelectedCourier(courier);
-    setIsDetailsOpen(true);
-  };
-  
-  const handleEdit = (courier) => {
-    setSelectedCourier(courier);
-    setEditForm({
-      fullName: courier.user.fullName,
-      email: courier.user.email
-    });
-    setIsEditOpen(true);
-  };
-  
-  const handleDelete = (courier) => {
-    setSelectedCourier(courier);
-    setIsDeleteOpen(true);
-  };
-  
+
   const handleVerifyToggle = async (courierId, currentStatus) => {
     try {
       const token = localStorage.getItem('token');
@@ -94,26 +98,7 @@ const CouriersList = () => {
       toast.error('Failed to update courier verification status');
     }
   };
-  
-  const handleUpdateCourier = async (e) => {
-    e.preventDefault();
-    
-    try {
-      const token = localStorage.getItem('token');
-      await axios.put(`${API_BASE_URL}/api/v1/courier/${selectedCourier._id}`, 
-        editForm,
-        { headers: { Authorization: `Bearer ${token}` }}
-      );
-      
-      fetchCouriers(); // Refresh the list
-      setIsEditOpen(false);
-      toast.success('Courier updated successfully');
-    } catch (error) {
-      console.error('Error updating courier:', error);
-      toast.error('Failed to update courier');
-    }
-  };
-  
+
   const handleDeleteCourier = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -122,199 +107,186 @@ const CouriersList = () => {
       });
       
       setCouriers(couriers.filter(courier => courier._id !== selectedCourier._id));
-      setIsDeleteOpen(false);
+      setIsDeleteDialogOpen(false);
       toast.success('Courier deleted successfully');
     } catch (error) {
       console.error('Error deleting courier:', error);
       toast.error('Failed to delete courier');
     }
   };
-  
+
+  const filteredCouriers = couriers.filter(courier => 
+    courier?.user?.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    courier?.user?.email?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="h-8 w-8 border-4 border-green-500 border-r-transparent rounded-full animate-spin"></div>
-      </div>
+      <Card className="w-full">
+        <CardHeader>
+          <CardTitle>Couriers Management</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <Skeleton className="h-10 w-full" />
+            <div className="space-y-2">
+              {[1, 2, 3, 4].map(i => (
+                <Skeleton key={i} className="h-16 w-full" />
+              ))}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     );
   }
-  
+
   return (
-    <div>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Email</TableHead>
-            <TableHead>Verified</TableHead>
-            <TableHead>Created At</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {couriers.length === 0 ? (
-            <TableRow>
-              <TableCell colSpan={5} className="text-center py-8 text-gray-500">
-                No couriers found
-              </TableCell>
-            </TableRow>
-          ) : (
-            couriers.map((courier) => (
-              <TableRow key={courier._id}>
-                <TableCell className="font-medium">{courier.user.fullName}</TableCell>
-                <TableCell>{courier.user.email}</TableCell>
-                <TableCell>
-                  <Switch 
-                    checked={courier.verified || false}
-                    onCheckedChange={() => handleVerifyToggle(courier._id, courier.verified)}
-                    className="data-[state=checked]:bg-green-500"
-                  />
-                </TableCell>
-                <TableCell>{new Date(courier.user.createdAt).toLocaleDateString()}</TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => handleViewDetails(courier)}
-                      className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
-                    >
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => handleEdit(courier)}
-                      className="text-amber-600 hover:text-amber-800 hover:bg-amber-50"
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => handleDelete(courier)}
-                      className="text-red-600 hover:text-red-800 hover:bg-red-50"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))
-          )}
-        </TableBody>
-      </Table>
-      
-      {/* View Details Dialog */}
-      <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Courier Details</DialogTitle>
-          </DialogHeader>
-          {selectedCourier && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <h4 className="text-sm font-medium text-gray-500">Full Name</h4>
-                  <p>{selectedCourier.user.fullName}</p>
-                </div>
-                <div>
-                  <h4 className="text-sm font-medium text-gray-500">Email</h4>
-                  <p>{selectedCourier.user.email}</p>
-                </div>
-                <div>
-                  <h4 className="text-sm font-medium text-gray-500">Role</h4>
-                  <p className="capitalize">{selectedCourier.user.role}</p>
-                </div>
-                <div>
-                  <h4 className="text-sm font-medium text-gray-500">Verification Status</h4>
-                  <p>{selectedCourier.verified ? 'Verified' : 'Not Verified'}</p>
-                </div>
-                <div>
-                  <h4 className="text-sm font-medium text-gray-500">Created At</h4>
-                  <p>{new Date(selectedCourier.user.createdAt).toLocaleString()}</p>
-                </div>
-                <div>
-                  <h4 className="text-sm font-medium text-gray-500">Last Updated</h4>
-                  <p>{new Date(selectedCourier.user.updatedAt).toLocaleString()}</p>
-                </div>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-      
-      {/* Edit Dialog */}
-      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Edit Courier</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleUpdateCourier}>
-            <div className="space-y-4 py-2">
-              <div className="space-y-2">
-                <Label htmlFor="fullName">Full Name</Label>
-                <Input 
-                  id="fullName" 
-                  value={editForm.fullName} 
-                  onChange={(e) => setEditForm({...editForm, fullName: e.target.value})}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input 
-                  id="email" 
-                  type="email" 
-                  value={editForm.email} 
-                  onChange={(e) => setEditForm({...editForm, email: e.target.value})}
-                  required
-                />
-              </div>
-            </div>
-            <DialogFooter className="mt-4">
-              <Button type="button" variant="outline" onClick={() => setIsEditOpen(false)}>
-                Cancel
-              </Button>
-              <Button type="submit" className="bg-green-600 hover:bg-green-700">
-                Save Changes
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
-      
-      {/* Delete Confirmation Dialog */}
-      <Dialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center text-red-600">
-              <AlertCircle className="h-5 w-5 mr-2" />
-              Confirm Deletion
-            </DialogTitle>
-          </DialogHeader>
-          <div className="py-4">
-            <p>Are you sure you want to delete this courier? This action cannot be undone.</p>
-            {selectedCourier && (
-              <p className="font-medium mt-2">
-                Courier: {selectedCourier.user.fullName} ({selectedCourier.user.email})
-              </p>
-            )}
+    <Card className="w-full">
+      <CardHeader>
+        <div className="flex justify-between items-center">
+          <CardTitle className="text-2xl font-bold">Couriers Management</CardTitle>
+          <Button onClick={() => navigate('/admin/couriers/add')} className="bg-green-600 hover:bg-green-700">
+            <Plus className="h-4 w-4 mr-2" />
+            Add New Courier
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="mb-6 flex items-center justify-between gap-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
+            <Input
+              placeholder="Search couriers..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
           </div>
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setIsDeleteOpen(false)}>
-              Cancel
-            </Button>
-            <Button 
-              type="button" 
-              className="bg-red-600 hover:bg-red-700"
+          <Button variant="outline" onClick={fetchCouriers}>
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Refresh
+          </Button>
+        </div>
+
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Created At</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredCouriers.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center py-8 text-gray-500">
+                    No couriers found
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredCouriers.map((courier) => (
+                  <TableRow key={courier._id}>
+                    <TableCell className="font-medium">
+                      {courier?.user?.fullName || 'N/A'}
+                    </TableCell>
+                    <TableCell>{courier?.user?.email || 'N/A'}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Toggle
+                          pressed={courier.verified || false}
+                          onPressedChange={() => handleVerifyToggle(courier._id, courier.verified)}
+                          className={cn(
+                            "data-[state=on]:bg-green-50 data-[state=on]:text-green-600 data-[state=on]:border-green-600",
+                            "data-[state=off]:bg-gray-50 data-[state=off]:text-gray-600 data-[state=off]:border-gray-300",
+                            "border hover:bg-gray-100 hover:text-gray-900"
+                          )}
+                        >
+                          {courier.verified ? (
+                            <div className="flex items-center gap-1">
+                              <UserCheck className="h-4 w-4" />
+                              <span className="text-sm font-medium">Verified</span>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-1">
+                              <UserX className="h-4 w-4" />
+                              <span className="text-sm font-medium">Pending</span>
+                            </div>
+                          )}
+                        </Toggle>
+                        <Badge variant={courier.verified ? "success" : "warning"}>
+                          {courier.verified ? 'Active' : 'Inactive'}
+                        </Badge>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {courier?.user?.createdAt ? 
+                        new Date(courier.user.createdAt).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric'
+                        }) 
+                        : 'N/A'}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => navigate(`/admin/couriers/${courier._id}`)}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => navigate(`/admin/couriers/edit/${courier._id}`)}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="destructive" 
+                          size="sm"
+                          onClick={() => {
+                            setSelectedCourier(courier);
+                            setIsDeleteDialogOpen(true);
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </CardContent>
+
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the courier's
+              account and remove their data from our servers.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
               onClick={handleDeleteCourier}
+              className="bg-red-600 hover:bg-red-700"
             >
               Delete
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </Card>
   );
 };
 

@@ -1,19 +1,45 @@
-import React from "react";
-import { useState } from "react";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
     UserIcon,
     ShoppingCart,
     Search,
     MapPin,
     ChevronDown,
+    LogOut,
 } from "lucide-react";
 
 const Navbar = () => {
     const [searchTerm, setSearchTerm] = useState("");
+    const navigate = useNavigate();
 
     const handleSearch = (e) => {
         e.preventDefault();
         // Implement search functionality
+    };
+
+    const handleProfileClick = () => {
+        const userRole = localStorage.getItem("userRole");
+        const token = localStorage.getItem("token");
+
+        if (!token || !userRole) {
+            navigate("/login");
+            return;
+        }
+
+        switch (userRole) {
+            case "courier":
+                navigate("/profile/courier");
+                break;
+            case "farmer":
+                navigate("/profile/farmer");
+                break;
+            case "customer":
+                navigate("/profile/customer");
+                break;
+            default:
+                navigate("/login");
+        }
     };
 
     return (
@@ -70,13 +96,13 @@ const Navbar = () => {
                     <ShoppingCart className="h-5 w-5 mr-2" />
                     <span>My Cart</span>
                 </a>
-                <a
-                    href="/profile"
+                <button
+                    onClick={handleProfileClick}
                     className="flex items-center text-green-600 hover:text-green-800 transition-colors duration-200 font-medium px-3 py-2 rounded-lg hover:bg-green-50"
                 >
                     <UserIcon className="h-5 w-5 mr-2" />
                     <span>Profile</span>
-                </a>
+                </button>
             </div>
         </nav>
     );

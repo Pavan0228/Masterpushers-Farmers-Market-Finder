@@ -22,11 +22,6 @@ import {
     ArrowDown,
     ExternalLink,
 } from "lucide-react";
-import { Bar } from 'react-chartjs-2';
-import { Chart, registerables } from 'chart.js';
-
-// Register Chart.js components
-Chart.register(...registerables);
 
 const FarmerProfilePage = () => {
     // Replace static farmer state with API data
@@ -54,7 +49,7 @@ const FarmerProfilePage = () => {
     useEffect(() => {
         const fetchFarmerData = async () => {
             try {
-                const accessToken = localStorage.getItem("token");
+                const accessToken = localStorage.getItem("accessToken");
                 if (!accessToken) {
                     throw new Error("No access token found");
                 }
@@ -105,14 +100,6 @@ const FarmerProfilePage = () => {
                     completedOrders: dashboardData.completedOrders,
                     averageOrderValue: dashboardData.averageOrderValue,
                     recentOrders: dashboardData.recentOrders,
-                    cashOrders: dashboardData.cashOrders,
-                    onlineOrders: dashboardData.onlineOrders,
-                    pendingPayments: dashboardData.pendingPayments,
-                    revenueFromCash: dashboardData.revenueFromCash,
-                    revenueFromOnline: dashboardData.revenueFromOnline,
-                    pendingRevenue: dashboardData.pendingRevenue,
-                    highestOrderAmount: dashboardData.highestOrderAmount,
-                    lowestOrderAmount: dashboardData.lowestOrderAmount,
                 });
             } catch (error) {
                 console.error("Error fetching farmer data:", error);
@@ -153,61 +140,109 @@ const FarmerProfilePage = () => {
             reader.readAsDataURL(file);
         }
     };
-    // Update the stats section to show more details
+
+    // Update the stats section to show more details with farming theme
     const statsSection = (
-        <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+        <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-5 border border-green-200 shadow-sm">
             <div className="flex justify-between items-center mb-4">
-                <h3 className="font-medium text-gray-700">Order Statistics</h3>
-                <Star className="h-5 w-5 text-amber-400" />
+                <h3 className="font-semibold text-green-800 text-lg">
+                    Harvest Statistics
+                </h3>
+                <Sprout className="h-5 w-5 text-green-600" />
             </div>
-            <div className="space-y-3">
-                <div className="flex justify-between">
-                    <span className="text-gray-600">Total Orders</span>
-                    <span className="font-medium text-gray-800">
+            <div className="grid grid-cols-2 gap-4">
+                <div className="bg-white/70 backdrop-blur-sm rounded-lg p-3 border border-green-100">
+                    <div className="flex items-center mb-2">
+                        <Package className="h-4 w-4 text-green-600 mr-2" />
+                        <span className="text-sm text-green-700">
+                            Total Orders
+                        </span>
+                    </div>
+                    <span className="text-xl font-bold text-gray-800">
                         {dashboardStats.totalOrders}
                     </span>
                 </div>
-                <div className="flex justify-between">
-                    <span className="text-gray-600">Total Revenue</span>
-                    <span className="font-medium text-gray-800">
+
+                <div className="bg-white/70 backdrop-blur-sm rounded-lg p-3 border border-green-100">
+                    <div className="flex items-center mb-2">
+                        <ShoppingBag className="h-4 w-4 text-green-600 mr-2" />
+                        <span className="text-sm text-green-700">
+                            Total Revenue
+                        </span>
+                    </div>
+                    <span className="text-xl font-bold text-gray-800">
                         ₹{dashboardStats.totalAmount}
                     </span>
                 </div>
-                <div className="flex justify-between">
-                    <span className="text-gray-600">Total Quantity</span>
-                    <span className="font-medium text-gray-800">
+
+                <div className="bg-white/70 backdrop-blur-sm rounded-lg p-3 border border-green-100">
+                    <div className="flex items-center mb-2">
+                        <Truck className="h-4 w-4 text-green-600 mr-2" />
+                        <span className="text-sm text-green-700">
+                            Total Quantity
+                        </span>
+                    </div>
+                    <span className="text-xl font-bold text-gray-800">
                         {dashboardStats.totalQuantity} units
                     </span>
                 </div>
-                <div className="border-t border-gray-200 my-2"></div>
-                <div className="flex justify-between">
-                    <span className="text-gray-600">Pending Orders</span>
-                    <span className="font-medium text-amber-600">
+
+                <div className="bg-white/70 backdrop-blur-sm rounded-lg p-3 border border-green-100">
+                    <div className="flex items-center mb-2">
+                        <Clock className="h-4 w-4 text-amber-500 mr-2" />
+                        <span className="text-sm text-amber-600">
+                            Pending Orders
+                        </span>
+                    </div>
+                    <span className="text-xl font-bold text-amber-600">
                         {dashboardStats.pendingOrders}
                     </span>
                 </div>
-                <div className="flex justify-between">
-                    <span className="text-gray-600">Completed Orders</span>
-                    <span className="font-medium text-green-600">
+
+                <div className="bg-white/70 backdrop-blur-sm rounded-lg p-3 border border-green-100">
+                    <div className="flex items-center mb-2">
+                        <ShoppingBag className="h-4 w-4 text-green-600 mr-2" />
+                        <span className="text-sm text-green-700">
+                            Completed Orders
+                        </span>
+                    </div>
+                    <span className="text-xl font-bold text-green-600">
                         {dashboardStats.completedOrders}
                     </span>
                 </div>
-                <div className="flex justify-between">
-                    <span className="text-gray-600">Canceled Orders</span>
-                    <span className="font-medium text-red-600">
+
+                <div className="bg-white/70 backdrop-blur-sm rounded-lg p-3 border border-green-100">
+                    <div className="flex items-center mb-2">
+                        <FileText className="h-4 w-4 text-red-500 mr-2" />
+                        <span className="text-sm text-red-600">
+                            Canceled Orders
+                        </span>
+                    </div>
+                    <span className="text-xl font-bold text-red-600">
                         {dashboardStats.canceledOrders || 0}
                     </span>
                 </div>
-                <div className="border-t border-gray-200 my-2"></div>
-                <div className="flex justify-between">
-                    <span className="text-gray-600">Average Order</span>
-                    <span className="font-medium text-gray-800">
+
+                <div className="bg-white/70 backdrop-blur-sm rounded-lg p-3 border border-green-100">
+                    <div className="flex items-center mb-2">
+                        <BarChart3 className="h-4 w-4 text-blue-600 mr-2" />
+                        <span className="text-sm text-blue-700">
+                            Average Order
+                        </span>
+                    </div>
+                    <span className="text-xl font-bold text-gray-800">
                         ₹{dashboardStats.averageOrderValue}
                     </span>
                 </div>
-                <div className="flex justify-between">
-                    <span className="text-gray-600">Highest Order</span>
-                    <span className="font-medium text-gray-800">
+
+                <div className="bg-white/70 backdrop-blur-sm rounded-lg p-3 border border-green-100">
+                    <div className="flex items-center mb-2">
+                        <ArrowUp className="h-4 w-4 text-blue-600 mr-2" />
+                        <span className="text-sm text-blue-700">
+                            Highest Order
+                        </span>
+                    </div>
+                    <span className="text-xl font-bold text-gray-800">
                         ₹{dashboardStats.highestOrderAmount}
                     </span>
                 </div>
@@ -215,95 +250,81 @@ const FarmerProfilePage = () => {
         </div>
     );
 
-    // Add payment stats section
+    // Add payment stats section with farming theme
     const paymentStatsSection = (
-        <div className="bg-gray-50 rounded-xl p-4 border border-gray-100 mt-4">
+        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-5 border border-blue-200 shadow-sm mt-4">
             <div className="flex justify-between items-center mb-4">
-                <h3 className="font-medium text-gray-700">
-                    Payment Statistics
+                <h3 className="font-semibold text-blue-800 text-lg">
+                    Yield Revenue
                 </h3>
-                <FileText className="h-5 w-5 text-blue-400" />
+                <FileText className="h-5 w-5 text-blue-600" />
             </div>
-            <div className="space-y-3">
-                <div className="flex justify-between">
-                    <span className="text-gray-600">Cash Orders</span>
-                    <div className="text-right">
-                        <div className="font-medium text-gray-800">
-                            {dashboardStats?.cashOrders || 0} 
+            <div className="grid grid-cols-1 gap-4">
+                <div className="bg-white/70 backdrop-blur-sm rounded-lg p-4 border border-blue-100">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                            <div className="bg-indigo-100 p-2 rounded-full mr-3">
+                                <ShoppingBag className="h-5 w-5 text-indigo-600" />
+                            </div>
+                            <span className="text-gray-700 font-medium">
+                                Cash Sales
+                            </span>
                         </div>
-                        <div className="text-sm text-gray-500">
-                            ₹{dashboardStats?.revenueFromCash || 0}
-                        </div>
-                    </div>
-                </div>
-                <div className="flex justify-between">
-                    <span className="text-gray-600">Online Orders</span>
-                    <div className="text-right">
-                        <div className="font-medium text-gray-800">
-                            {dashboardStats.onlineOrders}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                            ₹{dashboardStats.revenueFromOnline}
+                        <div className="text-right">
+                            <div className="font-bold text-gray-800 text-lg">
+                                {dashboardStats?.cashOrders || 0} orders
+                            </div>
+                            <div className="text-green-600 font-medium">
+                                ₹{dashboardStats?.revenueFromCash || 0}
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div className="border-t border-gray-200 my-2"></div>
-                <div className="flex justify-between">
-                    <span className="text-gray-600">Pending Payments</span>
-                    <div className="text-right">
-                        <div className="font-medium text-amber-600">
-                            {dashboardStats.pendingPayments}
+
+                <div className="bg-white/70 backdrop-blur-sm rounded-lg p-4 border border-blue-100">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                            <div className="bg-purple-100 p-2 rounded-full mr-3">
+                                <ExternalLink className="h-5 w-5 text-purple-600" />
+                            </div>
+                            <span className="text-gray-700 font-medium">
+                                Online Sales
+                            </span>
                         </div>
-                        <div className="text-sm text-gray-500">
-                            ₹{dashboardStats.pendingRevenue}
+                        <div className="text-right">
+                            <div className="font-bold text-gray-800 text-lg">
+                                {dashboardStats.onlineOrders || 0} orders
+                            </div>
+                            <div className="text-green-600 font-medium">
+                                ₹{dashboardStats.revenueFromOnline || 0}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="bg-white/70 backdrop-blur-sm rounded-lg p-4 border border-blue-100">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                            <div className="bg-amber-100 p-2 rounded-full mr-3">
+                                <Clock className="h-5 w-5 text-amber-600" />
+                            </div>
+                            <span className="text-gray-700 font-medium">
+                                Pending Harvest
+                            </span>
+                        </div>
+                        <div className="text-right">
+                            <div className="font-bold text-gray-800 text-lg">
+                                {dashboardStats.pendingPayments || 0} orders
+                            </div>
+                            <div className="text-amber-600 font-medium">
+                                ₹{dashboardStats.pendingRevenue || 0}
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     );
-
-    // Chart data for orders
-    const orderChartData = {
-        labels: ['Total Orders', 'Pending Orders', 'Completed Orders', 'Canceled Orders'],
-        datasets: [
-            {
-                label: 'Order Statistics',
-                data: [
-                    dashboardStats.totalOrders,
-                    dashboardStats.pendingOrders,
-                    dashboardStats.completedOrders,
-                    dashboardStats.canceledOrders || 0,
-                ],
-                backgroundColor: [
-                    'rgba(75, 192, 192, 0.6)',
-                    'rgba(255, 206, 86, 0.6)',
-                    'rgba(54, 162, 235, 0.6)',
-                    'rgba(255, 99, 132, 0.6)',
-                ],
-            },
-        ],
-    };
-
-    // Chart data for payments
-    const paymentChartData = {
-        labels: ['Cash Orders', 'Online Orders', 'Pending Payments'],
-        datasets: [
-            {
-                label: 'Payment Statistics',
-                data: [
-                    dashboardStats.cashOrders || 0,
-                    dashboardStats.onlineOrders || 0,
-                    dashboardStats.pendingPayments || 0,
-                ],
-                backgroundColor: [
-                    'rgba(153, 102, 255, 0.6)',
-                    'rgba(255, 159, 64, 0.6)',
-                    'rgba(255, 99, 132, 0.6)',
-                ],
-            },
-        ],
-    };
 
     return (
         <div className="min-h-screen bg-gray-100 py-8 px-4 sm:px-6 lg:px-8">
@@ -403,23 +424,11 @@ const FarmerProfilePage = () => {
                                 </div>
                             </div>
 
-                            <div className="col-span-1">
+                            <div className="col-span-3">
                                 {statsSection}
                                 {paymentStatsSection}
                             </div>
                         </div>
-                    </div>
-                </div>
-
-                {/* Charts Section */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                    <div className="bg-white shadow-lg rounded-xl p-6">
-                        <h2 className="text-xl font-bold text-gray-800 mb-4">Order Statistics</h2>
-                        <Bar data={orderChartData} options={{ responsive: true }} />
-                    </div>
-                    <div className="bg-white shadow-lg rounded-xl p-6">
-                        <h2 className="text-xl font-bold text-gray-800 mb-4">Payment Statistics</h2>
-                        <Bar data={paymentChartData} options={{ responsive: true }} />
                     </div>
                 </div>
 
@@ -527,7 +536,7 @@ const FarmerProfilePage = () => {
                             </h2>
 
                             <div className="space-y-6">
-                                {dashboardStats?.recentOrders?.map((order) => (
+                                {dashboardStats.recentOrders.map((order) => (
                                     <div key={order._id} className="flex">
                                         <div className="mr-4">
                                             <div className="bg-green-100 p-3 rounded-full">
@@ -633,7 +642,7 @@ const FarmerProfilePage = () => {
                                                 Cash Orders
                                             </td>
                                             <td className="px-4 py-3 text-sm text-gray-600">
-                                                {dashboardStats?.cashOrders || 0}
+                                                {dashboardStats.cashOrders || 0}
                                             </td>
                                             <td className="px-4 py-3 text-sm text-gray-600">
                                                 ₹

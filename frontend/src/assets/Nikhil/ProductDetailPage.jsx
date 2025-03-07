@@ -17,6 +17,7 @@ import {
   ArrowLeft
 } from 'lucide-react';
 import { useParams } from 'react-router-dom';
+import { API_BASE_URL } from '../../../config';
 // Static product data - in a real app, you would fetch this based on product ID
 
 const ProductDetailPage = () => {
@@ -34,7 +35,7 @@ const ProductDetailPage = () => {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const response = await fetch(`http://localhost:3000/api/v1/product/${id}`);
+        const response = await fetch(`${API_BASE_URL}/api/v1/product/${id}`);
         const data = await response.json();
         if (data.success) {
           setProduct(data.product);
@@ -86,7 +87,7 @@ const ProductDetailPage = () => {
   
   const handleBackToProducts = () => {
     // In a real app, this would navigate back to products page
-    window.location.href = '/products';
+    window.location.href = '/product-show';
   };
 
   return (

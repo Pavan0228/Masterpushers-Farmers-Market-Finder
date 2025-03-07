@@ -19,6 +19,12 @@ import {
     Award,
     Package,
     AlertCircle,
+    Leaf,
+    Sun,
+    Cloud,
+    Wheat,
+    Droplets,
+    Sprout,
 } from "lucide-react";
 
 const CourierProfilePage = () => {
@@ -28,6 +34,85 @@ const CourierProfilePage = () => {
     const [dashboardStats, setDashboardStats] = useState({
         // ... existing dashboard stats
     });
+    // Add seasonal styling
+    const [season, setSeason] = useState("summer");
+
+    // Determine season based on current month
+    useEffect(() => {
+        const month = new Date().getMonth();
+        if (month >= 2 && month <= 4) setSeason("spring");
+        else if (month >= 5 && month <= 7) setSeason("summer");
+        else if (month >= 8 && month <= 10) setSeason("autumn");
+        else setSeason("winter");
+    }, []);
+
+    // Season-based styling
+    const getSeasonalStyles = () => {
+        switch (season) {
+            case "spring":
+                return {
+                    primary: "from-green-500 to-emerald-400",
+                    secondary: "bg-emerald-50",
+                    accent: "text-emerald-600",
+                    icon: <Sprout className="h-6 w-6 text-emerald-500" />,
+                    name: "Spring",
+                    border: "border-emerald-100",
+                    highlight: "bg-emerald-100",
+                    button: "bg-emerald-600 hover:bg-emerald-700",
+                    light: "text-emerald-500",
+                };
+            case "summer":
+                return {
+                    primary: "from-green-600 to-yellow-500",
+                    secondary: "bg-green-50",
+                    accent: "text-green-600",
+                    icon: <Sun className="h-6 w-6 text-yellow-500" />,
+                    name: "Summer",
+                    border: "border-green-100",
+                    highlight: "bg-green-100",
+                    button: "bg-green-600 hover:bg-green-700",
+                    light: "text-green-500",
+                };
+            case "autumn":
+                return {
+                    primary: "from-orange-500 to-amber-400",
+                    secondary: "bg-amber-50",
+                    accent: "text-amber-600",
+                    icon: <Wheat className="h-6 w-6 text-amber-500" />,
+                    name: "Autumn",
+                    border: "border-amber-100",
+                    highlight: "bg-amber-100",
+                    button: "bg-amber-600 hover:bg-amber-700",
+                    light: "text-amber-500",
+                };
+            case "winter":
+                return {
+                    primary: "from-blue-500 to-indigo-400",
+                    secondary: "bg-blue-50",
+                    accent: "text-blue-600",
+                    icon: <Cloud className="h-6 w-6 text-blue-500" />,
+                    name: "Winter",
+                    border: "border-blue-100",
+                    highlight: "bg-blue-100",
+                    button: "bg-blue-600 hover:bg-blue-700",
+                    light: "text-blue-500",
+                };
+            default:
+                return {
+                    primary: "from-green-600 to-green-500",
+                    secondary: "bg-green-50",
+                    accent: "text-green-600",
+                    icon: <Leaf className="h-6 w-6 text-green-500" />,
+                    name: "Harvest",
+                    border: "border-green-100",
+                    highlight: "bg-green-100",
+                    button: "bg-green-600 hover:bg-green-700",
+                    light: "text-green-500",
+                };
+        }
+    };
+
+    const seasonalStyle = getSeasonalStyles();
 
     useEffect(() => {
         const fetchCourierData = async () => {
@@ -127,10 +212,21 @@ const CourierProfilePage = () => {
     // Loading state
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+            <div
+                className={`min-h-screen ${seasonalStyle.secondary} flex items-center justify-center`}
+            >
                 <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-                    <p className="mt-4 text-gray-700">
+                    <div className="relative">
+                        <div
+                            className={`animate-spin rounded-full h-16 w-16 border-b-2 border-${
+                                seasonalStyle.accent.split("-")[1]
+                            } mx-auto`}
+                        ></div>
+                        <Truck
+                            className={`absolute top-4 left-6 h-8 w-8 ${seasonalStyle.accent}`}
+                        />
+                    </div>
+                    <p className={`mt-6 ${seasonalStyle.accent} font-medium`}>
                         Loading courier profile...
                     </p>
                 </div>
@@ -141,7 +237,9 @@ const CourierProfilePage = () => {
     // Error state
     if (error) {
         return (
-            <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+            <div
+                className={`min-h-screen ${seasonalStyle.secondary} flex items-center justify-center p-4`}
+            >
                 <div className="bg-white rounded-lg shadow-lg p-6 max-w-md w-full">
                     <div className="text-center text-red-500 mb-4">
                         <AlertCircle className="h-12 w-12 mx-auto" />
@@ -152,7 +250,7 @@ const CourierProfilePage = () => {
                     <p className="text-gray-600 text-center mb-4">{error}</p>
                     <button
                         onClick={() => window.location.reload()}
-                        className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg"
+                        className={`w-full bg-gradient-to-r ${seasonalStyle.primary} text-white py-2 rounded-lg`}
                     >
                         Try Again
                     </button>
@@ -243,11 +341,47 @@ const CourierProfilePage = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-100 py-8 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-6xl mx-auto">
+        <div
+            className={`min-h-screen ${seasonalStyle.secondary} py-8 px-4 sm:px-6 lg:px-8 relative overflow-hidden`}
+        >
+            {/* Decorative elements */}
+            <div className="absolute top-0 right-0 opacity-5 pointer-events-none">
+                <Truck className="h-96 w-96 text-green-800" />
+            </div>
+            <div className="absolute bottom-0 left-0 opacity-5 pointer-events-none">
+                <Package className="h-96 w-96 text-green-800" />
+            </div>
+            <div className="absolute top-1/4 left-10 opacity-5 pointer-events-none">
+                <Bike className="h-64 w-64 text-green-800" />
+            </div>
+            <div className="absolute bottom-1/4 right-10 opacity-5 pointer-events-none">
+                <Shield className="h-64 w-64 text-green-800" />
+            </div>
+
+            <div className="max-w-6xl mx-auto relative z-10">
+                {/* Season indicator */}
+                <div className="flex items-center justify-center mb-6 bg-white rounded-full py-2 px-6 shadow-md w-fit mx-auto">
+                    {seasonalStyle.icon}
+                    <span
+                        className={`ml-2 font-medium ${seasonalStyle.accent}`}
+                    >
+                        {seasonalStyle.name} Season Courier
+                    </span>
+                </div>
+
                 {/* Profile Header Card */}
-                <div className="bg-white shadow-xl rounded-2xl overflow-hidden mb-6">
-                    <div className="bg-gradient-to-r from-blue-600 to-blue-800 h-40 relative">
+                <div className="bg-white shadow-xl rounded-2xl overflow-hidden mb-6 border border-gray-100">
+                    <div
+                        className={`bg-gradient-to-r ${seasonalStyle.primary} h-40 relative`}
+                    >
+                        <div className="absolute inset-0 opacity-20">
+                            <div className="absolute top-0 left-0 w-full h-full">
+                                <div className="h-4 w-4 bg-white rounded-full absolute top-10 left-10 opacity-60"></div>
+                                <div className="h-3 w-3 bg-white rounded-full absolute top-20 left-40 opacity-40"></div>
+                                <div className="h-5 w-5 bg-white rounded-full absolute top-8 right-20 opacity-50"></div>
+                                <div className="h-2 w-2 bg-white rounded-full absolute top-30 right-60 opacity-70"></div>
+                            </div>
+                        </div>
                         <div className="absolute -bottom-16 left-8 flex items-end">
                             <div className="relative">
                                 <div className="h-32 w-32 rounded-full border-4 border-white bg-white overflow-hidden shadow-lg">
@@ -258,16 +392,22 @@ const CourierProfilePage = () => {
                                             className="h-full w-full object-cover"
                                         />
                                     ) : (
-                                        <div className="h-full w-full bg-blue-100 flex items-center justify-center">
-                                            <User className="h-16 w-16 text-blue-600" />
+                                        <div
+                                            className={`h-full w-full ${seasonalStyle.highlight} flex items-center justify-center`}
+                                        >
+                                            <User
+                                                className={`h-16 w-16 ${seasonalStyle.accent}`}
+                                            />
                                         </div>
                                     )}
                                 </div>
                                 <label
                                     htmlFor="profile-upload"
-                                    className="absolute bottom-0 right-0 bg-blue-100 p-2 rounded-full cursor-pointer border-2 border-white shadow-md hover:bg-blue-200 transition-colors"
+                                    className={`absolute bottom-0 right-0 ${seasonalStyle.highlight} p-2 rounded-full cursor-pointer border-2 border-white shadow-md hover:opacity-90 transition-colors`}
                                 >
-                                    <Camera className="h-4 w-4 text-blue-600" />
+                                    <Camera
+                                        className={`h-4 w-4 ${seasonalStyle.accent}`}
+                                    />
                                     <input
                                         id="profile-upload"
                                         type="file"
@@ -286,13 +426,15 @@ const CourierProfilePage = () => {
                                         </span>
                                     )}
                                 </h1>
-                                <p className="text-blue-100">
+                                <p className="text-white/80">
                                     Courier • Member since {courier.memberSince}
                                 </p>
                             </div>
                         </div>
                         <div className="absolute right-6 top-6">
-                            <button className="bg-white/20 hover:bg-white/30 transition rounded-lg px-4 py-2 text-white font-medium backdrop-blur-sm flex items-center">
+                            <button
+                                className={`bg-white/20 hover:bg-white/30 transition rounded-lg px-4 py-2 text-white font-medium backdrop-blur-sm flex items-center`}
+                            >
                                 <Edit className="h-4 w-4 mr-2" />
                                 Edit Profile
                             </button>
@@ -304,19 +446,37 @@ const CourierProfilePage = () => {
                             <div className="col-span-2">
                                 <div className="space-y-4">
                                     <div className="flex items-center">
-                                        <Mail className="h-5 w-5 text-gray-500 mr-3" />
+                                        <div
+                                            className={`p-2 ${seasonalStyle.highlight} rounded-full mr-3`}
+                                        >
+                                            <Mail
+                                                className={`h-5 w-5 ${seasonalStyle.accent}`}
+                                            />
+                                        </div>
                                         <span className="text-gray-800">
                                             {courier.email}
                                         </span>
                                     </div>
                                     <div className="flex items-center">
-                                        <Phone className="h-5 w-5 text-gray-500 mr-3" />
+                                        <div
+                                            className={`p-2 ${seasonalStyle.highlight} rounded-full mr-3`}
+                                        >
+                                            <Phone
+                                                className={`h-5 w-5 ${seasonalStyle.accent}`}
+                                            />
+                                        </div>
                                         <span className="text-gray-800">
                                             {courier.phoneNumber}
                                         </span>
                                     </div>
                                     <div className="flex items-start">
-                                        <MapPin className="h-5 w-5 text-gray-500 mr-3 mt-1" />
+                                        <div
+                                            className={`p-2 ${seasonalStyle.highlight} rounded-full mr-3 mt-1`}
+                                        >
+                                            <MapPin
+                                                className={`h-5 w-5 ${seasonalStyle.accent}`}
+                                            />
+                                        </div>
                                         <div>
                                             <span className="text-gray-800 block">
                                                 {courier.address}
@@ -324,7 +484,13 @@ const CourierProfilePage = () => {
                                         </div>
                                     </div>
                                     <div className="flex items-center">
-                                        <Bike className="h-5 w-5 text-gray-500 mr-3" />
+                                        <div
+                                            className={`p-2 ${seasonalStyle.highlight} rounded-full mr-3`}
+                                        >
+                                            <Bike
+                                                className={`h-5 w-5 ${seasonalStyle.accent}`}
+                                            />
+                                        </div>
                                         <span className="text-gray-800">
                                             Vehicle Type: {courier.vehicleType}
                                         </span>
@@ -333,12 +499,16 @@ const CourierProfilePage = () => {
                             </div>
 
                             <div className="col-span-1">
-                                <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+                                <div
+                                    className={`${seasonalStyle.secondary} rounded-xl p-4 ${seasonalStyle.border}`}
+                                >
                                     <div className="flex justify-between items-center mb-4">
                                         <h3 className="font-medium text-gray-700">
                                             Courier Stats
                                         </h3>
-                                        <Award className="h-5 w-5 text-blue-600" />
+                                        <Award
+                                            className={`h-5 w-5 ${seasonalStyle.accent}`}
+                                        />
                                     </div>
                                     <div className="space-y-3">
                                         <div className="flex justify-between">
@@ -378,14 +548,18 @@ const CourierProfilePage = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Left Column - Documents & Verification */}
                     <div className="col-span-1">
-                        <div className="bg-white shadow-lg rounded-xl p-6">
+                        <div className="bg-white shadow-lg rounded-xl p-6 border border-gray-100">
                             <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
-                                <Shield className="h-5 w-5 mr-2 text-blue-600" />
+                                <Shield
+                                    className={`h-5 w-5 mr-2 ${seasonalStyle.accent}`}
+                                />
                                 Documents & Verification
                             </h2>
 
                             <div className="space-y-4">
-                                <div className="bg-gray-50 rounded-lg p-4 border border-gray-100">
+                                <div
+                                    className={`${seasonalStyle.secondary} rounded-lg p-4 ${seasonalStyle.border}`}
+                                >
                                     <h3 className="font-medium text-gray-700 mb-2">
                                         Driving License
                                     </h3>
@@ -405,7 +579,9 @@ const CourierProfilePage = () => {
                                     </div>
                                 </div>
 
-                                <div className="bg-gray-50 rounded-lg p-4 border border-gray-100">
+                                <div
+                                    className={`${seasonalStyle.secondary} rounded-lg p-4 ${seasonalStyle.border}`}
+                                >
                                     <h3 className="font-medium text-gray-700 mb-2">
                                         Identity Verification
                                     </h3>
@@ -426,9 +602,11 @@ const CourierProfilePage = () => {
                         </div>
 
                         {/* Delivery Stats */}
-                        <div className="bg-white shadow-lg rounded-xl p-6 mt-6">
+                        <div className="bg-white shadow-lg rounded-xl p-6 mt-6 border border-gray-100">
                             <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
-                                <BarChart3 className="h-5 w-5 mr-2 text-blue-600" />
+                                <BarChart3
+                                    className={`h-5 w-5 mr-2 ${seasonalStyle.accent}`}
+                                />
                                 Delivery Statistics
                             </h2>
 
@@ -436,7 +614,7 @@ const CourierProfilePage = () => {
                                 {deliveryStats.map((stat, index) => (
                                     <div
                                         key={index}
-                                        className="bg-gray-50 rounded-lg p-4 border border-gray-100"
+                                        className={`${seasonalStyle.secondary} rounded-lg p-4 ${seasonalStyle.border}`}
                                     >
                                         <div className="flex justify-between items-center">
                                             <span className="text-gray-600">
@@ -454,9 +632,11 @@ const CourierProfilePage = () => {
 
                     {/* Right Column - Recent Activity */}
                     <div className="col-span-2">
-                        <div className="bg-white shadow-lg rounded-xl p-6">
+                        <div className="bg-white shadow-lg rounded-xl p-6 border border-gray-100">
                             <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
-                                <Clock className="h-5 w-5 mr-2 text-blue-600" />
+                                <Clock
+                                    className={`h-5 w-5 mr-2 ${seasonalStyle.accent}`}
+                                />
                                 Recent Activity
                             </h2>
 
@@ -464,7 +644,9 @@ const CourierProfilePage = () => {
                                 {recentActivities.map((activity) => (
                                     <div key={activity.id} className="flex">
                                         <div className="mr-4">
-                                            <div className="bg-blue-100 p-3 rounded-full">
+                                            <div
+                                                className={`${seasonalStyle.highlight} p-3 rounded-full`}
+                                            >
                                                 {getActivityIcon(activity.type)}
                                             </div>
                                         </div>
@@ -542,7 +724,9 @@ const CourierProfilePage = () => {
                                 ))}
                             </div>
 
-                            <button className="w-full mt-4 bg-blue-50 hover:bg-blue-100 text-blue-700 transition py-3 rounded-lg font-medium">
+                            <button
+                                className={`w-full mt-4 ${seasonalStyle.secondary} hover:opacity-90 ${seasonalStyle.accent} transition py-3 rounded-lg font-medium`}
+                            >
                                 View All Activity
                             </button>
                         </div>

@@ -20,7 +20,7 @@ import CouriersList from "./components/admin/CouriersList";
 import CourierMap from "./assets/Nikhil/CourierMap";
 import CartPage from "./assets/Nikhil/CartPage";
 import ProfileCourier from "./components/ProfileCourier";           
-
+import ProfileCustomer from "./components/ProfileCustomer";
 const App = () => {
     return (
         <Router>
@@ -61,6 +61,10 @@ const App = () => {
                     <Route
                         path="/profile/courier"
                         element={<ProfileCourier />}
+                    />
+                    <Route
+                        path="/profile/customer"
+                        element={<ProfileCustomer />}
                     />
                 </Route>
 

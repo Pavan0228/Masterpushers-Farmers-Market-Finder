@@ -19,6 +19,7 @@ import AdminLogin from "./components/admin/adminLogin";
 import Dashboard from "./components/admin/adminDashboard";
 import CouriersList from "./components/admin/CouriersList";
 import CourierMap from "./assets/Nikhil/CourierMap";
+import CartPage from "./assets/Nikhil/CartPage";
 const App = () => {
     return (
         <Router>
@@ -52,6 +53,7 @@ const App = () => {
                         path="/customer/register"
                         element={<CustomerRegister />}
                     />
+                     <Route path="/cart" element={<CartPage />} />
                     <Route path="/allRegister" element={<AllRegister />} />
                     <Route path="/courier/register" element={<CourierRegister />} />
                     <Route path="/courier/map" element={<CourierMap/>} />

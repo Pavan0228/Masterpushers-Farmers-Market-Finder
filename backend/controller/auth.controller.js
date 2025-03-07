@@ -340,12 +340,13 @@ const updateUserProfile = asyncHandler(async (req, res) => {
         case "farmer":
             roleModel = Farmer;
             roleDocument = await Farmer.findOne({ user: userId });
-            
             // Extract farmer-specific fields
-            const { farmLocation, farmDescription } = req.body;
+            const { location: farmerLocation, description: farmDescription, farmName, farmType } = req.body;
             
-            if (farmLocation?.trim()) roleUpdates.farmLocation = farmLocation;
-            if (farmDescription?.trim()) roleUpdates.farmDescription = farmDescription;
+            if (farmerLocation?.trim()) roleUpdates.location = farmerLocation;
+            if (farmDescription?.trim()) roleUpdates.description = farmDescription;
+            if (farmName?.trim()) roleUpdates.farmName = farmName;
+            if (farmType?.trim()) roleUpdates.farmType = farmType;
             if (profileImageUrl) roleUpdates.profile = profileImageUrl;
             break;
             

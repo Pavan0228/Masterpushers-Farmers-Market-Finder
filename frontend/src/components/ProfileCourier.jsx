@@ -21,6 +21,7 @@ import {
     Shovel,
     Droplets,
 } from "lucide-react";
+import { useNavigate } from 'react-router-dom';
 
 const ProfileCourier = () => {
     const [courierData, setCourierData] = useState(null);
@@ -28,6 +29,7 @@ const ProfileCourier = () => {
     const [error, setError] = useState(null);
     // Add seasonal styling
     const [season, setSeason] = useState("summer");
+    const navigate = useNavigate();
 
     // Determine season based on current month
     useEffect(() => {
@@ -227,14 +229,30 @@ const ProfileCourier = () => {
             </div>
 
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-                {/* Season indicator */}
-                <div className="flex items-center justify-center mb-6 bg-white rounded-full py-2 px-6 shadow-md w-fit mx-auto">
-                    {seasonalStyle.icon}
-                    <span
-                        className={`ml-2 font-medium ${seasonalStyle.accent}`}
+                <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center justify-center bg-white rounded-full py-2 px-6 shadow-md w-fit">
+                        {seasonalStyle.icon}
+                        <span className={`ml-2 font-medium ${seasonalStyle.accent}`}>
+                            {seasonalStyle.name} Courier
+                        </span>
+                    </div>
+
+                    <button
+                        onClick={() => navigate('/courier/map')}
+                        className={`bg-white shadow-lg rounded-lg py-2.5 px-6 flex items-center space-x-3 hover:shadow-xl transition-all transform hover:scale-105 border ${seasonalStyle.border}`}
                     >
-                        {seasonalStyle.name} Courier
-                    </span>
+                        <div className={`p-2 ${seasonalStyle.highlight} rounded-full`}>
+                            <MapPin className={`h-5 w-5 ${seasonalStyle.accent}`} />
+                        </div>
+                        <div className="flex flex-col items-start">
+                            <span className={`font-medium ${seasonalStyle.accent}`}>
+                                View Delivery Map
+                            </span>
+                            <span className="text-xs text-gray-500">
+                                Find available orders
+                            </span>
+                        </div>
+                    </button>
                 </div>
 
                 {/* Profile Header */}

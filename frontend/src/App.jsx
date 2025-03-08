@@ -21,6 +21,8 @@ import CourierMap from "./assets/Nikhil/CourierMap";
 import CartPage from "./assets/Nikhil/CartPage";
 import ProfileCourier from "./components/ProfileCourier";           
 import ProfileCustomer from "./components/ProfileCustomer";
+import FarmerLocationPage from "./pages/FarmerLocationPage";
+
 const App = () => {
     return (
         <Router>
@@ -65,6 +67,8 @@ const App = () => {
                         path="/profile/customer"
                         element={<ProfileCustomer />}
                     />
+                 <Route path="/farmers/:city" element={<FarmerLocationPage />} />
+
                 </Route>
                 <Route path="/login" element={<LoginPage />} />
 

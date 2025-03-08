@@ -338,9 +338,22 @@ export const deliveryVerification = async (req, res) => {
         if (order.randomNumber === randomNumber) {
             order.status = "completed";
             await order.save();
-            //send email to customer that order is completed
-            const customer = await Customer.findOne({ user: order.customer });
+            
+            // Get customer and user information
+            const customer = await Customer.findById(order.customer);
+            if (!customer) {
+                return res.status(404).json({ message: "Customer not found" });
+            }
+            
             const user = await User.findById(customer.user);
+            if (!user) {
+                return res.status(404).json({ message: "User not found" });
+            }
+            
+            // Get product information
+            const product = await Product.findById(order.product);
+            
+            // Create email transporter
             const transporter = nodemailer.createTransport({
                 service: "gmail",
                 auth: {
@@ -348,18 +361,176 @@ export const deliveryVerification = async (req, res) => {
                     pass: "fqllnszflzxyfwle",
                 },
             });
+            
+            // Create farm-themed HTML email template for delivery confirmation
             const emailHtml = `
-            <p>Hello ${user.fullName || "Valued Customer"},</p>
-            <p>Your order has been delivered successfully.</p>
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Your Order Has Been Delivered</title>
+                <style>
+                    body {
+                        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                        line-height: 1.6;
+                        color: #333;
+                        background-color: #f9f9f9;
+                        margin: 0;
+                        padding: 0;
+                    }
+                    .container {
+                        max-width: 600px;
+                        margin: 0 auto;
+                        padding: 20px;
+                        background-color: #ffffff;
+                        border-radius: 8px;
+                        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                    }
+                    .header {
+                        text-align: center;
+                        padding: 20px 0;
+                        background-color: #4CAF50;
+                        color: white;
+                        border-radius: 8px 8px 0 0;
+                    }
+                    .logo {
+                        max-width: 150px;
+                        margin-bottom: 10px;
+                    }
+                    .content {
+                        padding: 20px;
+                    }
+                    .order-details {
+                        background-color: #f5f9f5;
+                        padding: 15px;
+                        border-radius: 5px;
+                        margin: 20px 0;
+                        border-left: 4px solid #4CAF50;
+                    }
+                    .success-message {
+                        background-color: #e8f5e9;
+                        padding: 15px;
+                        border-radius: 5px;
+                        margin: 20px 0;
+                        text-align: center;
+                        border: 2px dashed #4CAF50;
+                    }
+                    .success-icon {
+                        font-size: 48px;
+                        color: #4CAF50;
+                        margin-bottom: 10px;
+                    }
+                    .footer {
+                        text-align: center;
+                        padding: 20px;
+                        color: #666;
+                        font-size: 14px;
+                        background-color: #f5f5f5;
+                        border-radius: 0 0 8px 8px;
+                    }
+                    h1 {
+                        color: #ffffff;
+                        margin: 0;
+                    }
+                    h2 {
+                        color: #4CAF50;
+                    }
+                    .button {
+                        display: inline-block;
+                        padding: 10px 20px;
+                        background-color: #4CAF50;
+                        color: white;
+                        text-decoration: none;
+                        border-radius: 5px;
+                        font-weight: bold;
+                        margin-top: 15px;
+                    }
+                    .divider {
+                        height: 1px;
+                        background-color: #e0e0e0;
+                        margin: 20px 0;
+                    }
+                    .rating-request {
+                        background-color: #f9fbe7;
+                        padding: 15px;
+                        border-radius: 5px;
+                        margin: 20px 0;
+                        text-align: center;
+                    }
+                    .stars {
+                        font-size: 24px;
+                        color: #FFC107;
+                        letter-spacing: 5px;
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <img src="https://autofinancetrack-pennytracker.s3.ap-south-1.amazonaws.com/uploads/farmerLogo.png" alt="Farm Fresh Logo" class="logo">
+                        <h1>Your Order Has Been Delivered!</h1>
+                    </div>
+                    <div class="content">
+                        <p>Hello ${user.fullName || "Valued Customer"},</p>
+                        
+                        <div class="success-message">
+                            <div class="success-icon">✓</div>
+                            <p>Great news! Your order has been successfully delivered and verified.</p>
+                            <p>Thank you for choosing farm-fresh products!</p>
+                        </div>
+                        
+                        <div class="order-details">
+                            <h2>Order Summary</h2>
+                            <p><strong>Order ID:</strong> ${order._id}</p>
+                            <p><strong>Product:</strong> ${product ? product.name : "Your product"}</p>
+                            <p><strong>Quantity:</strong> ${order.quantity}</p>
+                            <p><strong>Total Amount:</strong> $${order.totalAmount.toFixed(2)}</p>
+                            <p><strong>Delivery Date:</strong> ${new Date().toLocaleDateString()}</p>
+                        </div>
+                        
+                        <div class="rating-request">
+                            <h2>How was your experience?</h2>
+                            <p>We'd love to hear your feedback on the product quality and delivery service.</p>
+                            <div class="stars">★★★★★</div>
+                            <a href="#" class="button">Rate Your Experience</a>
+                        </div>
+                        
+                        <p>We hope you enjoy your farm-fresh products! Your support helps local farmers thrive.</p>
+                        
+                        <div class="divider"></div>
+                        
+                        <p>Want to reorder or explore more fresh products?</p>
+                        <div style="text-align: center;">
+                            <a href="#" class="button">Shop More Products</a>
+                        </div>
+                        
+                        <p>Warm regards,<br>The Farm Fresh Team</p>
+                    </div>
+                    <div class="footer">
+                        <p>© 2023 Farm Fresh Market. All rights reserved.</p>
+                        <p>Questions? Contact our support team at support@farmfresh.com</p>
+                    </div>
+                </div>
+            </body>
+            </html>
             `;
+            
             const mailOptions = {
                 from: "random53763@gmail.com",
                 to: user.email,
-                subject: "Your Order Has Been Delivered",
+                subject: "Your Order Has Been Delivered Successfully!",
                 html: emailHtml,
             };
-            await transporter.sendMail(mailOptions);
-            console.log("Email sent successfully to:", user.email);
+            
+            try {
+                await transporter.sendMail(mailOptions);
+                console.log("Delivery confirmation email sent successfully to:", user.email);
+            } catch (emailError) {
+                console.error("Error sending delivery confirmation email:", emailError);
+                // Continue with the response even if email fails
+            }
+            
             res.status(200).json({ message: "Order verified successfully" });
         } else {
             res.status(400).json({ message: "Invalid verification code" });

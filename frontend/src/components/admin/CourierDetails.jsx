@@ -77,7 +77,7 @@ const CourierDetails = () => {
       setCourier(prev => ({
         ...prev,
         isVerified: !prev.isVerified
-      }));
+    }));
       
       toast.success(`Courier ${courier.isVerified ? 'unverified' : 'verified'} successfully`);
     } catch (error) {
@@ -93,7 +93,7 @@ const CourierDetails = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       toast.success('Courier deleted successfully');
-      navigate('/admin/couriers');
+      navigate('/admin/dashboard');
     } catch (error) {
       console.error('Error deleting courier:', error);
       toast.error('Failed to delete courier');

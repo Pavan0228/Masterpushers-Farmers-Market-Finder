@@ -26,7 +26,9 @@ export const orderProducts = async (req, res) => {
         } else {
             paymentStatus = "completed";
         }
-
+        const randomNumber = Math.floor(
+            100000 + Math.random() * 900000
+        ).toString();
         const newOrder = new Order({
             customer: customer._id,
             farmer: product.farmerId,
@@ -37,6 +39,7 @@ export const orderProducts = async (req, res) => {
             paymentStatus: paymentStatus,
             location: location,
             isAvailable: true,
+            randomNumber: randomNumber,
         });
 
         await newOrder.save();
@@ -65,10 +68,16 @@ export const orderAssign = async (req, res) => {
         }
 
         const customer = await Customer.findById(order.customer);
-        const user = await User.findById(customer.user);
-        console.log(user.email);
         if (!customer) {
             return res.status(404).json({ message: "Customer not found" });
+        }
+
+        // Get the user associated with the customer to get their email
+        const user = await User.findById(customer.user);
+        if (!user || !user.email) {
+            return res
+                .status(400)
+                .json({ message: "Customer email not found" });
         }
 
         const product = await Product.findById(order.product);
@@ -78,8 +87,6 @@ export const orderAssign = async (req, res) => {
         order.courier = courier._id;
         order.isAvailable = false;
         await order.save();
-
-        // Send email notification to customer
 
         // Create transporter with your specific email credentials
         const transporter = nodemailer.createTransport({
@@ -143,6 +150,25 @@ export const orderAssign = async (req, res) => {
                     margin: 20px 0;
                     border-left: 4px solid #2196F3;
                 }
+                .verification-code {
+                    background-color: #fff8e1;
+                    padding: 15px;
+                    border-radius: 5px;
+                    margin: 20px 0;
+                    border-left: 4px solid #FFC107;
+                    text-align: center;
+                }
+                .verification-number {
+                    font-size: 24px;
+                    font-weight: bold;
+                    letter-spacing: 2px;
+                    color: #FF5722;
+                    padding: 10px;
+                    background-color: #FAFAFA;
+                    border-radius: 4px;
+                    display: inline-block;
+                    margin: 10px 0;
+                }
                 .footer {
                     text-align: center;
                     padding: 20px;
@@ -192,6 +218,13 @@ export const orderAssign = async (req, res) => {
                         <p><strong>Farm Source:</strong> ${farmer ? farmer.name : "Local Farm"}</p>
                     </div>
                     
+                    <div class="verification-code">
+                        <h2>Verification Code</h2>
+                        <p>Please provide this code to the courier upon delivery:</p>
+                        <div class="verification-number">${order.randomNumber}</div>
+                        <p><strong>Important:</strong> This code confirms you've received your order.</p>
+                    </div>
+                    
                     <div class="courier-details">
                         <h2>Courier Information</h2>
                         <p><strong>Courier Name:</strong> ${courier.fullName}</p>
@@ -216,6 +249,9 @@ export const orderAssign = async (req, res) => {
         </html>
         `;
 
+        // Debug log to check user email
+        console.log("Sending email to:", user.email);
+
         const mailOptions = {
             from: "random53763@gmail.com",
             to: user.email,
@@ -223,7 +259,13 @@ export const orderAssign = async (req, res) => {
             html: emailHtml,
         };
 
-        await transporter.sendMail(mailOptions);
+        try {
+            await transporter.sendMail(mailOptions);
+            console.log("Email sent successfully to:", user.email);
+        } catch (emailError) {
+            console.error("Error sending email:", emailError);
+            // Continue with the response even if email fails
+        }
 
         res.status(200).json({
             message:
@@ -282,6 +324,48 @@ export const getCustomerOrders = async (req, res) => {
         const orders = await Order.find({ customer: customer._id });
         res.status(200).json({ orders });
     } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+export const deliveryVerification = async (req, res) => {
+    try {
+        const { orderId, randomNumber } = req.body;
+        const order = await Order.findById(orderId);
+        if (!order) {
+            return res.status(404).json({ message: "Order not found" });
+        }
+        if (order.randomNumber === randomNumber) {
+            order.status = "completed";
+            await order.save();
+            //send email to customer that order is completed
+            const customer = await Customer.findOne({ user: order.customer });
+            const user = await User.findById(customer.user);
+            const transporter = nodemailer.createTransport({
+                service: "gmail",
+                auth: {
+                    user: "random53763@gmail.com",
+                    pass: "fqllnszflzxyfwle",
+                },
+            });
+            const emailHtml = `
+            <p>Hello ${user.fullName || "Valued Customer"},</p>
+            <p>Your order has been delivered successfully.</p>
+            `;
+            const mailOptions = {
+                from: "random53763@gmail.com",
+                to: user.email,
+                subject: "Your Order Has Been Delivered",
+                html: emailHtml,
+            };
+            await transporter.sendMail(mailOptions);
+            console.log("Email sent successfully to:", user.email);
+            res.status(200).json({ message: "Order verified successfully" });
+        } else {
+            res.status(400).json({ message: "Invalid verification code" });
+        }
+    } catch (error) {
+        console.error("Error in deliveryVerification:", error);
         res.status(500).json({ message: error.message });
     }
 };

@@ -12,6 +12,8 @@ import {
     Sun,
     Moon,
 } from "lucide-react";
+import logoImage from "../../assets/images/logo.png";
+console.log("Logo image path:", logoImage);
 
 const TopBar = () => {
     const navigate = useNavigate();
@@ -73,10 +75,15 @@ const TopBar = () => {
                         } p-2 rounded-full shadow-md transition-colors duration-300 transform hover:rotate-3`}
                     >
                         <img
-                            src="/path/to/logo.png"
-                            alt="KisanKonnect"
+                            src={logoImage}
+                            alt="AgroLynk"
                             className="h-8 w-8"
+                            onError={(e) => {
+                                console.error("Error loading image");
+                                console.log("Attempted src:", e.target.src);
+                            }}
                         />
+                        
                     </div>
                     <h1 className="text-2xl font-bold ml-3">
                         <span

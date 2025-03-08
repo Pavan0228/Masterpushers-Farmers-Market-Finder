@@ -124,3 +124,43 @@ export const getFarmerDashboardOrders = async (req, res) => {
         });
     }
 };
+
+export const getFarmersFromLocation = async (req, res) => {
+    const { city, state } = req.query;
+    try {
+        // Check if at least one search parameter is provided
+        if (!city && !state) {
+            return res.status(400).json({
+                message: "Please provide either city or state",
+            });
+        }
+
+        let searchQuery = {};
+
+        // Build the search query based on provided parameters
+        if (city && state) {
+            // Search for both city and state
+            searchQuery.location = {
+                $regex: new RegExp(`${city}.*${state}|${state}.*${city}`, "i"),
+            };
+        } else if (city) {
+            // Search for city only
+            searchQuery.location = { $regex: new RegExp(city, "i") };
+        } else if (state) {
+            // Search for state only
+            searchQuery.location = { $regex: new RegExp(state, "i") };
+        }
+
+        const farmers = await Farmer.find(searchQuery);
+
+        res.status(200).json({
+            farmers,
+            count: farmers.length,
+        });
+    } catch (error) {
+        res.status(500).json({
+            message: "Error fetching farmers",
+            error: error.message,
+        });
+    }
+};

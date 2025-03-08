@@ -19,6 +19,9 @@ import {
     Info,
 } from "lucide-react";
 import { useLoadScript, GoogleMap, Marker } from "@react-google-maps/api";
+import { faMicrophone, faStop } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
 
 const UserRegistrationPage = () => {
     const fileInputRef = useRef(null);
@@ -31,6 +34,8 @@ const UserRegistrationPage = () => {
     const [marker, setMarker] = useState(null);
     const [locationCoords, setLocationCoords] = useState(null);
     const [locationMethod, setLocationMethod] = useState("manual");
+    const [recordingField, setRecordingField] = useState(null);
+    const { transcript, resetTranscript, browserSupportsSpeechRecognition } = useSpeechRecognition();
 
     // Update farmType options to match backend enum
     const farmTypes = [
@@ -509,6 +514,60 @@ const UserRegistrationPage = () => {
         );
     };
 
+    // Handle starting recording for a specific field
+    const startRecording = (fieldName) => {
+        setRecordingField(fieldName);
+        resetTranscript();
+        SpeechRecognition.startListening();
+    };
+
+    // Handle stopping recording
+    const stopRecording = () => {
+        SpeechRecognition.stopListening();
+        setRecordingField(null);
+    };
+
+    // Update form data when transcript changes
+    useEffect(() => {
+        if (transcript && recordingField) {
+            setFormData(prev => ({
+                ...prev,
+                [recordingField]: transcript
+            }));
+        }
+    }, [transcript]);
+
+    // Example of how to modify an input field to include voice input
+    // Replace your existing input fields with this pattern:
+
+    const renderInputWithVoice = (name, placeholder, icon, type = "text") => (
+        <div className="relative">
+            {icon}
+            <input
+                type={type}
+                name={name}
+                placeholder={placeholder}
+                value={formData[name]}
+                onChange={handleChange}
+                className="w-full pl-14 pr-12 py-4 text-lg border-2 rounded-xl focus:outline-none"
+                style={{
+                    borderColor: currentTheme.light,
+                    ":focus": { borderColor: currentTheme.primary },
+                }}
+            />
+            <button
+                type="button"
+                onClick={() => recordingField === name ? stopRecording() : startRecording(name)}
+                className="absolute right-4 top-4 text-gray-600 hover:text-gray-800"
+            >
+                <FontAwesomeIcon 
+                    icon={recordingField === name ? faStop : faMicrophone} 
+                    className="h-6 w-6"
+                />
+            </button>
+        </div>
+    );
+
     return (
         <div
             className="min-h-screen flex items-center justify-center p-6"
@@ -639,91 +698,31 @@ const UserRegistrationPage = () => {
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
-                    <div className="relative">
+                    {renderInputWithVoice(
+                        "displayName",
+                        "Full Name",
                         <User className="absolute left-4 top-4 text-gray-600 h-6 w-6" />
-                        <input
-                            type="text"
-                            name="displayName"
-                            placeholder="Full Name"
-                            value={formData.displayName}
-                            onChange={handleChange}
-                            className="w-full pl-14 pr-5 py-4 text-lg border-2 rounded-xl focus:outline-none"
-                            style={{
-                                borderColor: currentTheme.light,
-                                ":focus": { borderColor: currentTheme.primary },
-                            }}
-                            required
-                        />
-                    </div>
+                    )}
 
-                    {/* Farm Name Field */}
-                    <div className="relative">
+                    {renderInputWithVoice(
+                        "farmName",
+                        "Farm Name",
                         <Home className="absolute left-4 top-4 text-gray-600 h-6 w-6" />
-                        <input
-                            type="text"
-                            name="farmName"
-                            placeholder="Farm Name"
-                            value={formData.farmName}
-                            onChange={handleChange}
-                            className={`w-full pl-14 pr-5 py-4 text-lg border-2 rounded-xl focus:outline-none ${
-                                errors.farmName
-                                    ? "border-red-500 focus:border-red-500"
-                                    : ""
-                            }`}
-                            style={
-                                !errors.farmName
-                                    ? {
-                                          borderColor: currentTheme.light,
-                                          ":focus": {
-                                              borderColor: currentTheme.primary,
-                                          },
-                                      }
-                                    : {}
-                            }
-                            required
-                        />
-                        {errors.farmName && (
-                            <p className="text-red-500 text-base mt-2 ml-2">
-                                {errors.farmName}
-                            </p>
-                        )}
-                    </div>
+                    )}
 
-                    <div className="relative">
+                    {renderInputWithVoice(
+                        "email",
+                        "Email Address",
                         <Mail className="absolute left-4 top-4 text-gray-600 h-6 w-6" />
-                        <input
-                            type="email"
-                            name="email"
-                            placeholder="Email Address"
-                            value={formData.email}
-                            onChange={handleChange}
-                            className="w-full pl-14 pr-5 py-4 text-lg border-2 rounded-xl focus:outline-none"
-                            style={{
-                                borderColor: currentTheme.light,
-                                ":focus": { borderColor: currentTheme.primary },
-                            }}
-                            required
-                        />
-                    </div>
+                    )}
 
-                    <div className="relative">
+                    {renderInputWithVoice(
+                        "phoneNumber",
+                        "Phone Number",
                         <Phone className="absolute left-4 top-4 text-gray-600 h-6 w-6" />
-                        <input
-                            type="tel"
-                            name="phoneNumber"
-                            placeholder="Phone Number"
-                            value={formData.phoneNumber}
-                            onChange={handleChange}
-                            className="w-full pl-14 pr-5 py-4 text-lg border-2 rounded-xl focus:outline-none"
-                            style={{
-                                borderColor: currentTheme.light,
-                                ":focus": { borderColor: currentTheme.primary },
-                            }}
-                            required
-                        />
-                    </div>
+                    )}
 
-                    {/* Farm Description */}
+                    {/* Special case for textarea */}
                     <div className="relative">
                         <PenLine className="absolute left-4 top-4 text-gray-600 h-6 w-6" />
                         <textarea
@@ -731,13 +730,27 @@ const UserRegistrationPage = () => {
                             placeholder="Farm Description - Tell us about your farm, products, etc."
                             value={formData.farmDescription}
                             onChange={handleChange}
-                            className="w-full pl-14 pr-5 py-4 text-lg border-2 rounded-xl focus:outline-none resize-none"
+                            className="w-full pl-14 pr-12 py-4 text-lg border-2 rounded-xl focus:outline-none resize-none"
                             style={{
                                 borderColor: currentTheme.light,
                                 ":focus": { borderColor: currentTheme.primary },
                                 minHeight: "120px",
                             }}
                         />
+                        <button
+                            type="button"
+                            onClick={() => 
+                                recordingField === "farmDescription" 
+                                    ? stopRecording() 
+                                    : startRecording("farmDescription")
+                            }
+                            className="absolute right-4 top-4 text-gray-600 hover:text-gray-800"
+                        >
+                            <FontAwesomeIcon 
+                                icon={recordingField === "farmDescription" ? faStop : faMicrophone} 
+                                className="h-6 w-6"
+                            />
+                        </button>
                     </div>
 
                     {/* Location section - simplified */}
@@ -827,69 +840,19 @@ const UserRegistrationPage = () => {
                         </div>
                     </div>
 
-                    <div className="relative">
-                        <Lock className="absolute left-4 top-4 text-gray-600 h-6 w-6" />
-                        <input
-                            type="password"
-                            name="password"
-                            placeholder="Password"
-                            value={formData.password}
-                            onChange={handleChange}
-                            className={`w-full pl-14 pr-5 py-4 text-lg border-2 rounded-xl focus:outline-none 
-                ${
-                    errors.password ? "border-red-500 focus:border-red-500" : ""
-                }`}
-                            style={
-                                !errors.password
-                                    ? {
-                                          borderColor: currentTheme.light,
-                                          ":focus": {
-                                              borderColor: currentTheme.primary,
-                                          },
-                                      }
-                                    : {}
-                            }
-                            required
-                        />
-                        {errors.password && (
-                            <p className="text-red-500 text-base mt-2 ml-2">
-                                {errors.password}
-                            </p>
-                        )}
-                    </div>
+                    {renderInputWithVoice(
+                        "password",
+                        "Password",
+                        <Lock className="absolute left-4 top-4 text-gray-600 h-6 w-6" />,
+                        "password"
+                    )}
 
-                    <div className="relative">
-                        <Lock className="absolute left-4 top-4 text-gray-600 h-6 w-6" />
-                        <input
-                            type="password"
-                            name="confirmPassword"
-                            placeholder="Confirm Password"
-                            value={formData.confirmPassword}
-                            onChange={handleChange}
-                            className={`w-full pl-14 pr-5 py-4 text-lg border-2 rounded-xl focus:outline-none 
-                ${
-                    errors.confirmPassword
-                        ? "border-red-500 focus:border-red-500"
-                        : ""
-                }`}
-                            style={
-                                !errors.confirmPassword
-                                    ? {
-                                          borderColor: currentTheme.light,
-                                          ":focus": {
-                                              borderColor: currentTheme.primary,
-                                          },
-                                      }
-                                    : {}
-                            }
-                            required
-                        />
-                        {errors.confirmPassword && (
-                            <p className="text-red-500 text-base mt-2 ml-2">
-                                {errors.confirmPassword}
-                            </p>
-                        )}
-                    </div>
+                    {renderInputWithVoice(
+                        "confirmPassword",
+                        "Confirm Password",
+                        <Lock className="absolute left-4 top-4 text-gray-600 h-6 w-6" />,
+                        "password"
+                    )}
 
                     <button
                         type="submit"

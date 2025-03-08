@@ -53,6 +53,10 @@ const orderSchema = new mongoose.Schema(
             ref: "Courier",
             required: false,
         },
+        randomNumber: {
+            type: String,
+            required: true,
+        },
     },
     {
         timestamps: true,

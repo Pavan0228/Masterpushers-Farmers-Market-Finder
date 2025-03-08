@@ -1,119 +1,3 @@
-// import React, { useState } from "react";
-// import { useNavigate } from "react-router-dom";
-// import {
-//     UserIcon,
-//     ShoppingCart,
-//     Search,
-//     MapPin,
-//     ChevronDown,
-//     LogOut,
-// } from "lucide-react";
-// import { Link } from "react-router-dom";
-
-// const Navbar = () => {
-//     const [searchTerm, setSearchTerm] = useState("");
-//     const navigate = useNavigate();
-
-//     const handleSearch = (e) => {
-//         e.preventDefault();
-//         // Implement search functionality
-//     };
-
-//     const handleProfileClick = () => {
-//         const userRole = localStorage.getItem("userRole");
-//         const token = localStorage.getItem("token");
-
-//         if (!token || !userRole) {
-//             navigate("/login");
-//             return;
-//         }
-
-//         switch (userRole) {
-//             case "courier":
-//                 navigate("/profile/courier");
-//                 break;
-//             case "farmer":
-//                 navigate("/profile/farmer");
-//                 break;
-//             case "customer":
-//                 navigate("/profile/customer");
-//                 break;
-//             default:
-//                 navigate("/login");
-//         }
-//     };
-
-//     return (
-//         <nav className="bg-white p-4 flex justify-between items-center shadow-xl border border-gray-200 rounded-b-3xl top-0 left-0 w-full z-50 mb-8">
-//             <div className="flex items-center">
-//                 <div className="relative mr-2">
-//                     <select className="appearance-none bg-gray-50 hover:bg-gray-100 transition-colors duration-200 border border-gray-300 rounded-lg p-2 pl-4 pr-10 text-gray-700 font-medium focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
-//                         <option>Categories</option>
-//                         <option>Fruits</option>
-//                         <option>Vegetables</option>
-//                         <option>Grains</option>
-//                     </select>
-//                     <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
-//                 </div>
-//                 <div className="relative">
-//                     <select className="appearance-none bg-gray-50 hover:bg-gray-100 transition-colors duration-200 border border-gray-300 rounded-lg p-2 pl-8 pr-10 text-gray-700 font-medium focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
-//                         <option>Change Location</option>
-//                         <option>Mumbai</option>
-//                         <option>Pune</option>
-//                         <option>Nashik</option>
-//                     </select>
-//                     <MapPin className="absolute left-2 top-1/2 transform -translate-y-1/2 text-green-600 h-4 w-4" />
-//                     <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
-//                 </div>
-//             </div>
-
-//             <form
-//                 onSubmit={handleSearch}
-//                 className="flex flex-grow mx-4 max-w-2xl"
-//             >
-//                 <div className="relative flex w-full">
-//                     <input
-//                         type="text"
-//                         placeholder="Search for Product"
-//                         value={searchTerm}
-//                         onChange={(e) => setSearchTerm(e.target.value)}
-//                         className="flex-grow p-3 pl-4 border border-gray-300 rounded-l-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-//                     />
-//                     <button
-//                         type="submit"
-//                         className="bg-green-600 hover:bg-green-700 transition-colors duration-200 text-white font-medium p-3 px-6 rounded-r-lg shadow-sm flex items-center"
-//                     >
-//                         <Search className="h-5 w-5 mr-1" />
-//                         <span>Search</span>
-//                     </button>
-//                 </div>
-//             </form>
-
-//             <div className="flex items-center space-x-4">
-//                 <a
-//                     href="/cart"
-//                     className="flex items-center text-green-600 hover:text-green-800 transition-colors duration-200 font-medium px-3 py-2 rounded-lg hover:bg-green-50"
-//                 >
-//                     <ShoppingCart className="h-5 w-5 mr-2" />
-//                     <span>My Cart</span>
-//                 </a>
-//                 <button
-//                     onClick={handleProfileClick}
-//                     className="flex items-center text-green-600 hover:text-green-800 transition-colors duration-200 font-medium px-3 py-2 rounded-lg hover:bg-green-50"
-//                 >
-//                     <UserIcon className="h-5 w-5 mr-2" />
-//                     <span>Profile</span>
-//                 </button>
-//             </div>
-//         </nav>
-//     );
-// };
-
-// export default Navbar;
-
-
-
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
@@ -130,7 +14,17 @@ import {
     Download,
     Globe,
     Sun,
-    Moon
+    Moon,
+    Leaf,
+    Home,
+    ShoppingBag,
+    Heart,
+    HelpCircle,
+    Tractor,
+    Droplet,
+    Wheat,
+    Apple,
+    Carrot,
 } from "lucide-react";
 
 // Import the Google Translate component
@@ -147,8 +41,8 @@ const Navbar = () => {
 
     // Check for token and user role on component mount
     useEffect(() => {
-        const token = localStorage.getItem('token');
-        const role = localStorage.getItem('userRole');
+        const token = localStorage.getItem("token");
+        const role = localStorage.getItem("userRole");
         setIsLoggedIn(!!token);
         setUserRole(role);
     }, []);
@@ -189,247 +83,322 @@ const Navbar = () => {
     };
 
     const handleLogout = () => {
-        localStorage.removeItem('token');
-        localStorage.removeItem('userRole');
+        localStorage.removeItem("token");
+        localStorage.removeItem("userRole");
         setIsLoggedIn(false);
         setUserRole(null);
-        navigate('/');
+        navigate("/");
     };
 
     const toggleDarkMode = () => {
         setIsDarkMode(!isDarkMode);
         // Implement dark mode functionality here
     };
-    const image = "../../assets/images/logo.png";
+
     const isCustomer = userRole === "customer";
+    const cartItemCount = 0; // Replace with actual cart count
 
     return (
-        <div className={`sticky top-0 z-50 transition-all duration-300 ${
-            scrolled
-                ? "bg-white shadow-md py-2"
-                : "bg-gradient-to-r from-green-50 to-green-100 py-4 shadow-lg border-b border-green-200"
-        }`}>
-            <div className="container mx-auto flex flex-col px-4">
-                {/* Top section with logo and auth */}
-                <div className="flex justify-between items-center mb-4">
-                    {/* Logo and Brand */}
+        <div className="sticky top-0 z-50">
+            {/* Farm pattern background */}
+            <div
+                className="absolute inset-0 w-full h-full opacity-5 pointer-events-none"
+                style={{
+                    backgroundImage:
+                        "url('https://www.transparenttextures.com/patterns/farm-landscape.png')",
+                }}
+            ></div>
+
+            {/* Main navbar with enhanced farming theme */}
+            <div
+                className={`w-full transition-all duration-300 relative ${
+                    scrolled
+                        ? "py-2 bg-white shadow-md"
+                        : "py-3 bg-gradient-to-r from-green-50 to-white"
+                }`}
+            >
+                {/* Decorative farm elements */}
+                <div className="absolute top-0 left-0 w-full overflow-hidden h-1">
+                    <div className="w-full h-1 bg-gradient-to-r from-green-300 via-amber-300 to-green-300"></div>
+                </div>
+
+                <div className="container mx-auto px-4 flex justify-between items-center">
+                    {/* Logo with enhanced farming theme */}
                     <div className="flex items-center">
-                        <div className={`${
-                            scrolled ? "bg-green-600" : "bg-green-500"
-                        } p-2 rounded-full shadow-md transition-colors duration-300 transform hover:rotate-3`}>
+                        <div
+                            className={`relative ${
+                                scrolled
+                                    ? "bg-green-600"
+                                    : "bg-gradient-to-br from-green-500 to-green-600"
+                            } p-2 rounded-full shadow-md transition-all duration-300 transform hover:rotate-3 hover:scale-105 group`}
+                        >
                             <img
                                 src="https://autofinancetrack-pennytracker.s3.ap-south-1.amazonaws.com/uploads/farmerLogo.png"
-                                alt="a"
-                                className="h-8 w-8"
+                                alt="AgroLynk"
+                                className="h-8 w-8 relative z-10"
                             />
+                            <div className="absolute inset-0 bg-white rounded-full scale-0 group-hover:scale-100 transition-transform duration-300 opacity-10"></div>
                         </div>
-                        <h1 className="text-2xl font-bold ml-3">
-                            <span className={`${
-                                scrolled ? "text-green-700" : "text-green-600"
-                            } transition-colors duration-300`}>
-                                Agro
-                            </span>
-                            <span className={`${
-                                scrolled ? "text-green-900" : "text-green-800"
-                            } transition-colors duration-300`}>
-                                Lynk
-                            </span>
-                        </h1>
+                        <div className="ml-3">
+                            <h1 className="text-2xl font-bold flex items-center">
+                                <span
+                                    className={`${
+                                        scrolled
+                                            ? "text-green-700"
+                                            : "text-green-600"
+                                    } transition-colors duration-300`}
+                                >
+                                    Agro
+                                </span>
+                                <span
+                                    className={`${
+                                        scrolled
+                                            ? "text-green-900"
+                                            : "text-green-800"
+                                    } transition-colors duration-300`}
+                                >
+                                    Lynk
+                                </span>
+                                <Leaf
+                                    className={`ml-1 h-5 w-5 ${
+                                        scrolled
+                                            ? "text-green-600"
+                                            : "text-green-500"
+                                    } animate-pulse`}
+                                />
+                            </h1>
+                            <p className="text-xs text-green-600 font-medium -mt-1">
+                                Farm to Table Marketplace
+                            </p>
+                        </div>
                     </div>
 
-                    {/* Desktop Auth and Language */}
+                    {/* Desktop Auth and Language with enhanced farming theme */}
                     <div className="hidden md:flex items-center space-x-6">
-                        <div className="pl-4 border-l border-green-300 flex items-center">
-                            <Globe size={16} className="mr-2 text-green-600" />
+                        <div className="flex items-center space-x-2">
+                            <Globe size={18} className="text-green-600" />
                             <GoogleTranslate />
                         </div>
+
+                        <div className="h-6 w-px bg-green-200"></div>
+
+                       
+
+                        <div className="h-6 w-px bg-green-200"></div>
+
                         {isLoggedIn ? (
-                            <button
-                                onClick={handleLogout}
-                                className="flex items-center bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-6 rounded-full shadow-md transition-all duration-200 transform hover:scale-105 hover:shadow-lg"
-                            >
-                                <LogOut className="h-4 w-4 mr-2" />
-                                Logout
-                            </button>
-                        ) : (
-                            <>
+                            <div className="flex items-center space-x-3">
                                 <button
-                                    onClick={handleLogin}
-                                    className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-6 rounded-full shadow-md transition-all duration-200 transform hover:scale-105 hover:shadow-lg"
+                                    onClick={handleProfileClick}
+                                    className="flex items-center text-green-700 hover:text-green-900 font-medium px-3 py-2 hover:bg-green-50 rounded-lg transition-colors duration-200"
+                                >
+                                    <UserIcon size={18} className="mr-2" />
+                                    Profile
+                                </button>
+                                <button
+                                    onClick={handleLogout}
+                                    className="flex items-center text-red-600 hover:text-red-700 font-medium px-3 py-2 hover:bg-red-50 rounded-lg transition-colors duration-200"
+                                >
+                                    <LogOut size={18} className="mr-2" />
+                                    Logout
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="flex items-center space-x-3">
+                                <Link
+                                    to="/login"
+                                    className="flex items-center text-green-700 hover:text-green-900 font-medium px-3 py-2 hover:bg-green-50 rounded-lg transition-colors duration-200"
                                 >
                                     Login
-                                </button>
-                                <button
-                                    onClick={handleRegister}
-                                    className="bg-white hover:bg-green-50 text-green-600 font-medium py-2 px-6 rounded-full shadow-md transition-all duration-200 transform hover:scale-105 hover:shadow-lg border-2 border-green-600"
+                                </Link>
+                                <Link
+                                    to="/register"
+                                    className="flex items-center text-white bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 font-medium px-4 py-2 rounded-lg transition-all duration-200 shadow-sm"
                                 >
                                     Register
-                                </button>
-                            </>
+                                </Link>
+                            </div>
                         )}
                     </div>
 
-                    {/* Mobile Menu Button */}
+                    {/* Mobile menu button with enhanced farming theme */}
                     <div className="md:hidden">
                         <button
                             onClick={() => setIsMenuOpen(!isMenuOpen)}
                             className={`${
                                 scrolled ? "text-green-700" : "text-green-600"
                             } p-2 transition-colors duration-300 hover:bg-green-50 rounded-full`}
+                            aria-label="Toggle menu"
                         >
                             {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
                         </button>
                     </div>
                 </div>
 
-                {/* Customer-only features - Main navbar content */}
+                {/* Customer-only features - Main navbar content with enhanced farming theme */}
                 {isCustomer && (
-                    <nav className="bg-white p-4 flex flex-wrap justify-between items-center shadow-xl border border-gray-200 rounded-3xl w-full z-50 mb-4">
-                        <div className="flex items-center flex-wrap md:flex-nowrap">
-                            <div className="relative mr-2 mb-2 md:mb-0">
-                                <select className="appearance-none bg-gray-50 hover:bg-gray-100 transition-colors duration-200 border border-gray-300 rounded-lg p-2 pl-4 pr-10 text-gray-700 font-medium focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                                    <option>Categories</option>
-                                    <option>Fruits</option>
-                                    <option>Vegetables</option>
-                                    <option>Grains</option>
-                                </select>
-                                <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
+                    <nav
+                        className={`container mx-auto mt-2 px-4 ${
+                            scrolled ? "py-2" : "py-3"
+                        } bg-white rounded-2xl shadow-lg border border-green-100 transition-all duration-300 relative overflow-hidden`}
+                    >
+                        {/* Decorative farm pattern */}
+                        <div
+                            className="absolute inset-0 opacity-[0.03] pointer-events-none"
+                            style={{
+                                backgroundImage:
+                                    "url('https://www.transparenttextures.com/patterns/crops.png')",
+                            }}
+                        ></div>
+
+                        <div className="flex flex-wrap md:flex-nowrap justify-between items-center relative">
+                            <div className="flex items-center flex-wrap md:flex-nowrap">
+                                <div className="relative mr-2 mb-2 md:mb-0">
+                                    <select className="appearance-none bg-gray-50 hover:bg-gray-100 transition-colors duration-200 border border-green-200 rounded-lg p-2 pl-8 pr-10 text-gray-700 font-medium focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                                        <option>Categories</option>
+                                        <option>Fruits</option>
+                                        <option>Vegetables</option>
+                                        <option>Grains</option>
+                                    </select>
+                                    <Wheat className="absolute left-2 top-1/2 transform -translate-y-1/2 text-amber-600 h-4 w-4" />
+                                    <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-green-500 h-4 w-4" />
+                                </div>
+                                <div className="relative mb-2 md:mb-0">
+                                    <select className="appearance-none bg-gray-50 hover:bg-gray-100 transition-colors duration-200 border border-green-200 rounded-lg p-2 pl-8 pr-10 text-gray-700 font-medium focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                                        <option>Change Location</option>
+                                        <option>Mumbai</option>
+                                        <option>Pune</option>
+                                        <option>Nashik</option>
+                                    </select>
+                                    <MapPin className="absolute left-2 top-1/2 transform -translate-y-1/2 text-green-600 h-4 w-4" />
+                                    <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-green-500 h-4 w-4" />
+                                </div>
                             </div>
-                            <div className="relative mb-2 md:mb-0">
-                                <select className="appearance-none bg-gray-50 hover:bg-gray-100 transition-colors duration-200 border border-gray-300 rounded-lg p-2 pl-8 pr-10 text-gray-700 font-medium focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                                    <option>Change Location</option>
-                                    <option>Mumbai</option>
-                                    <option>Pune</option>
-                                    <option>Nashik</option>
-                                </select>
-                                <MapPin className="absolute left-2 top-1/2 transform -translate-y-1/2 text-green-600 h-4 w-4" />
-                                <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
+
+                            <form
+                                onSubmit={handleSearch}
+                                className="flex flex-grow mx-0 md:mx-4 my-2 md:my-0 max-w-2xl"
+                            >
+                                <div className="relative flex w-full">
+                                    <input
+                                        type="text"
+                                        placeholder="Search for fresh produce..."
+                                        value={searchTerm}
+                                        onChange={(e) =>
+                                            setSearchTerm(e.target.value)
+                                        }
+                                        className="flex-grow p-3 pl-4 border border-green-200 rounded-l-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                    />
+                                    <button
+                                        type="submit"
+                                        className="bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 transition-all duration-200 text-white font-medium p-3 px-6 rounded-r-lg shadow-sm flex items-center"
+                                    >
+                                        <Search className="h-5 w-5 mr-1" />
+                                        <span>Search</span>
+                                    </button>
+                                </div>
+                            </form>
+
+                            <div className="hidden md:flex items-center space-x-4">
+                                <a
+                                    href="/cart"
+                                    className="flex items-center text-green-600 hover:text-green-800 transition-colors duration-200 font-medium px-3 py-2 rounded-lg hover:bg-green-50 relative"
+                                >
+                                    <ShoppingCart className="h-5 w-5 mr-2" />
+                                    <span>My Cart</span>
+                                    {cartItemCount > 0 && (
+                                        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                                            {cartItemCount}
+                                        </span>
+                                    )}
+                                </a>
+                                <button
+                                    onClick={handleProfileClick}
+                                    className="flex items-center text-green-600 hover:text-green-800 transition-colors duration-200 font-medium px-3 py-2 rounded-lg hover:bg-green-50"
+                                >
+                                    <UserIcon className="h-5 w-5 mr-2" />
+                                    <span>Profile</span>
+                                </button>
                             </div>
                         </div>
 
-                        <form
-                            onSubmit={handleSearch}
-                            className="flex flex-grow mx-0 md:mx-4 max-w-2xl w-full my-2 md:my-0"
-                        >
-                            <div className="relative flex w-full">
-                                <input
-                                    type="text"
-                                    placeholder="Search for Product"
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="flex-grow p-3 pl-4 border border-gray-300 rounded-l-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                                />
-                                <button
-                                    type="submit"
-                                    className="bg-green-600 hover:bg-green-700 transition-colors duration-200 text-white font-medium p-3 px-6 rounded-r-lg shadow-sm flex items-center"
-                                >
-                                    <Search className="h-5 w-5 mr-1" />
-                                    <span>Search</span>
-                                </button>
-                            </div>
-                        </form>
-
-                        <div className="flex items-center space-x-4 mt-2 md:mt-0">
-                            <button
-                                onClick={handleCartClick}
-                                className="flex items-center text-green-600 hover:text-green-800 transition-colors duration-200 font-medium px-3 py-2 rounded-lg hover:bg-green-50"
-                            >
-                                <ShoppingCart className="h-5 w-5 mr-2" />
-                                <span>My Cart</span>
-                            </button>
-                            <button
-                                onClick={handleProfileClick}
-                                className="flex items-center text-green-600 hover:text-green-800 transition-colors duration-200 font-medium px-3 py-2 rounded-lg hover:bg-green-50"
-                            >
-                                <UserIcon className="h-5 w-5 mr-2" />
-                                <span>Profile</span>
-                            </button>
+                        {/* Farm-themed decorative element */}
+                        <div className="absolute -bottom-6 -right-6 text-green-100 opacity-10 pointer-events-none">
+                            <Tractor className="h-16 w-16" />
                         </div>
                     </nav>
                 )}
 
-                {/* Mobile Navigation Menu */}
+                {/* Mobile menu with enhanced farming theme */}
                 {isMenuOpen && (
-                    <div className="md:hidden mt-4 bg-white rounded-lg shadow-xl p-4 absolute right-4 left-4 z-10 border border-green-200 animate-fadeIn">
-                        <div className="flex flex-col space-y-4">
-                            <a
-                                href="/about"
-                                className="flex items-center text-green-700 hover:text-green-900 font-medium p-2 hover:bg-green-50 rounded-lg transition-colors duration-200"
-                            >
-                                <Info size={18} className="mr-2" />
-                                Why AgroLynk?
-                            </a>
-                            <a
-                                href="/download"
-                                className="flex items-center text-green-700 hover:text-green-900 font-medium p-2 hover:bg-green-50 rounded-lg transition-colors duration-200"
-                            >
-                                <Download size={18} className="mr-2" />
-                                Download App
-                            </a>
-                            <div className="p-2 flex items-center border-t border-b border-green-100 py-3">
-                                <Globe size={16} className="mr-2 text-green-600" />
+                    <div className="md:hidden bg-white border-t border-green-100 shadow-lg animate-fadeIn">
+                        <div className="container mx-auto px-4 py-3 space-y-3">
+                            <div className="p-2 flex items-center border-b border-green-100 pb-3">
+                                <Globe
+                                    size={16}
+                                    className="mr-2 text-green-600"
+                                />
                                 <GoogleTranslate />
-                            </div>
-                            <div className="flex items-center justify-between p-2">
-                                <span className="text-green-700 font-medium">
-                                    Dark Mode
-                                </span>
-                                <button
-                                    onClick={toggleDarkMode}
-                                    className="p-2 text-green-700 hover:text-green-900 transition-colors duration-200 bg-green-50 rounded-full hover:bg-green-100"
-                                >
-                                    {isDarkMode ? (
-                                        <Sun size={18} />
-                                    ) : (
-                                        <Moon size={18} />
-                                    )}
-                                </button>
-                            </div>
-                            
+                            </div>                           
+
                             {/* Show customer-specific options in mobile menu if user is a customer */}
                             {isCustomer && (
                                 <>
                                     <button
                                         onClick={handleCartClick}
-                                        className="flex items-center text-green-700 hover:text-green-900 font-medium p-2 hover:bg-green-50 rounded-lg transition-colors duration-200"
+                                        className="flex items-center w-full text-green-700 hover:text-green-900 font-medium p-2 hover:bg-green-50 rounded-lg transition-colors duration-200"
                                     >
-                                        <ShoppingCart size={18} className="mr-2" />
+                                        <ShoppingCart
+                                            size={18}
+                                            className="mr-2"
+                                        />
                                         My Cart
+                                        {cartItemCount > 0 && (
+                                            <span className="ml-2 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                                                {cartItemCount}
+                                            </span>
+                                        )}
                                     </button>
                                     <button
                                         onClick={handleProfileClick}
-                                        className="flex items-center text-green-700 hover:text-green-900 font-medium p-2 hover:bg-green-50 rounded-lg transition-colors duration-200"
+                                        className="flex items-center w-full text-green-700 hover:text-green-900 font-medium p-2 hover:bg-green-50 rounded-lg transition-colors duration-200"
                                     >
                                         <UserIcon size={18} className="mr-2" />
                                         Profile
                                     </button>
                                 </>
                             )}
-                            
+
                             {isLoggedIn ? (
                                 <button
                                     onClick={handleLogout}
-                                    className="bg-red-600 hover:bg-red-700 text-white font-medium py-3 px-4 rounded-lg shadow-md w-full transition-colors duration-200 flex items-center justify-center"
+                                    className="flex items-center w-full text-red-600 hover:text-red-700 font-medium p-2 hover:bg-red-50 rounded-lg transition-colors duration-200"
                                 >
-                                    <LogOut className="h-4 w-4 mr-2" />
+                                    <LogOut size={18} className="mr-2" />
                                     Logout
                                 </button>
                             ) : (
-                                <>
-                                    <button
-                                        onClick={handleLogin}
-                                        className="bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 rounded-lg shadow-md w-full transition-colors duration-200"
+                                <div className="space-y-2">
+                                    <Link
+                                        to="/login"
+                                        className="flex items-center w-full text-green-700 hover:text-green-900 font-medium p-2 hover:bg-green-50 rounded-lg transition-colors duration-200"
                                     >
+                                        <UserIcon size={18} className="mr-2" />
                                         Login
-                                    </button>
-                                    <button
-                                        onClick={handleRegister}
-                                        className="bg-white hover:bg-green-50 text-green-600 font-medium py-3 px-4 rounded-lg shadow-md w-full transition-colors duration-200 border-2 border-green-600"
+                                    </Link>
+                                    <Link
+                                        to="/register"
+                                        className="flex items-center w-full text-white bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 font-medium p-2 rounded-lg transition-colors duration-200 justify-center"
                                     >
                                         Register
-                                    </button>
-                                </>
+                                    </Link>
+                                </div>
                             )}
+
+                            {/* Farm-themed decorative element */}
+                            <div className="flex justify-end">
+                                <Tractor className="h-8 w-8 text-green-200" />
+                            </div>
                         </div>
                     </div>
                 )}

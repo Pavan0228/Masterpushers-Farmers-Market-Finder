@@ -20,8 +20,12 @@ import {
     Tractor,
     Shovel,
     Droplets,
+    Package,
+    DollarSign,
+    X,
 } from "lucide-react";
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
 
 const ProfileCourier = () => {
     const [courierData, setCourierData] = useState(null);
@@ -30,6 +34,10 @@ const ProfileCourier = () => {
     // Add seasonal styling
     const [season, setSeason] = useState("summer");
     const navigate = useNavigate();
+    const [orders, setOrders] = useState([]);
+    const [showVerificationModal, setShowVerificationModal] = useState(false);
+    const [selectedOrder, setSelectedOrder] = useState(null);
+    const [verificationCode, setVerificationCode] = useState('');
 
     // Determine season based on current month
     useEffect(() => {
@@ -154,6 +162,57 @@ const ProfileCourier = () => {
 
         fetchCourierProfile();
     }, []);
+
+    useEffect(() => {
+        const fetchOrders = async () => {
+            try {
+                const token = localStorage.getItem("token");
+                const response = await fetch("http://localhost:3000/api/v1/courier/orders", {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
+                const data = await response.json();
+                if (data.success) {
+                    setOrders(data.data);
+                }
+            } catch (err) {
+                console.error("Error fetching orders:", err);
+            }
+        };
+
+        fetchOrders();
+    }, []);
+
+    const handleVerification = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch('http://localhost:3000/api/v1/order/deliver', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    orderId: selectedOrder._id,
+                    randomNumber: verificationCode
+                })
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                toast.success('Order verified successfully!');
+                setOrders(prevOrders => prevOrders.filter(order => order._id !== selectedOrder._id));
+                setShowVerificationModal(false);
+                setVerificationCode('');
+                setSelectedOrder(null);
+            } else {
+                toast.error(data.message || 'Verification failed');
+            }
+        } catch (err) {
+            toast.error('Failed to verify order');
+        }
+    };
 
     if (isLoading) {
         return (
@@ -874,7 +933,116 @@ const ProfileCourier = () => {
                         </div>
                     </div>
                 </div>
+
+                {/* Orders Section */}
+                <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+                    <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
+                        <div className={`bg-gradient-to-r ${seasonalStyle.primary} p-6`}>
+                            <h2 className="text-2xl font-bold text-white flex items-center">
+                                <Package className="h-6 w-6 mr-2" />
+                                My Deliveries
+                            </h2>
+                        </div>
+
+                        <div className="p-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {orders
+                                    .filter(order => order.status !== "completed")
+                                    .map((order) => (
+                                        <div
+                                            key={order._id}
+                                            onClick={() => {
+                                                setSelectedOrder(order);
+                                                setShowVerificationModal(true);
+                                            }}
+                                            className={`p-4 rounded-lg border ${seasonalStyle.border} cursor-pointer hover:shadow-md transition-shadow`}
+                                        >
+                                            <div className="flex justify-between items-start mb-3">
+                                                <span className={`font-medium ${seasonalStyle.accent}`}>
+                                                    Order #{order._id.slice(-6)}
+                                                </span>
+                                                <span className={`px-2 py-1 rounded-full text-sm ${
+                                                    order.status === 'completed'
+                                                        ? 'bg-green-100 text-green-600'
+                                                        : `${seasonalStyle.highlight} ${seasonalStyle.accent}`
+                                                }`}>
+                                                    {order.status || 'Pending'}
+                                                </span>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <div className="flex items-center">
+                                                    <Package className={`h-4 w-4 mr-2 ${seasonalStyle.accent}`} />
+                                                    <span className="text-gray-600">Quantity: {order.quantity}</span>
+                                                </div>
+                                                <div className="flex items-center">
+                                                    <MapPin className={`h-4 w-4 mr-2 ${seasonalStyle.accent}`} />
+                                                    <span className="text-gray-600">{order.location}</span>
+                                                </div>
+                                                <div className="flex items-center">
+                                                    <DollarSign className={`h-4 w-4 mr-2 ${seasonalStyle.accent}`} />
+                                                    <span className="text-gray-600">₹{order.totalAmount?.toFixed(2) || '0.00'}</span>
+                                                </div>
+                                                <div className="flex items-center mt-2">
+                                                    <span className={`text-sm ${
+                                                        order.paymentStatus === 'completed' 
+                                                            ? 'text-green-600' 
+                                                            : 'text-amber-600'
+                                                    }`}>
+                                                        Payment: {order.paymentStatus} ({order.paymentMethod})
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
+
+            {/* Verification Modal */}
+            {showVerificationModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg p-8 max-w-md w-full mx-4">
+                        <div className="flex justify-between items-center mb-6">
+                            <h2 className={`text-2xl font-bold ${seasonalStyle.accent}`}>
+                                Verify Delivery
+                            </h2>
+                            <button 
+                                onClick={() => {
+                                    setShowVerificationModal(false);
+                                    setVerificationCode('');
+                                }}
+                                className="text-gray-500 hover:text-gray-700"
+                            >
+                                <X className="h-6 w-6" />
+                            </button>
+                        </div>
+
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Enter Verification Code
+                                </label>
+                                <input
+                                    type="text"
+                                    value={verificationCode}
+                                    onChange={(e) => setVerificationCode(e.target.value)}
+                                    className={`w-full px-4 py-2 border ${seasonalStyle.border} rounded-md focus:ring-2 focus:ring-opacity-50 focus:ring-current ${seasonalStyle.accent}`}
+                                    placeholder="Enter the 6-digit code"
+                                />
+                            </div>
+
+                            <button
+                                onClick={handleVerification}
+                                className={`w-full py-2 px-4 rounded-md text-white bg-gradient-to-r ${seasonalStyle.primary} hover:opacity-90 transition-opacity`}
+                            >
+                                Verify Delivery
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

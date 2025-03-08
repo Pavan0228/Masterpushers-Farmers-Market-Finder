@@ -1,5 +1,5 @@
 import { Courier } from "../models/courier.model.js";
-
+import { Order } from "../models/order.model.js";
 export const getCouriers = async (req, res) => {
     try {
         const couriers = await Courier.find().populate("user");
@@ -113,5 +113,16 @@ export const deleteCourier = async (req, res) => {
         });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+export const getCourierOrders = async (req, res) => {
+    console.log("hi");
+    try {
+        const courier = await Courier.findOne({ user: req.user._id });
+        const orders = await Order.find({ courier: courier._id });
+        res.status(200).json({ success: true, data: orders });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
     }
 };

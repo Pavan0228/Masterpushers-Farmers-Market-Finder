@@ -561,35 +561,69 @@ const FarmerProfilePage = () => {
                     </div>
                 </div>
 
-                {/* Add Produce Section - Moved upward */}
-                <div className="bg-white shadow-lg rounded-xl p-6 relative overflow-hidden mb-6">
-                    {/* Background image */}
-                    <div className="absolute inset-0 z-0 opacity-15">
+                {/* Add Produce Section - Enhanced UI */}
+                <div className="bg-white shadow-xl rounded-xl p-6 relative overflow-hidden mb-6 border border-green-100">
+                    {/* Background image with improved styling */}
+                    <div className="absolute inset-0 z-0">
                         <img
                             src="https://w0.peakpx.com/wallpaper/937/75/HD-wallpaper-greenery-farm-village-path-white-clouds-blue-sky-anime-background-anime-background.jpg"
                             alt="Farm background"
-                            className="w-full h-full object-cover"
+                            className="w-full h-full object-cover opacity-10"
                         />
-                        <div className="absolute inset-0 bg-white/60"></div>
+                        <div className="absolute inset-0 bg-gradient-to-br from-white via-white/90 to-green-50/90"></div>
                     </div>
 
-                    {/* Content with relative positioning to appear above the background */}
+                    {/* Enhanced header */}
                     <div className="relative z-10">
-                        <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
-                            <Sprout className="h-5 w-5 mr-2 text-green-600" />
-                            Add Produce
-                        </h2>
+                        <div className="flex items-center justify-between mb-5">
+                            <div className="flex items-center">
+                                <div className="bg-green-100 p-2.5 rounded-full mr-3">
+                                    <Sprout className="h-6 w-6 text-green-600" />
+                                </div>
+                                <h2 className="text-xl font-bold text-gray-800">
+                                    Add Produce
+                                </h2>
+                            </div>
+                            <div className="bg-green-50 px-3 py-1 rounded-full text-sm text-green-700 font-medium border border-green-100">
+                                {cropInsights.length} Crops Listed
+                            </div>
+                        </div>
 
-                        <div className="space-y-4">
+                        {/* Improved crop list */}
+                        <div className="space-y-4 mb-5">
                             {cropInsights.map((crop, index) => (
                                 <div
                                     key={index}
-                                    className="bg-white/80 backdrop-blur-sm rounded-lg p-4 border border-gray-100 shadow-sm"
+                                    className="bg-white rounded-lg p-4 border border-gray-100 shadow-sm hover:shadow-md transition-shadow duration-200 hover:border-green-200"
                                 >
                                     <div className="flex justify-between items-center">
-                                        <span className="font-medium text-gray-800">
-                                            {crop.name}
-                                        </span>
+                                        <div className="flex items-center">
+                                            <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center mr-3">
+                                                <img
+                                                    src={`/assets/crops/${crop.name
+                                                        .toLowerCase()
+                                                        .replace(
+                                                            /\s+/g,
+                                                            "-"
+                                                        )}.png`}
+                                                    alt={crop.name}
+                                                    className="w-6 h-6"
+                                                    onError={(e) => {
+                                                        e.target.onerror = null;
+                                                        e.target.src =
+                                                            "/assets/crops/default.png";
+                                                    }}
+                                                />
+                                            </div>
+                                            <div>
+                                                <span className="font-medium text-gray-800">
+                                                    {crop.name}
+                                                </span>
+                                                <div className="text-xs text-gray-500">
+                                                    Last updated: Today
+                                                </div>
+                                            </div>
+                                        </div>
                                         <div
                                             className={`flex items-center ${
                                                 crop.status === "up"
@@ -607,9 +641,13 @@ const FarmerProfilePage = () => {
                                             </span>
                                         </div>
                                     </div>
-                                    <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
+                                    <div className="mt-3 w-full bg-gray-100 rounded-full h-2.5">
                                         <div
-                                            className="bg-green-600 h-2 rounded-full"
+                                            className={`h-2.5 rounded-full ${
+                                                crop.status === "up"
+                                                    ? "bg-green-500"
+                                                    : "bg-amber-500"
+                                            }`}
                                             style={{
                                                 width: `${
                                                     60 +
@@ -624,13 +662,23 @@ const FarmerProfilePage = () => {
                             ))}
                         </div>
 
+                        {/* Enhanced button */}
                         <a
                             href="/product/listing"
-                            className="w-full mt-4 bg-green-600 text-white hover:bg-green-700 transition py-3 rounded-lg font-medium flex items-center justify-center cursor-pointer shadow-md hover:shadow-lg"
+                            className="w-full bg-gradient-to-r from-green-600 to-green-500 text-white hover:from-green-700 hover:to-green-600 transition-all duration-300 py-4 rounded-xl font-medium flex items-center justify-center cursor-pointer shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
                         >
-                            <Plus className="h-5 w-5 mr-2" />
+                            <div className="bg-white/20 p-1.5 rounded-full mr-3">
+                                <Plus className="h-5 w-5" />
+                            </div>
                             Add New Crop
                         </a>
+
+                        {/* Added helpful tip */}
+                        <div className="mt-4 text-center text-sm text-gray-500 bg-green-50/50 p-2 rounded-lg border border-green-100/50">
+                            <span className="text-green-700">Tip:</span> Adding
+                            your produce helps customers discover your farm
+                            products
+                        </div>
                     </div>
                 </div>
 

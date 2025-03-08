@@ -29,6 +29,7 @@ import {
 
 // Import the Google Translate component
 import GoogleTranslate from "../../snippets/GoogleTranslate";
+import AllRegister from "./../../pages/allRegister";
 
 const Navbar = () => {
     const [searchTerm, setSearchTerm] = useState("");
@@ -182,8 +183,6 @@ const Navbar = () => {
 
                         <div className="h-6 w-px bg-green-200"></div>
 
-                       
-
                         <div className="h-6 w-px bg-green-200"></div>
 
                         {isLoggedIn ? (
@@ -212,7 +211,7 @@ const Navbar = () => {
                                     Login
                                 </Link>
                                 <Link
-                                    to="/register"
+                                    to="/AllRegister"
                                     className="flex items-center text-white bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 font-medium px-4 py-2 rounded-lg transition-all duration-200 shadow-sm"
                                 >
                                     Register
@@ -339,7 +338,7 @@ const Navbar = () => {
                                     className="mr-2 text-green-600"
                                 />
                                 <GoogleTranslate />
-                            </div>                           
+                            </div>
 
                             {/* Show customer-specific options in mobile menu if user is a customer */}
                             {isCustomer && (

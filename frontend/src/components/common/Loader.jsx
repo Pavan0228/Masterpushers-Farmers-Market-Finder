@@ -31,7 +31,7 @@ const Loader = () => {
                     ></div>
                 </div>
                 <p className="mt-4 text-2xl text-green-800 font-bold animate-pulse">
-                    Growing your experience...
+                Fresh from the Farm, Straight to You...
                 </p>
             </div>
         </div>

@@ -260,7 +260,7 @@ const LoginPage = () => {
                     <p className="text-gray-600 text-lg">
                         Don't have an account?
                         <a
-                            href="/register"
+                            href="/AllRegister"
                             className="text-green-600 ml-2 hover:underline font-medium"
                         >
                             Register

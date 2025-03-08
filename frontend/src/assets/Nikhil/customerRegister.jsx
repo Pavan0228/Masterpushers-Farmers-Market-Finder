@@ -674,7 +674,7 @@ const CustomerRegistrationPage = () => {
                     <p className="text-gray-600 text-lg">
                         Already have an account?{" "}
                         <a
-                            href="#"
+                            href="/login"
                             className="ml-2 hover:underline font-medium"
                             style={{ color: theme.primary }}
                         >

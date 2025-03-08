@@ -106,6 +106,13 @@ const registerUser = asyncHandler(async (req, res) => {
         } else if (role === "farmer") {
             const { location, description, farmName, farmType } = req.body;
 
+            let documentsUrl = null;
+            if (req.files) {
+                if (req.files.idProof) {
+                    documentsUrl = req.files.idProof[0].location;
+                }
+            }
+
             if (!location || !description || !farmName || !farmType) {
                 await User.findByIdAndDelete(user._id);
                 return res.status(400).json({
@@ -124,6 +131,7 @@ const registerUser = asyncHandler(async (req, res) => {
                 farmName,
                 farmType,
                 profile: profileImageUrl,
+                idProof: documentsUrl,
                 products: [],
                 ratings: 0,
                 reviews: [],
@@ -384,6 +392,8 @@ const updateUserProfile = asyncHandler(async (req, res) => {
                 farmName,
                 farmType,
             } = req.body;
+
+
 
             if (farmerLocation?.trim()) roleUpdates.location = farmerLocation;
             if (farmDescription?.trim())

@@ -19,13 +19,17 @@ import {
     Info,
 } from "lucide-react";
 import { useLoadScript, GoogleMap, Marker } from "@react-google-maps/api";
-import { faMicrophone, faStop } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
+import { faMicrophone, faStop } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import SpeechRecognition, {
+    useSpeechRecognition,
+} from "react-speech-recognition";
 
 const UserRegistrationPage = () => {
     const fileInputRef = useRef(null);
+    const idProofInputRef = useRef(null);
     const [profilePreview, setProfilePreview] = useState(null);
+    const [idProofPreview, setIdProofPreview] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const locationInputRef = useRef(null);
     const mapRef = useRef(null);
@@ -35,7 +39,8 @@ const UserRegistrationPage = () => {
     const [locationCoords, setLocationCoords] = useState(null);
     const [locationMethod, setLocationMethod] = useState("manual");
     const [recordingField, setRecordingField] = useState(null);
-    const { transcript, resetTranscript, browserSupportsSpeechRecognition } = useSpeechRecognition();
+    const { transcript, resetTranscript, browserSupportsSpeechRecognition } =
+        useSpeechRecognition();
 
     // Update farmType options to match backend enum
     const farmTypes = [
@@ -58,6 +63,7 @@ const UserRegistrationPage = () => {
         confirmPassword: "",
         farmType: "", // Default to veg farming
         profilePhoto: null,
+        idProof: null,
     });
 
     const [errors, setErrors] = useState({});
@@ -205,8 +211,29 @@ const UserRegistrationPage = () => {
         }
     };
 
+    const handleIdProofChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setFormData((prev) => ({
+                ...prev,
+                idProof: file,
+            }));
+
+            // Create preview URL for ID proof
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setIdProofPreview(reader.result);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
     const handleTriggerFileInput = () => {
         fileInputRef.current.click();
+    };
+
+    const handleTriggerIdProofInput = () => {
+        idProofInputRef.current.click();
     };
 
     const validateForm = () => {
@@ -364,6 +391,10 @@ const UserRegistrationPage = () => {
 
                 if (formData.profilePhoto) {
                     formDataToSend.append("profile", formData.profilePhoto);
+                }
+
+                if (formData.idProof) {
+                    formDataToSend.append("idProof", formData.idProof);
                 }
 
                 // Log all data being sent to server
@@ -530,9 +561,9 @@ const UserRegistrationPage = () => {
     // Update form data when transcript changes
     useEffect(() => {
         if (transcript && recordingField) {
-            setFormData(prev => ({
+            setFormData((prev) => ({
                 ...prev,
-                [recordingField]: transcript
+                [recordingField]: transcript,
             }));
         }
     }, [transcript]);
@@ -557,11 +588,15 @@ const UserRegistrationPage = () => {
             />
             <button
                 type="button"
-                onClick={() => recordingField === name ? stopRecording() : startRecording(name)}
+                onClick={() =>
+                    recordingField === name
+                        ? stopRecording()
+                        : startRecording(name)
+                }
                 className="absolute right-4 top-4 text-gray-600 hover:text-gray-800"
             >
-                <FontAwesomeIcon 
-                    icon={recordingField === name ? faStop : faMicrophone} 
+                <FontAwesomeIcon
+                    icon={recordingField === name ? faStop : faMicrophone}
                     className="h-6 w-6"
                 />
             </button>
@@ -623,6 +658,50 @@ const UserRegistrationPage = () => {
                             ? "Change Profile Photo"
                             : "Add Profile Photo"}
                     </button>
+                </div>
+
+                {/* ID Proof Upload */}
+                <div className="mb-8 flex flex-col items-center">
+                    <div
+                        className="w-full max-w-md h-40 rounded-lg flex items-center justify-center mb-4 overflow-hidden border-4"
+                        style={{ borderColor: currentTheme.light }}
+                    >
+                        {idProofPreview ? (
+                            <img
+                                src={idProofPreview}
+                                alt="ID Proof Preview"
+                                className="w-full h-full object-contain"
+                            />
+                        ) : (
+                            <div className="flex flex-col items-center text-gray-400">
+                                <Info className="h-16 w-16 mb-2" />
+                                <span>Upload ID Proof</span>
+                            </div>
+                        )}
+                    </div>
+                    <input
+                        type="file"
+                        ref={idProofInputRef}
+                        accept="image/*"
+                        onChange={handleIdProofChange}
+                        className="hidden"
+                    />
+                    <button
+                        type="button"
+                        onClick={handleTriggerIdProofInput}
+                        className="py-2 px-4 rounded-lg text-base flex items-center justify-center transition duration-300 bg-white border"
+                        style={{
+                            borderColor: currentTheme.light,
+                            color: currentTheme.primary,
+                        }}
+                    >
+                        <FileImage className="mr-2 h-5 w-5" />
+                        {idProofPreview ? "Change ID Proof" : "Upload ID Proof"}
+                    </button>
+                    <p className="text-sm text-gray-500 mt-2 text-center">
+                        Please upload a valid government-issued ID proof (Aadhar
+                        Card, PAN Card, etc.)
+                    </p>
                 </div>
 
                 {/* Farm Type Selection */}
@@ -739,15 +818,19 @@ const UserRegistrationPage = () => {
                         />
                         <button
                             type="button"
-                            onClick={() => 
-                                recordingField === "farmDescription" 
-                                    ? stopRecording() 
+                            onClick={() =>
+                                recordingField === "farmDescription"
+                                    ? stopRecording()
                                     : startRecording("farmDescription")
                             }
                             className="absolute right-4 top-4 text-gray-600 hover:text-gray-800"
                         >
-                            <FontAwesomeIcon 
-                                icon={recordingField === "farmDescription" ? faStop : faMicrophone} 
+                            <FontAwesomeIcon
+                                icon={
+                                    recordingField === "farmDescription"
+                                        ? faStop
+                                        : faMicrophone
+                                }
                                 className="h-6 w-6"
                             />
                         </button>
@@ -788,9 +871,11 @@ const UserRegistrationPage = () => {
                                         style={
                                             !errors.address
                                                 ? {
-                                                      borderColor: currentTheme.light,
+                                                      borderColor:
+                                                          currentTheme.light,
                                                       ":focus": {
-                                                          borderColor: currentTheme.primary,
+                                                          borderColor:
+                                                              currentTheme.primary,
                                                       },
                                                   }
                                                 : {}
@@ -804,11 +889,19 @@ const UserRegistrationPage = () => {
                                     />
                                     <button
                                         type="button"
-                                        onClick={() => recordingField === "address" ? stopRecording() : startRecording("address")}
+                                        onClick={() =>
+                                            recordingField === "address"
+                                                ? stopRecording()
+                                                : startRecording("address")
+                                        }
                                         className="absolute right-4 top-4 text-gray-600 hover:text-gray-800"
                                     >
-                                        <FontAwesomeIcon 
-                                            icon={recordingField === "address" ? faStop : faMicrophone} 
+                                        <FontAwesomeIcon
+                                            icon={
+                                                recordingField === "address"
+                                                    ? faStop
+                                                    : faMicrophone
+                                            }
                                             className="h-6 w-6"
                                         />
                                     </button>

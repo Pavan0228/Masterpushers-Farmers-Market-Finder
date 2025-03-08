@@ -37,6 +37,10 @@ const farmerSchema = new mongoose.Schema(
             type: String,
             required: false
         },
+        idProof: {
+            type: String,
+            required: true
+        },
         products: [{
             type: mongoose.Schema.Types.ObjectId,
             ref: "Product"

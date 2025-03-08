@@ -22,8 +22,8 @@ import {
     ArrowDown,
     ExternalLink,
 } from "lucide-react";
-import { Bar } from 'react-chartjs-2';
-import { Chart, registerables } from 'chart.js';
+import { Bar } from "react-chartjs-2";
+import { Chart, registerables } from "chart.js";
 
 // Register Chart.js components
 Chart.register(...registerables);
@@ -229,7 +229,7 @@ const FarmerProfilePage = () => {
                     <span className="text-gray-600">Cash Orders</span>
                     <div className="text-right">
                         <div className="font-medium text-gray-800">
-                            {dashboardStats?.cashOrders || 0} 
+                            {dashboardStats?.cashOrders || 0}
                         </div>
                         <div className="text-sm text-gray-500">
                             ₹{dashboardStats?.revenueFromCash || 0}
@@ -265,10 +265,15 @@ const FarmerProfilePage = () => {
 
     // Chart data for orders
     const orderChartData = {
-        labels: ['Total Orders', 'Pending Orders', 'Completed Orders', 'Canceled Orders'],
+        labels: [
+            "Total Orders",
+            "Pending Orders",
+            "Completed Orders",
+            "Canceled Orders",
+        ],
         datasets: [
             {
-                label: 'Order Statistics',
+                label: "Order Statistics",
                 data: [
                     dashboardStats.totalOrders,
                     dashboardStats.pendingOrders,
@@ -276,10 +281,10 @@ const FarmerProfilePage = () => {
                     dashboardStats.canceledOrders || 0,
                 ],
                 backgroundColor: [
-                    'rgba(75, 192, 192, 0.6)',
-                    'rgba(255, 206, 86, 0.6)',
-                    'rgba(54, 162, 235, 0.6)',
-                    'rgba(255, 99, 132, 0.6)',
+                    "rgba(75, 192, 192, 0.6)",
+                    "rgba(255, 206, 86, 0.6)",
+                    "rgba(54, 162, 235, 0.6)",
+                    "rgba(255, 99, 132, 0.6)",
                 ],
             },
         ],
@@ -287,19 +292,19 @@ const FarmerProfilePage = () => {
 
     // Chart data for payments
     const paymentChartData = {
-        labels: ['Cash Orders', 'Online Orders', 'Pending Payments'],
+        labels: ["Cash Orders", "Online Orders", "Pending Payments"],
         datasets: [
             {
-                label: 'Payment Statistics',
+                label: "Payment Statistics",
                 data: [
                     dashboardStats.cashOrders || 0,
                     dashboardStats.onlineOrders || 0,
                     dashboardStats.pendingPayments || 0,
                 ],
                 backgroundColor: [
-                    'rgba(153, 102, 255, 0.6)',
-                    'rgba(255, 159, 64, 0.6)',
-                    'rgba(255, 99, 132, 0.6)',
+                    "rgba(153, 102, 255, 0.6)",
+                    "rgba(255, 159, 64, 0.6)",
+                    "rgba(255, 99, 132, 0.6)",
                 ],
             },
         ],
@@ -370,13 +375,17 @@ const FarmerProfilePage = () => {
                                 <div className="col-span-1">
                                     <div className="flex items-center">
                                         <Mail className="h-5 w-5 text-green-600 mr-3" />
-                                        <span className="text-gray-800">{farmer.email}</span>
+                                        <span className="text-gray-800">
+                                            {farmer.email}
+                                        </span>
                                     </div>
                                 </div>
                                 <div className="col-span-1">
                                     <div className="flex items-center">
                                         <Phone className="h-5 w-5 text-green-600 mr-3" />
-                                        <span className="text-gray-800">{farmer.phoneNumber}</span>
+                                        <span className="text-gray-800">
+                                            {farmer.phoneNumber}
+                                        </span>
                                     </div>
                                 </div>
                                 <div className="col-span-1">
@@ -392,7 +401,9 @@ const FarmerProfilePage = () => {
                             {/* Address */}
                             <div className="flex items-start">
                                 <MapPin className="h-5 w-5 text-green-600 mr-3 mt-1" />
-                                <span className="text-gray-800">{farmer.address}</span>
+                                <span className="text-gray-800">
+                                    {farmer.address}
+                                </span>
                             </div>
 
                             {/* Stats Section */}
@@ -400,36 +411,71 @@ const FarmerProfilePage = () => {
                                 {/* Order Statistics */}
                                 <div className="bg-green-50 rounded-xl p-4 border border-green-100">
                                     <div className="flex justify-between items-center mb-4">
-                                        <h3 className="font-medium text-green-800">Order Statistics </h3>
+                                        <h3 className="font-medium text-green-800">
+                                            Order Statistics{" "}
+                                        </h3>
                                         <Star className="h-5 w-5 text-amber-400" />
                                     </div>
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="space-y-3">
                                             <div className="flex justify-between">
-                                                <span className="text-gray-600">Total Orders</span>
-                                                <span className="font-medium text-gray-800">{dashboardStats.totalOrders}</span>
+                                                <span className="text-gray-600">
+                                                    Total Orders
+                                                </span>
+                                                <span className="font-medium text-gray-800">
+                                                    {dashboardStats.totalOrders}
+                                                </span>
                                             </div>
                                             <div className="flex justify-between">
-                                                <span className="text-gray-600">Total Revenue</span>
-                                                <span className="font-medium text-gray-800">₹{dashboardStats.totalAmount}</span>
+                                                <span className="text-gray-600">
+                                                    Total Revenue
+                                                </span>
+                                                <span className="font-medium text-gray-800">
+                                                    ₹
+                                                    {dashboardStats.totalAmount}
+                                                </span>
                                             </div>
                                             <div className="flex justify-between">
-                                                <span className="text-gray-600">Total Quantity</span>
-                                                <span className="font-medium text-gray-800">{dashboardStats.totalQuantity} units</span>
+                                                <span className="text-gray-600">
+                                                    Total Quantity
+                                                </span>
+                                                <span className="font-medium text-gray-800">
+                                                    {
+                                                        dashboardStats.totalQuantity
+                                                    }{" "}
+                                                    units
+                                                </span>
                                             </div>
                                         </div>
                                         <div className="space-y-3">
                                             <div className="flex justify-between">
-                                                <span className="text-gray-600">Pending</span>
-                                                <span className="font-medium text-amber-600">{dashboardStats.pendingOrders}</span>
+                                                <span className="text-gray-600">
+                                                    Pending
+                                                </span>
+                                                <span className="font-medium text-amber-600">
+                                                    {
+                                                        dashboardStats.pendingOrders
+                                                    }
+                                                </span>
                                             </div>
                                             <div className="flex justify-between">
-                                                <span className="text-gray-600">Completed</span>
-                                                <span className="font-medium text-green-600">{dashboardStats.completedOrders}</span>
+                                                <span className="text-gray-600">
+                                                    Completed
+                                                </span>
+                                                <span className="font-medium text-green-600">
+                                                    {
+                                                        dashboardStats.completedOrders
+                                                    }
+                                                </span>
                                             </div>
                                             <div className="flex justify-between">
-                                                <span className="text-gray-600">Canceled</span>
-                                                <span className="font-medium text-red-600">{dashboardStats.canceledOrders || 0}</span>
+                                                <span className="text-gray-600">
+                                                    Canceled
+                                                </span>
+                                                <span className="font-medium text-red-600">
+                                                    {dashboardStats.canceledOrders ||
+                                                        0}
+                                                </span>
                                             </div>
                                         </div>
                                     </div>
@@ -438,31 +484,56 @@ const FarmerProfilePage = () => {
                                 {/* Payment Statistics */}
                                 <div className="bg-green-50 rounded-xl p-4 border border-green-100">
                                     <div className="flex justify-between items-center mb-4">
-                                        <h3 className="font-medium text-green-800">Payment Statistics</h3>
+                                        <h3 className="font-medium text-green-800">
+                                            Payment Statistics
+                                        </h3>
                                         <FileText className="h-5 w-5 text-blue-400" />
                                     </div>
                                     <div className="space-y-4">
                                         <div className="grid grid-cols-2 gap-4">
                                             <div className="bg-white rounded-lg p-3">
-                                                <div className="text-sm text-gray-600">Cash Orders</div>
+                                                <div className="text-sm text-gray-600">
+                                                    Cash Orders
+                                                </div>
                                                 <div className="font-medium text-gray-800 mt-1">
-                                                    {dashboardStats?.cashOrders || 0}
-                                                    <span className="text-sm text-gray-500 ml-2">₹{dashboardStats?.revenueFromCash || 0}</span>
+                                                    {dashboardStats?.cashOrders ||
+                                                        0}
+                                                    <span className="text-sm text-gray-500 ml-2">
+                                                        ₹
+                                                        {dashboardStats?.revenueFromCash ||
+                                                            0}
+                                                    </span>
                                                 </div>
                                             </div>
                                             <div className="bg-white rounded-lg p-3">
-                                                <div className="text-sm text-gray-600">Online Orders</div>
+                                                <div className="text-sm text-gray-600">
+                                                    Online Orders
+                                                </div>
                                                 <div className="font-medium text-gray-800 mt-1">
-                                                    {dashboardStats.onlineOrders}
-                                                    <span className="text-sm text-gray-500 ml-2">₹{dashboardStats.revenueFromOnline}</span>
+                                                    {
+                                                        dashboardStats.onlineOrders
+                                                    }
+                                                    <span className="text-sm text-gray-500 ml-2">
+                                                        ₹
+                                                        {
+                                                            dashboardStats.revenueFromOnline
+                                                        }
+                                                    </span>
                                                 </div>
                                             </div>
                                         </div>
                                         <div className="bg-amber-50 rounded-lg p-3">
-                                            <div className="text-sm text-amber-800">Pending Payments</div>
+                                            <div className="text-sm text-amber-800">
+                                                Pending Payments
+                                            </div>
                                             <div className="font-medium text-amber-900 mt-1">
                                                 {dashboardStats.pendingPayments}
-                                                <span className="text-sm text-amber-700 ml-2">₹{dashboardStats.pendingRevenue}</span>
+                                                <span className="text-sm text-amber-700 ml-2">
+                                                    ₹
+                                                    {
+                                                        dashboardStats.pendingRevenue
+                                                    }
+                                                </span>
                                             </div>
                                         </div>
                                     </div>
@@ -475,12 +546,22 @@ const FarmerProfilePage = () => {
                 {/* Charts Section */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
                     <div className="bg-white shadow-lg rounded-xl p-6">
-                        <h2 className="text-xl font-bold text-gray-800 mb-4">Order Statistics</h2>
-                        <Bar data={orderChartData} options={{ responsive: true }} />
+                        <h2 className="text-xl font-bold text-gray-800 mb-4">
+                            Order Statistics
+                        </h2>
+                        <Bar
+                            data={orderChartData}
+                            options={{ responsive: true }}
+                        />
                     </div>
                     <div className="bg-white shadow-lg rounded-xl p-6">
-                        <h2 className="text-xl font-bold text-gray-800 mb-4">Payment Statistics</h2>
-                        <Bar data={paymentChartData} options={{ responsive: true }} />
+                        <h2 className="text-xl font-bold text-gray-800 mb-4">
+                            Payment Statistics
+                        </h2>
+                        <Bar
+                            data={paymentChartData}
+                            options={{ responsive: true }}
+                        />
                     </div>
                 </div>
 
@@ -491,7 +572,7 @@ const FarmerProfilePage = () => {
                         <div className="bg-white shadow-lg rounded-xl p-6">
                             <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
                                 <Sprout className="h-5 w-5 mr-2 text-green-600" />
-                                Active Crops
+                                Add Produce
                             </h2>
 
                             <div className="space-y-4">
@@ -538,10 +619,13 @@ const FarmerProfilePage = () => {
                                 ))}
                             </div>
 
-                            <button className="w-full mt-4 border border-green-600 text-green-600 hover:bg-green-50 transition py-3 rounded-lg font-medium flex items-center justify-center">
+                            <a
+                                href="/product/listing"
+                                className="w-full mt-4 border border-green-600 text-green-600 hover:bg-green-50 transition py-3 rounded-lg font-medium flex items-center justify-center cursor-pointer"
+                            >
                                 <Plus className="h-4 w-4 mr-2" />
                                 Add New Crop
-                            </button>
+                            </a>
                         </div>
 
                         {/* Weather Card */}

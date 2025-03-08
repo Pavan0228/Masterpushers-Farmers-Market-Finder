@@ -24,6 +24,11 @@ const ProfileCustomer = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     const [season, setSeason] = useState("summer"); // spring, summer, autumn, winter
+    const [orders, setOrders] = useState([]);
+    const [ordersLoading, setOrdersLoading] = useState(true);
+    const [ordersError, setOrdersError] = useState(null);
+    const [selectedOrder, setSelectedOrder] = useState(null);
+    const [showOrderModal, setShowOrderModal] = useState(false);
 
     useEffect(() => {
         // Determine season based on current month
@@ -65,7 +70,40 @@ const ProfileCustomer = () => {
             }
         };
 
+        const fetchCustomerOrders = async () => {
+            try {
+                const token = localStorage.getItem("token");
+                if (!token) {
+                    throw new Error("Authentication token not found");
+                }
+
+                const response = await fetch(
+                    "http://localhost:3000/api/v1/order/customer",
+                    {
+                        method: "GET",
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                            "Content-Type": "application/json",
+                        },
+                    }
+                );
+
+                if (!response.ok) {
+                    throw new Error("Failed to fetch order data");
+                }
+
+                const data = await response.json();
+                setOrders(data.orders || []);
+                setOrdersLoading(false);
+            } catch (err) {
+                console.error("Error fetching orders:", err);
+                setOrdersError(err.message);
+                setOrdersLoading(false);
+            }
+        };
+
         fetchCustomerProfile();
+        fetchCustomerOrders();
     }, []);
 
     // Season-based styling
@@ -115,6 +153,56 @@ const ProfileCustomer = () => {
     };
 
     const seasonalStyle = getSeasonalStyles();
+
+    // Helper function to format date
+    const formatDate = (dateString) => {
+        return new Date(dateString).toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+        });
+    };
+
+    // Helper function to get status badge styling
+    const getStatusBadgeStyle = (status, type = "status") => {
+        if (type === "status") {
+            switch (status) {
+                case "completed":
+                    return "bg-green-100 text-green-800";
+                case "delivering":
+                    return "bg-blue-100 text-blue-800";
+                case "pending":
+                    return "bg-amber-100 text-amber-800";
+                case "cancelled":
+                    return "bg-red-100 text-red-800";
+                default:
+                    return "bg-gray-100 text-gray-800";
+            }
+        } else if (type === "payment") {
+            switch (status) {
+                case "completed":
+                    return "bg-green-100 text-green-800";
+                case "pending":
+                    return "bg-amber-100 text-amber-800";
+                case "failed":
+                    return "bg-red-100 text-red-800";
+                default:
+                    return "bg-gray-100 text-gray-800";
+            }
+        }
+    };
+
+    // Add a function to handle order click and show popup
+    const handleOrderClick = (order) => {
+        setSelectedOrder(order);
+        setShowOrderModal(true);
+    };
+
+    // Add a function to close the modal
+    const closeOrderModal = () => {
+        setShowOrderModal(false);
+        setSelectedOrder(null);
+    };
 
     if (isLoading) {
         return (
@@ -294,7 +382,7 @@ const ProfileCustomer = () => {
                                         </h3>
                                     </div>
                                     <p className="text-3xl font-bold text-green-900">
-                                        {customerData.profile?.orders?.length ||
+                                        {orders.length ||
                                             0}
                                     </p>
                                     <p
@@ -329,25 +417,180 @@ const ProfileCustomer = () => {
 
                 {/* Recent Orders Section */}
                 <div className="mt-8 bg-white rounded-xl shadow-lg p-6 border border-green-100">
-                    <div className="flex items-center mb-6">
-                        <div
-                            className={`p-2 ${seasonalStyle.secondary} rounded-full mr-3`}
-                        >
-                            <Apple
-                                className={`h-5 w-5 ${seasonalStyle.accent}`}
-                            />
+                    <div className="flex items-center justify-between mb-6">
+                        <div className="flex items-center">
+                            <div
+                                className={`p-2 ${seasonalStyle.secondary} rounded-full mr-3`}
+                            >
+                                <Apple
+                                    className={`h-5 w-5 ${seasonalStyle.accent}`}
+                                />
+                            </div>
+                            <h2 className="text-xl font-bold text-green-900">
+                                Your Harvest History
+                            </h2>
                         </div>
-                        <h2 className="text-xl font-bold text-green-900">
-                            Your Harvest History
-                        </h2>
+                        <div className="text-sm text-gray-500">
+                            {!ordersLoading && !ordersError && (
+                                <span>
+                                    {orders.length} order
+                                    {orders.length !== 1 ? "s" : ""}
+                                </span>
+                            )}
+                        </div>
                     </div>
 
-                    {customerData.profile?.orders?.length > 0 ? (
-                        <div className="space-y-4">
-                            {/* Map through orders here when available */}
-                            <p className="text-gray-600">
-                                Your farm-fresh purchases will appear here
+                    {ordersLoading ? (
+                        <div className="text-center py-10">
+                            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-green-600 mx-auto"></div>
+                            <p className="mt-3 text-green-800">
+                                Gathering your harvest history...
                             </p>
+                        </div>
+                    ) : ordersError ? (
+                        <div className="text-center py-6 bg-red-50 rounded-xl border border-red-100">
+                            <AlertCircle className="h-8 w-8 text-red-500 mx-auto mb-2" />
+                            <p className="text-red-600">{ordersError}</p>
+                            <button
+                                onClick={() => window.location.reload()}
+                                className="mt-3 px-4 py-1 bg-red-100 text-red-700 rounded-lg hover:bg-red-200"
+                            >
+                                Try Again
+                            </button>
+                        </div>
+                    ) : orders.length > 0 ? (
+                        <div className="space-y-4">
+                            {orders.map((order) => (
+                                <div
+                                    key={order._id}
+                                    className={`border ${seasonalStyle.secondary} border-green-100 rounded-xl overflow-hidden shadow-sm transition-all hover:shadow-md cursor-pointer`}
+                                    onClick={() => handleOrderClick(order)}
+                                >
+                                    <div className="flex flex-col md:flex-row">
+                                        {/* Order date and ID */}
+                                        <div className="w-full md:w-2/12 bg-white p-4 flex flex-col justify-center items-center border-b md:border-b-0 md:border-r border-green-100">
+                                            <p className="text-sm text-gray-500">
+                                                Order Date
+                                            </p>
+                                            <p className="font-medium text-green-900">
+                                                {formatDate(order.createdAt)}
+                                            </p>
+                                            <div className="mt-2 px-3 py-1 bg-gray-100 rounded-full text-xs text-gray-600">
+                                                ID:{" "}
+                                                {order._id.substring(
+                                                    order._id.length - 6
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* Order details */}
+                                        <div className="w-full md:w-7/12 bg-white p-4">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <div className="flex items-center">
+                                                    <ShoppingBag
+                                                        className={`h-4 w-4 mr-2 ${seasonalStyle.accent}`}
+                                                    />
+                                                    <h3 className="font-semibold text-green-900">
+                                                        {order.product &&
+                                                            `Product: ${order.product.substring(
+                                                                0,
+                                                                10
+                                                            )}...`}
+                                                    </h3>
+                                                </div>
+                                                {/* Add pickup ready badge */}
+                                                {order.isAvailable ===
+                                                    false && (
+                                                    <span className="px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">
+                                                        Ready for Pickup
+                                                    </span>
+                                                )}
+                                            </div>
+
+                                            <div className="grid grid-cols-2 gap-3 mb-3">
+                                                <div>
+                                                    <p className="text-xs text-gray-500">
+                                                        Quantity
+                                                    </p>
+                                                    <p className="text-sm font-medium">
+                                                        {order.quantity}{" "}
+                                                        {order.quantity === 1
+                                                            ? "item"
+                                                            : "items"}
+                                                    </p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-xs text-gray-500">
+                                                        Total Amount
+                                                    </p>
+                                                    <p className="text-sm font-medium">
+                                                        ₹{order.totalAmount}
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            <div className="mt-2">
+                                                <p className="text-xs text-gray-500">
+                                                    Delivery Location
+                                                </p>
+                                                <div className="flex items-start mt-1">
+                                                    <MapPin className="h-3.5 w-3.5 text-gray-500 mr-1 mt-0.5" />
+                                                    <p className="text-sm text-gray-700">
+                                                        {order.location}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Order status */}
+                                        <div className="w-full md:w-3/12 p-4 flex flex-col justify-center space-y-2 bg-white">
+                                            <div>
+                                                <p className="text-xs text-gray-500">
+                                                    Order Status
+                                                </p>
+                                                <span
+                                                    className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${getStatusBadgeStyle(
+                                                        order.status
+                                                    )}`}
+                                                >
+                                                    {order.status
+                                                        .charAt(0)
+                                                        .toUpperCase() +
+                                                        order.status.slice(1)}
+                                                </span>
+                                            </div>
+
+                                            <div>
+                                                <p className="text-xs text-gray-500">
+                                                    Payment Status
+                                                </p>
+                                                <span
+                                                    className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${getStatusBadgeStyle(
+                                                        order.paymentStatus,
+                                                        "payment"
+                                                    )}`}
+                                                >
+                                                    {order.paymentStatus
+                                                        .charAt(0)
+                                                        .toUpperCase() +
+                                                        order.paymentStatus.slice(
+                                                            1
+                                                        )}
+                                                </span>
+                                            </div>
+
+                                            <div>
+                                                <p className="text-xs text-gray-500">
+                                                    Payment Method
+                                                </p>
+                                                <p className="text-sm font-medium capitalize">
+                                                    {order.paymentMethod}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     ) : (
                         <div
@@ -533,6 +776,270 @@ const ProfileCustomer = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Order detail modal/popup */}
+            {showOrderModal && selectedOrder && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+                    <div
+                        className={`bg-white rounded-xl shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto`}
+                    >
+                        {/* Modal header */}
+                        <div
+                            className={`p-4 bg-gradient-to-r ${seasonalStyle.primary} rounded-t-xl`}
+                        >
+                            <div className="flex justify-between items-center">
+                                <h3 className="text-xl font-bold text-white">
+                                    Order Details
+                                </h3>
+                                <button
+                                    onClick={closeOrderModal}
+                                    className="text-white hover:text-gray-200"
+                                >
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        className="h-6 w-6"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                    >
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M6 18L18 6M6 6l12 12"
+                                        />
+                                    </svg>
+                                </button>
+                            </div>
+                            <div className="flex items-center mt-2">
+                                <div className="bg-white bg-opacity-20 px-3 py-1 rounded-full">
+                                    <span className="text-white text-sm">
+                                        Order #
+                                        {selectedOrder._id.substring(
+                                            selectedOrder._id.length - 6
+                                        )}
+                                    </span>
+                                </div>
+                                {selectedOrder.isAvailable === false && (
+                                    <div className="ml-2 bg-green-600 bg-opacity-90 px-3 py-1 rounded-full">
+                                        <span className="text-white text-sm font-medium">
+                                            Ready for Pickup
+                                        </span>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Modal body */}
+                        <div className="p-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {/* Order Info */}
+                                <div
+                                    className={`${seasonalStyle.secondary} p-4 rounded-xl`}
+                                >
+                                    <h4 className="font-semibold text-green-900 mb-3">
+                                        Order Information
+                                    </h4>
+
+                                    <div className="space-y-3">
+                                        <div>
+                                            <p className="text-xs text-gray-500">
+                                                Product ID
+                                            </p>
+                                            <p className="text-sm font-medium text-green-900">
+                                                {selectedOrder.product}
+                                            </p>
+                                        </div>
+
+                                        <div>
+                                            <p className="text-xs text-gray-500">
+                                                Farmer ID
+                                            </p>
+                                            <p className="text-sm font-medium text-green-900">
+                                                {selectedOrder.farmer}
+                                            </p>
+                                        </div>
+
+                                        <div>
+                                            <p className="text-xs text-gray-500">
+                                                Quantity
+                                            </p>
+                                            <p className="text-sm font-medium text-green-900">
+                                                {selectedOrder.quantity} items
+                                            </p>
+                                        </div>
+
+                                        <div>
+                                            <p className="text-xs text-gray-500">
+                                                Total Amount
+                                            </p>
+                                            <p className="text-lg font-bold text-green-900">
+                                                ₹{selectedOrder.totalAmount}
+                                            </p>
+                                        </div>
+
+                                        <div>
+                                            <p className="text-xs text-gray-500">
+                                                Order Created
+                                            </p>
+                                            <p className="text-sm font-medium text-green-900">
+                                                {new Date(
+                                                    selectedOrder.createdAt
+                                                ).toLocaleString()}
+                                            </p>
+                                        </div>
+
+                                        <div>
+                                            <p className="text-xs text-gray-500">
+                                                Last Updated
+                                            </p>
+                                            <p className="text-sm font-medium text-green-900">
+                                                {new Date(
+                                                    selectedOrder.updatedAt
+                                                ).toLocaleString()}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Status Info */}
+                                <div
+                                    className={`${seasonalStyle.secondary} p-4 rounded-xl`}
+                                >
+                                    <h4 className="font-semibold text-green-900 mb-3">
+                                        Status & Delivery
+                                    </h4>
+
+                                    <div className="space-y-4">
+                                        <div>
+                                            <p className="text-xs text-gray-500">
+                                                Order Status
+                                            </p>
+                                            <span
+                                                className={`inline-block px-3 py-1 mt-1 rounded-full text-sm font-medium ${getStatusBadgeStyle(
+                                                    selectedOrder.status
+                                                )}`}
+                                            >
+                                                {selectedOrder.status
+                                                    .charAt(0)
+                                                    .toUpperCase() +
+                                                    selectedOrder.status.slice(
+                                                        1
+                                                    )}
+                                            </span>
+                                        </div>
+
+                                        <div>
+                                            <p className="text-xs text-gray-500">
+                                                Payment Status
+                                            </p>
+                                            <span
+                                                className={`inline-block px-3 py-1 mt-1 rounded-full text-sm font-medium ${getStatusBadgeStyle(
+                                                    selectedOrder.paymentStatus,
+                                                    "payment"
+                                                )}`}
+                                            >
+                                                {selectedOrder.paymentStatus
+                                                    .charAt(0)
+                                                    .toUpperCase() +
+                                                    selectedOrder.paymentStatus.slice(
+                                                        1
+                                                    )}
+                                            </span>
+                                        </div>
+
+                                        <div>
+                                            <p className="text-xs text-gray-500">
+                                                Payment Method
+                                            </p>
+                                            <div className="flex items-center mt-1">
+                                                {selectedOrder.paymentMethod ===
+                                                "online" ? (
+                                                    <svg
+                                                        xmlns="http://www.w3.org/2000/svg"
+                                                        className="h-5 w-5 text-blue-500 mr-1"
+                                                        fill="none"
+                                                        viewBox="0 0 24 24"
+                                                        stroke="currentColor"
+                                                    >
+                                                        <path
+                                                            strokeLinecap="round"
+                                                            strokeLinejoin="round"
+                                                            strokeWidth={2}
+                                                            d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+                                                        />
+                                                    </svg>
+                                                ) : (
+                                                    <svg
+                                                        xmlns="http://www.w3.org/2000/svg"
+                                                        className="h-5 w-5 text-green-500 mr-1"
+                                                        fill="none"
+                                                        viewBox="0 0 24 24"
+                                                        stroke="currentColor"
+                                                    >
+                                                        <path
+                                                            strokeLinecap="round"
+                                                            strokeLinejoin="round"
+                                                            strokeWidth={2}
+                                                            d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2z"
+                                                        />
+                                                    </svg>
+                                                )}
+                                                <span className="text-sm font-medium capitalize">
+                                                    {
+                                                        selectedOrder.paymentMethod
+                                                    }
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <p className="text-xs text-gray-500">
+                                                Delivery Location
+                                            </p>
+                                            <div className="flex items-start mt-1">
+                                                <MapPin className="h-4 w-4 text-gray-600 mr-1 mt-0.5" />
+                                                <p className="text-sm text-gray-700">
+                                                    {selectedOrder.location}
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        {selectedOrder.courier && (
+                                            <div>
+                                                <p className="text-xs text-gray-500">
+                                                    Courier ID
+                                                </p>
+                                                <p className="text-sm font-medium text-green-900">
+                                                    {selectedOrder.courier}
+                                                </p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Action buttons */}
+                            <div className="mt-6 flex justify-end space-x-3">
+                                <button
+                                    onClick={closeOrderModal}
+                                    className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+                                >
+                                    Close
+                                </button>
+
+                                {selectedOrder.isAvailable === false && (
+                                    <button
+                                        className={`px-4 py-2 bg-gradient-to-r ${seasonalStyle.primary} text-white rounded-lg hover:opacity-90`}
+                                    >
+                                        Confirm Pickup
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

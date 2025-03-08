@@ -18,7 +18,7 @@ import {
     Home,
     Info,
 } from "lucide-react";
-import { useLoadScript, GoogleMap, Marker } from '@react-google-maps/api';
+import { useLoadScript, GoogleMap, Marker } from "@react-google-maps/api";
 
 const UserRegistrationPage = () => {
     const fileInputRef = useRef(null);
@@ -90,20 +90,26 @@ const UserRegistrationPage = () => {
     // Replace scriptLoaded state with useLoadScript hook
     const { isLoaded, loadError } = useLoadScript({
         googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
-        libraries: ['places'],
+        libraries: ["places"],
     });
-    
+
     // Define map container style
-    const mapContainerStyle = useMemo(() => ({
-        width: '100%',
-        height: '160px',
-    }), []);
-    
+    const mapContainerStyle = useMemo(
+        () => ({
+            width: "100%",
+            height: "160px",
+        }),
+        []
+    );
+
     // Default center for the map (India)
-    const defaultCenter = useMemo(() => ({ 
-        lat: 20.5937, 
-        lng: 78.9629 
-    }), []);
+    const defaultCenter = useMemo(
+        () => ({
+            lat: 20.5937,
+            lng: 78.9629,
+        }),
+        []
+    );
 
     // Update the autocomplete initialization
     useEffect(() => {
@@ -112,29 +118,39 @@ const UserRegistrationPage = () => {
                 console.log("Initializing autocomplete...");
                 // Remove any existing autocomplete
                 if (locationInputRef.current.autocomplete) {
-                    google.maps.event.clearInstanceListeners(locationInputRef.current.autocomplete);
+                    google.maps.event.clearInstanceListeners(
+                        locationInputRef.current.autocomplete
+                    );
                 }
-                
-                const autocomplete = new window.google.maps.places.Autocomplete(locationInputRef.current, {
-                    // Restrict to addresses/geographical locations
-                    types: ["geocode"],
-                    fields: ['address_components', 'formatted_address', 'geometry', 'name'],
-                });
-                
+
+                const autocomplete = new window.google.maps.places.Autocomplete(
+                    locationInputRef.current,
+                    {
+                        // Restrict to addresses/geographical locations
+                        types: ["geocode"],
+                        fields: [
+                            "address_components",
+                            "formatted_address",
+                            "geometry",
+                            "name",
+                        ],
+                    }
+                );
+
                 // Store reference to autocomplete
                 locationInputRef.current.autocomplete = autocomplete;
 
-                autocomplete.addListener('place_changed', () => {
+                autocomplete.addListener("place_changed", () => {
                     const place = autocomplete.getPlace();
                     console.log("Place selected:", place);
-                    
+
                     if (place.geometry && place.geometry.location) {
                         const lat = place.geometry.location.lat();
                         const lng = place.geometry.location.lng();
-                        
+
                         console.log("Location coordinates:", { lat, lng });
                         setLocationCoords({ lat, lng });
-                        
+
                         setFormData({
                             ...formData,
                             address: place.formatted_address,
@@ -142,10 +158,12 @@ const UserRegistrationPage = () => {
                             district: "",
                         });
                     } else {
-                        console.warn("No geometry found for the selected place");
+                        console.warn(
+                            "No geometry found for the selected place"
+                        );
                     }
                 });
-                
+
                 console.log("Autocomplete initialized successfully");
             } catch (error) {
                 console.error("Error initializing autocomplete:", error);
@@ -154,9 +172,9 @@ const UserRegistrationPage = () => {
     }, [isLoaded, formData]);
 
     // Remove the old map initialization useEffect
-    
+
     // Remove the old marker update useEffect
-    
+
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData((prev) => ({
@@ -218,19 +236,19 @@ const UserRegistrationPage = () => {
             navigator.geolocation.getCurrentPosition(
                 async (position) => {
                     const { latitude, longitude } = position.coords;
-                    
+
                     // Update the map with the current location
                     setLocationCoords({ lat: latitude, lng: longitude });
-                    
+
                     try {
                         // Use Vite's environment variable format
                         const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
                         const response = await fetch(
                             `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${apiKey}`
                         );
-                        
+
                         const data = await response.json();
-                        
+
                         if (data.results && data.results.length > 0) {
                             const address = data.results[0].formatted_address;
                             setFormData({
@@ -240,39 +258,46 @@ const UserRegistrationPage = () => {
                                 district: "",
                             });
                         } else {
-                            setLocationError("Could not find address for your location");
+                            setLocationError(
+                                "Could not find address for your location"
+                            );
                         }
                     } catch (error) {
-                        console.error('Error getting address:', error);
-                        setLocationError("Could not convert your location to an address");
+                        console.error("Error getting address:", error);
+                        setLocationError(
+                            "Could not convert your location to an address"
+                        );
                     }
                     setIsGettingLocation(false);
                 },
                 (error) => {
-                    console.error('Error getting location:', error);
-                    let errorMessage = 'Could not get your location.';
-                    
-                    switch(error.code) {
+                    console.error("Error getting location:", error);
+                    let errorMessage = "Could not get your location.";
+
+                    switch (error.code) {
                         case error.PERMISSION_DENIED:
-                            errorMessage += ' Please allow location access in your browser settings.';
+                            errorMessage +=
+                                " Please allow location access in your browser settings.";
                             break;
                         case error.POSITION_UNAVAILABLE:
-                            errorMessage += ' Location information is unavailable.';
+                            errorMessage +=
+                                " Location information is unavailable.";
                             break;
                         case error.TIMEOUT:
-                            errorMessage += ' The request to get location timed out.';
+                            errorMessage +=
+                                " The request to get location timed out.";
                             break;
                         default:
-                            errorMessage += ' Please check permissions.';
+                            errorMessage += " Please check permissions.";
                     }
-                    
+
                     setLocationError(errorMessage);
                     setIsGettingLocation(false);
                 },
-                { 
+                {
                     enableHighAccuracy: true,
                     timeout: 10000,
-                    maximumAge: 0
+                    maximumAge: 0,
                 }
             );
         } else {
@@ -301,10 +326,10 @@ const UserRegistrationPage = () => {
             farmType: formData.farmType,
             profilePhoto: formData.profilePhoto
                 ? {
-                    name: formData.profilePhoto.name,
-                    type: formData.profilePhoto.type,
-                    size: formData.profilePhoto.size,
-                }
+                      name: formData.profilePhoto.name,
+                      type: formData.profilePhoto.type,
+                      size: formData.profilePhoto.size,
+                  }
                 : null,
         });
 
@@ -386,7 +411,10 @@ const UserRegistrationPage = () => {
                 console.log("=== Success Response Data ===");
                 console.log(data);
                 localStorage.setItem("token", data.accessToken);
-                localStorage.setItem("userRole", JSON.stringify(data.user.role));
+                localStorage.setItem(
+                    "userRole",
+                    JSON.stringify(data.user.role)
+                );
 
                 console.log(
                     "Farmer Registration successful! Redirecting to login..."
@@ -450,17 +478,21 @@ const UserRegistrationPage = () => {
     // Replace the map div with GoogleMap component
     const renderMap = () => {
         if (loadError) {
-            return <div className="w-full h-40 flex items-center justify-center bg-gray-100 rounded-md border border-gray-300">
-                <p className="text-red-500">Error loading maps</p>
-            </div>;
+            return (
+                <div className="w-full h-40 flex items-center justify-center bg-gray-100 rounded-md border border-gray-300">
+                    <p className="text-red-500">Error loading maps</p>
+                </div>
+            );
         }
-        
+
         if (!isLoaded) {
-            return <div className="w-full h-40 flex items-center justify-center bg-gray-100 rounded-md border border-gray-300">
-                <div className="animate-spin h-6 w-6 border-2 border-gray-500 border-t-transparent rounded-full" />
-            </div>;
+            return (
+                <div className="w-full h-40 flex items-center justify-center bg-gray-100 rounded-md border border-gray-300">
+                    <div className="animate-spin h-6 w-6 border-2 border-gray-500 border-t-transparent rounded-full" />
+                </div>
+            );
         }
-        
+
         return (
             <GoogleMap
                 mapContainerStyle={mapContainerStyle}
@@ -536,7 +568,21 @@ const UserRegistrationPage = () => {
 
                 {/* Farm Type Selection */}
                 <div className="space-y-6">
-                    <div className="font-medium text-gray-700 mb-2">
+                    <div className="font-medium text-gray-700 mb-3 flex items-center">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-5 w-5 mr-2 text-green-600"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
+                            />
+                        </svg>
                         Choose Farm Type
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -556,22 +602,33 @@ const UserRegistrationPage = () => {
                                             type.value
                                         ); // Log selection
                                     }}
-                                    className={`p-4 rounded-xl border-2 transition duration-300 flex flex-col items-center justify-center space-y-2 ${formData.farmType === type.value
+                                    className={`p-4 rounded-xl border-2 transition duration-300 flex flex-col items-center justify-center space-y-2 ${
+                                        formData.farmType === type.value
                                             ? "border-green-500 bg-green-50"
                                             : "border-gray-200 hover:border-green-300"
-                                        }`}
+                                    }`}
                                 >
-                                    <Icon
-                                        className={`h-8 w-8 ${formData.farmType === type.value
-                                                ? "text-green-500"
-                                                : "text-gray-500"
+                                    <div
+                                        className={`w-14 h-14 rounded-full flex items-center justify-center mb-1 ${
+                                            formData.farmType === type.value
+                                                ? "bg-green-100"
+                                                : "bg-gray-100"
+                                        }`}
+                                    >
+                                        <Icon
+                                            className={`h-8 w-8 ${
+                                                formData.farmType === type.value
+                                                    ? "text-green-500"
+                                                    : "text-gray-500"
                                             }`}
-                                    />
+                                        />
+                                    </div>
                                     <span
-                                        className={`text-sm font-medium ${formData.farmType === type.value
+                                        className={`text-sm font-medium ${
+                                            formData.farmType === type.value
                                                 ? "text-green-700"
                                                 : "text-gray-600"
-                                            }`}
+                                        }`}
                                     >
                                         {type.label}
                                     </span>
@@ -608,18 +665,19 @@ const UserRegistrationPage = () => {
                             placeholder="Farm Name"
                             value={formData.farmName}
                             onChange={handleChange}
-                            className={`w-full pl-14 pr-5 py-4 text-lg border-2 rounded-xl focus:outline-none ${errors.farmName
+                            className={`w-full pl-14 pr-5 py-4 text-lg border-2 rounded-xl focus:outline-none ${
+                                errors.farmName
                                     ? "border-red-500 focus:border-red-500"
                                     : ""
-                                }`}
+                            }`}
                             style={
                                 !errors.farmName
                                     ? {
-                                        borderColor: currentTheme.light,
-                                        ":focus": {
-                                            borderColor: currentTheme.primary,
-                                        },
-                                    }
+                                          borderColor: currentTheme.light,
+                                          ":focus": {
+                                              borderColor: currentTheme.primary,
+                                          },
+                                      }
                                     : {}
                             }
                             required
@@ -717,15 +775,17 @@ const UserRegistrationPage = () => {
                                         style={
                                             !errors.address
                                                 ? {
-                                                    borderColor: currentTheme.light,
-                                                    ":focus": {
-                                                        borderColor: currentTheme.primary,
-                                                    },
-                                                }
+                                                      borderColor:
+                                                          currentTheme.light,
+                                                      ":focus": {
+                                                          borderColor:
+                                                              currentTheme.primary,
+                                                      },
+                                                  }
                                                 : {}
                                         }
-                                        onKeyDown={(e) => { 
-                                            if (e.key === 'Enter') {
+                                        onKeyDown={(e) => {
+                                            if (e.key === "Enter") {
                                                 e.preventDefault();
                                             }
                                         }}
@@ -776,16 +836,17 @@ const UserRegistrationPage = () => {
                             value={formData.password}
                             onChange={handleChange}
                             className={`w-full pl-14 pr-5 py-4 text-lg border-2 rounded-xl focus:outline-none 
-                ${errors.password ? "border-red-500 focus:border-red-500" : ""
-                                }`}
+                ${
+                    errors.password ? "border-red-500 focus:border-red-500" : ""
+                }`}
                             style={
                                 !errors.password
                                     ? {
-                                        borderColor: currentTheme.light,
-                                        ":focus": {
-                                            borderColor: currentTheme.primary,
-                                        },
-                                    }
+                                          borderColor: currentTheme.light,
+                                          ":focus": {
+                                              borderColor: currentTheme.primary,
+                                          },
+                                      }
                                     : {}
                             }
                             required
@@ -806,18 +867,19 @@ const UserRegistrationPage = () => {
                             value={formData.confirmPassword}
                             onChange={handleChange}
                             className={`w-full pl-14 pr-5 py-4 text-lg border-2 rounded-xl focus:outline-none 
-                ${errors.confirmPassword
-                                    ? "border-red-500 focus:border-red-500"
-                                    : ""
-                                }`}
+                ${
+                    errors.confirmPassword
+                        ? "border-red-500 focus:border-red-500"
+                        : ""
+                }`}
                             style={
                                 !errors.confirmPassword
                                     ? {
-                                        borderColor: currentTheme.light,
-                                        ":focus": {
-                                            borderColor: currentTheme.primary,
-                                        },
-                                    }
+                                          borderColor: currentTheme.light,
+                                          ":focus": {
+                                              borderColor: currentTheme.primary,
+                                          },
+                                      }
                                     : {}
                             }
                             required
@@ -832,8 +894,9 @@ const UserRegistrationPage = () => {
                     <button
                         type="submit"
                         disabled={isSubmitting}
-                        className={`w-full text-white py-4 rounded-xl transition duration-300 flex items-center justify-center text-lg font-medium mt-6 shadow-md ${isSubmitting ? "opacity-70" : ""
-                            }`}
+                        className={`w-full text-white py-4 rounded-xl transition duration-300 flex items-center justify-center text-lg font-medium mt-6 shadow-md ${
+                            isSubmitting ? "opacity-70" : ""
+                        }`}
                         style={{ backgroundColor: currentTheme.primary }}
                     >
                         {isSubmitting ? (

@@ -3,6 +3,7 @@ import {
     orderAssign,
     orderProducts,
     getOrders,
+    getCustomerOrders,
 } from "../controller/order.controller.js";
 import { verifyJWT } from "../middlewares/auth.middlewares.js";
 // import { findFarmer } from "../middlewares/findFarmer.js";
@@ -13,5 +14,7 @@ orderRouter.post("/", verifyJWT, orderProducts);
 orderRouter.put("/:orderId/assign", verifyJWT, orderAssign);
 
 orderRouter.get("/",  getOrders);
+
+orderRouter.get("/customer", verifyJWT, getCustomerOrders);
 
 export { orderRouter };

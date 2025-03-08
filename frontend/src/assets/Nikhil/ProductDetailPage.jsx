@@ -493,12 +493,6 @@ const ProductDetailPage = () => {
     <div className="min-h-screen bg-gradient-to-b from-green-50 to-green-100">
       {/* Navigation bar */}
       <Toaster/>
-      <nav className="bg-white shadow-md py-4 px-6">
-        <div className="max-w-6xl mx-auto flex justify-between items-center">
-          <div className="text-2xl font-bold text-green-700">FarmFresh Market</div>
-          <div className="bg-green-600 text-white py-2 px-4 rounded-md font-medium">Sign In</div>
-        </div>
-      </nav>
 
       {/* Main content */}
       <div className="max-w-6xl mx-auto p-6">

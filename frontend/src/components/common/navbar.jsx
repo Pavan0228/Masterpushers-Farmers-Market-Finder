@@ -218,7 +218,7 @@ const Navbar = () => {
                             scrolled ? "bg-green-600" : "bg-green-500"
                         } p-2 rounded-full shadow-md transition-colors duration-300 transform hover:rotate-3`}>
                             <img
-                                src={"../../assets/images/logo.png"}
+                                src="https://autofinancetrack-pennytracker.s3.ap-south-1.amazonaws.com/uploads/farmerLogo.png"
                                 alt="a"
                                 className="h-8 w-8"
                             />

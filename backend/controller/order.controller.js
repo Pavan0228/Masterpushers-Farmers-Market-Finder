@@ -103,3 +103,19 @@ export const getFarmerOrders = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+
+export const getCustomerOrders = async (req, res) => {
+    try {
+
+        const customer = await Customer.findOne({ user: req.user._id });
+
+        if (!customer) {
+            return res.status(404).json({ message: "Customer not found" });
+        }
+        const orders = await Order.find({ customer: customer._id });
+        res.status(200).json({ orders });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};

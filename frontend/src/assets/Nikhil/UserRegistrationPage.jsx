@@ -780,7 +780,7 @@ const UserRegistrationPage = () => {
                                         value={formData.address}
                                         onChange={handleChange}
                                         ref={locationInputRef}
-                                        className={`w-full pl-14 pr-5 py-4 text-lg border-2 rounded-l-xl focus:outline-none ${
+                                        className={`w-full pl-14 pr-12 py-4 text-lg border-2 rounded-l-xl focus:outline-none ${
                                             errors.address
                                                 ? "border-red-500 focus:border-red-500"
                                                 : "bg-white"
@@ -788,11 +788,9 @@ const UserRegistrationPage = () => {
                                         style={
                                             !errors.address
                                                 ? {
-                                                      borderColor:
-                                                          currentTheme.light,
+                                                      borderColor: currentTheme.light,
                                                       ":focus": {
-                                                          borderColor:
-                                                              currentTheme.primary,
+                                                          borderColor: currentTheme.primary,
                                                       },
                                                   }
                                                 : {}
@@ -804,6 +802,16 @@ const UserRegistrationPage = () => {
                                         }}
                                         autoComplete="off"
                                     />
+                                    <button
+                                        type="button"
+                                        onClick={() => recordingField === "address" ? stopRecording() : startRecording("address")}
+                                        className="absolute right-4 top-4 text-gray-600 hover:text-gray-800"
+                                    >
+                                        <FontAwesomeIcon 
+                                            icon={recordingField === "address" ? faStop : faMicrophone} 
+                                            className="h-6 w-6"
+                                        />
+                                    </button>
                                 </div>
                                 <button
                                     type="button"

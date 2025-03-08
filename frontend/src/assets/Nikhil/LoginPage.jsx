@@ -77,18 +77,30 @@ const LoginPage = () => {
                         localStorage.setItem("token", data.accessToken);
                     }
 
-                    // Store user role if available
-                    if (data.user && data.user.role) {
-                        localStorage.setItem("userRole", data.user.role);
-                    }
-
-                    // Store complete user data
+                    // Store user role and data
                     if (data.user) {
                         localStorage.setItem("user", JSON.stringify(data.user));
-                    }
+                        const userRole = data.user.role;
+                        localStorage.setItem("userRole", userRole);
 
-                    // Redirect to home page regardless of role
-                    navigate("/");
+                        // Navigate based on user role
+                        switch (userRole.toLowerCase()) {
+                            case "farmer":
+                                navigate("/profile/farmer");
+                                break;
+                            case "courier":
+                                navigate("/profile/courier");
+                                break;
+                            case "customer":
+                                navigate("/");
+                                break;
+                            default:
+                                navigate("/");
+                                break;
+                        }
+                    } else {
+                        navigate("/");
+                    }
                 } else {
                     throw new Error(data.message || "Login failed");
                 }

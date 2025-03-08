@@ -43,16 +43,26 @@ const Dashboard = () => {
     const fetchDashboardStats = async () => {
         try {
             const token = localStorage.getItem("token");
-            const response = await axios.get(`${API_BASE_URL}/admin/stats`, {
+            const response = await axios.get(`${API_BASE_URL}/api/v1/courier/`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
 
             if (response.data.success) {
+                const couriers = response.data.data; // Assuming the data contains the list of couriers
+
+                const totalCouriers = couriers.length; // Total couriers
+                const verifiedCouriers = couriers.filter(courier => courier.isVerified === true ).length; 
+                console.log("verified",verifiedCouriers);
+                // Count verified couriers
+                const pendingCouriers = couriers.filter(courier => courier.isVerified === false).length; // Count pending couriers
+console.log("pedning",pendingCouriers);
+
+
                 setStats({
-                    totalCouriers: response.data.data.totalCouriers || 0,
-                    verifiedCouriers: response.data.data.verifiedCouriers || 0,
-                    pendingCouriers: response.data.data.pendingCouriers || 0,
-                    activeDeliveries: response.data.data.activeDeliveries || 0,
+                    totalCouriers: totalCouriers || 0,
+                    verifiedCouriers: verifiedCouriers || 0,
+                    pendingCouriers: pendingCouriers || 0,
+                    activeDeliveries: 0, // Set this as needed
                 });
             }
         } catch (error) {
@@ -322,7 +332,7 @@ const Dashboard = () => {
                             </CardContent>
                         </Card>
 
-                        <Card className="overflow-hidden border-none shadow-md hover:shadow-lg transition-shadow">
+                        {/* <Card className="overflow-hidden border-none shadow-md hover:shadow-lg transition-shadow">
                             <div className="h-1 bg-purple-500"></div>
                             <CardContent className="p-6">
                                 <div className="flex items-center justify-between">
@@ -354,7 +364,7 @@ const Dashboard = () => {
                                     </div>
                                 )}
                             </CardContent>
-                        </Card>
+                        </Card> */}
                     </div>
 
                     {/* Tabs */}
@@ -376,9 +386,9 @@ const Dashboard = () => {
 
                         <TabsContent value="couriers">
                             <Card className="border-none shadow-md">
-                                <CardHeader className="border-b bg-gray-50 rounded-t-lg">
+                                {/* <CardHeader className="border-b bg-gray-50 rounded-t-lg"> */}
                                     <div className="flex items-center justify-between">
-                                        <CardTitle className="text-gray-800">
+                                        {/* <CardTitle className="text-gray-800">
                                             Couriers List
                                         </CardTitle>
                                         <div className="flex space-x-3">
@@ -393,9 +403,9 @@ const Dashboard = () => {
                                             <Button className="bg-green-600 hover:bg-green-700 text-white shadow-sm">
                                                 Add Courier
                                             </Button>
-                                        </div>
+                                        </div> */}
                                     </div>
-                                </CardHeader>
+                                {/* </CardHeader> */}
                                 <CardContent className="p-0">
                                     <CouriersList />
                                 </CardContent>

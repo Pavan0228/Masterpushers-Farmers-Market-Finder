@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import axios from 'axios';
@@ -19,6 +19,7 @@ const CouriersList = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [refreshing, setRefreshing] = useState(false);
+  const [statusFilter, setStatusFilter] = useState('all');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -58,19 +59,34 @@ const CouriersList = () => {
     }
   };
 
+  // Memoize filtered couriers based on search term and status filter
+  const filteredCouriers = useMemo(() => {
+    const regex = new RegExp(searchTerm, 'i'); // Create regex for case-insensitive search
+    return couriers.filter(courier => {
+      const matchesSearch = courier.user.fullName.match(regex) || courier.user.email.match(regex);
+      const matchesStatus = statusFilter === 'all' || 
+                            (statusFilter === 'verified' && courier.isVerified) || 
+                            (statusFilter === 'pending' && !courier.isVerified);
+      return matchesSearch && matchesStatus; // Return true if both conditions are met
+    });
+  }, [couriers, searchTerm, statusFilter]); // Add statusFilter to dependencies
+
   return (
     <TooltipProvider>
       <Card className="w-full shadow-lg rounded-xl">
         <CardHeader className="bg-gray-100 p-4 rounded-t-xl">
           <div className="flex justify-between items-center">
             <CardTitle className="text-xl font-bold text-gray-700">Couriers Management</CardTitle>
-            {/* <Button
-              onClick={() => navigate('/admin/couriers/add')}
-              className="bg-green-600 hover:bg-green-700 text-white"
+            {/* Status Filter */}
+            <select 
+              value={statusFilter} 
+              onChange={(e) => setStatusFilter(e.target.value)} // Update status filter
+              className="border rounded-md p-2"
             >
-              <Plus className="h-4 w-4 mr-2" />
-              Add Courier
-            </Button> */}
+              <option value="all">All</option>
+              <option value="verified">Verified</option>
+              <option value="pending">Pending</option>
+            </select>
           </div>
         </CardHeader>
 
@@ -122,14 +138,14 @@ const CouriersList = () => {
                       </TableCell>
                     </TableRow>
                   ))
-                ) : couriers.length === 0 ? (
+                ) : filteredCouriers.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={4} className="text-center text-gray-500 py-6">
                       No couriers found
                     </TableCell>
                   </TableRow>
                 ) : (
-                  couriers.map((courier) => (
+                  filteredCouriers.map((courier) => (
                     <TableRow key={courier._id} className="hover:bg-gray-50 transition">
                       <TableCell className="p-3 font-medium">{courier?.user?.fullName || 'N/A'}</TableCell>
                       <TableCell className="p-3">{courier?.user?.email || 'N/A'}</TableCell>

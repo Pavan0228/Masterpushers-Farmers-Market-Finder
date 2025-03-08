@@ -29,7 +29,7 @@ function Layout() {
 
     return (
         <>
-            <TopBar />
+            {/* <TopBar /> */}
             <Navbar />
             <Outlet />
             <Footer />

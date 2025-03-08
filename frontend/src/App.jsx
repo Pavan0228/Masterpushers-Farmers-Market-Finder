@@ -37,7 +37,6 @@ const App = () => {
                         path="/product/:id"
                         element={<ProductDetailPage />}
                     />
-                    <Route path="/login" element={<LoginPage />} />
                     <Route
                         path="/farmer/register"
                         element={<UserRegisterPage />}
@@ -67,6 +66,7 @@ const App = () => {
                         element={<ProfileCustomer />}
                     />
                 </Route>
+                <Route path="/login" element={<LoginPage />} />
 
                 <Route path="/admin/login" element={<AdminLogin />} />
                 <Route path="/admin/dashboard" element={< Dashboard />} />

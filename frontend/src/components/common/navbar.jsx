@@ -200,7 +200,7 @@ const Navbar = () => {
         setIsDarkMode(!isDarkMode);
         // Implement dark mode functionality here
     };
-
+    const image = "../../assets/images/logo.png";
     const isCustomer = userRole === "customer";
 
     return (
@@ -218,8 +218,8 @@ const Navbar = () => {
                             scrolled ? "bg-green-600" : "bg-green-500"
                         } p-2 rounded-full shadow-md transition-colors duration-300 transform hover:rotate-3`}>
                             <img
-                                src="/path/to/logo.png"
-                                alt="AgroLynk"
+                                src={"../../assets/images/logo.png"}
+                                alt="a"
                                 className="h-8 w-8"
                             />
                         </div>

@@ -2,92 +2,324 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Veg Farms Color Theme Variables */
+/* Enhanced Design System Variables */
 :root {
-  --veg-primary-color: #4CAF50;
+  /* Modern Green Color Palette */
+  --veg-primary-50: #f0fdf4;
+  --veg-primary-100: #dcfce7;
+  --veg-primary-200: #bbf7d0;
+  --veg-primary-300: #86efac;
+  --veg-primary-400: #4ade80;
+  --veg-primary-500: #22c55e;
+  --veg-primary-600: #16a34a;
+  --veg-primary-700: #15803d;
+  --veg-primary-800: #166534;
+  --veg-primary-900: #14532d;
+  --veg-primary-950: #052e16;
+
+  /* Legacy Variables (kept for backwards compatibility) */
+  --veg-primary-color: #16a34a;
   --veg-accent-color-1: #8D6E63;
-  --veg-accent-color-2: #AED581;
-  --veg-background: #F5F5F5;
-  --veg-notification-bg: #E8F5E9;
+  --veg-accent-color-2: #4ade80;
+  --veg-background: #f9fafb;
+  --veg-notification-bg: #dcfce7;
+
+  /* Enhanced Semantic Colors */
+  --primary: 142 69 49;
+  --primary-foreground: 355 7 97;
+  --secondary: 142 4 82;
+  --secondary-foreground: 215 16 47;
+  --accent: 142 76 73;
+  --accent-foreground: 215 25 27;
+  --background: 0 0 100;
+  --foreground: 0 0 3.9;
+  --card: 0 0 100;
+  --card-foreground: 0 0 3.9;
+  --popover: 0 0 100;
+  --popover-foreground: 0 0 3.9;
+  --muted: 0 0 96.1;
+  --muted-foreground: 0 0 45.1;
+  --border: 0 0 89.8;
+  --input: 0 0 89.8;
+  --ring: 142 69 49;
+  --radius: 0.75rem;
+
+  /* Typography Scale */
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --font-size-3xl: 1.875rem;
+  --font-size-4xl: 2.25rem;
+
+  /* Spacing Scale */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-2xl: 3rem;
+
+  /* Shadow Scale */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
 }
 
-/* Poultry Farms Color Theme Variables */
+/* Dark Theme Variables */
+.dark {
+  --background: 0 0 3.9;
+  --foreground: 0 0 98;
+  --card: 0 0 3.9;
+  --card-foreground: 0 0 98;
+  --popover: 0 0 3.9;
+  --popover-foreground: 0 0 98;
+  --primary: 142 72 29;
+  --primary-foreground: 355 85 97;
+  --secondary: 0 0 14.9;
+  --secondary-foreground: 0 0 98;
+  --muted: 0 0 14.9;
+  --muted-foreground: 0 0 63.9;
+  --accent: 0 0 14.9;
+  --accent-foreground: 0 0 98;
+  --border: 0 0 14.9;
+  --input: 0 0 14.9;
+  --ring: 142 72 29;
+}
+
+/* Poultry Farms Color Theme Variables (Enhanced) */
 :root {
-  --poultry-primary-color: #FFC107;
+  --poultry-primary-color: #f59e0b;
   --poultry-accent-color-1: #795548;
-  --poultry-accent-color-2: #8D6E63;
-  --poultry-background: #FFF8E1;
-  --poultry-notification-bg: #FFF3E0;
+  --poultry-accent-color-2: #fbbf24;
+  --poultry-background: #fffbeb;
+  --poultry-notification-bg: #fef3c7;
 }
 
-/* Global Smooth Scrolling */
+/* Enhanced Global Styles */
+* {
+  box-sizing: border-box;
+}
+
 html {
   scroll-behavior: smooth;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  line-height: 1.6;
+  color: hsl(var(--foreground));
+  background-color: hsl(var(--background));
+  transition: color 0.3s ease, background-color 0.3s ease;
+  top: 0 !important;
 }
 
 /* Enhanced Scrollbar Styles */
 ::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
 }
 
-/* Scrollbar Track */
 ::-webkit-scrollbar-track {
-  background-color: rgba(76, 175, 80, 0.1); /* Soft veg green background */
-  border-radius: 10px;
+  background: hsl(var(--muted));
+  border-radius: 6px;
 }
 
-/* Scrollbar Thumb */
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(45deg, var(--veg-primary-color), var(--veg-accent-color-2));
-  border-radius: 10px;
-  border: 2px solid rgba(76, 175, 80, 0.2);
+  background: linear-gradient(135deg, var(--veg-primary-600), var(--veg-primary-400));
+  border-radius: 6px;
+  border: 1px solid hsl(var(--border));
   transition: all 0.3s ease;
 }
 
-/* Scrollbar Thumb Hover State */
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(45deg, var(--veg-accent-color-2), var(--veg-primary-color));
-  box-shadow: 0 0 10px rgba(76, 175, 80, 0.3);
+  background: linear-gradient(135deg, var(--veg-primary-700), var(--veg-primary-500));
+  box-shadow: 0 4px 8px rgba(34, 197, 94, 0.3);
 }
 
-/* Selection Styles */
+/* Enhanced Selection Styles */
 *::selection {
+  background-color: var(--veg-primary-600);
   color: white;
-  background-color: var(--veg-primary-color);
 }
 
-/* Poultry Farms Theme (can be applied dynamically) */
-.poultry-theme {
-  ::-webkit-scrollbar-track {
-    background-color: rgba(255, 193, 7, 0.1); /* Soft poultry yellow background */
-  }
+*::-moz-selection {
+  background-color: var(--veg-primary-600);
+  color: white;
+}
 
+/* Custom Utility Classes */
+.glass-effect {
+  backdrop-filter: blur(12px) saturate(180%);
+  background-color: rgba(255, 255, 255, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.125);
+}
+
+.dark .glass-effect {
+  background-color: rgba(0, 0, 0, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.125);
+}
+
+/* Enhanced Animation Utilities */
+.animate-fade-in {
+  animation: fadeIn 0.6s ease-out forwards;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.6s ease-out forwards;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.4s ease-out forwards;
+}
+
+.animate-bounce-gentle {
+  animation: bounceGentle 2s infinite;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes bounceGentle {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+/* Enhanced Button Styles */
+.btn-modern {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  transform: translateY(0);
+}
+
+.btn-modern:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(34, 197, 94, 0.2);
+}
+
+.btn-modern::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.btn-modern:hover::before {
+  left: 100%;
+}
+
+/* Enhanced Card Styles */
+.card-modern {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.card-modern:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-xl);
+  border-color: var(--veg-primary-300);
+}
+
+.card-modern::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--veg-primary-500), var(--veg-primary-400));
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
+}
+
+.card-modern:hover::before {
+  transform: scaleX(1);
+}
+
+/* Enhanced Poultry Theme */
+.poultry-theme {
   ::-webkit-scrollbar-thumb {
-    background: linear-gradient(45deg, var(--poultry-primary-color), var(--poultry-accent-color-2));
-    border: 2px solid rgba(255, 193, 7, 0.2);
+    background: linear-gradient(135deg, var(--poultry-primary-color), var(--poultry-accent-color-2));
+    border: 1px solid rgba(245, 158, 11, 0.2);
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(45deg, var(--poultry-accent-color-2), var(--poultry-primary-color));
-    box-shadow: 0 0 10px rgba(255, 193, 7, 0.3);
+    background: linear-gradient(135deg, #d97706, var(--poultry-primary-color));
+    box-shadow: 0 4px 8px rgba(245, 158, 11, 0.3);
   }
 
   *::selection {
     background-color: var(--poultry-primary-color);
+    color: white;
   }
 }
 
-/* Existing Google Translate Styles */
-body {
-  top: 0 !important;
-}
-
+/* Enhanced Google Translate Styles */
 .google-translate-container {
   position: fixed;
-  bottom: 20px;
-  right: 20px;
+  bottom: 24px;
+  right: 24px;
   z-index: 10000;
+  border-radius: var(--radius);
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  box-shadow: var(--shadow-lg);
+  padding: 8px;
+  transition: all 0.3s ease;
+}
+
+.google-translate-container:hover {
+  box-shadow: var(--shadow-xl);
+  transform: translateY(-2px);
 }
 
 .goog-logo-link,
@@ -102,16 +334,26 @@ body {
 }
 
 .goog-te-gadget .goog-te-combo {
-  background-color: var(--veg-primary-color) !important;
+  background: linear-gradient(135deg, var(--veg-primary-600), var(--veg-primary-500)) !important;
   color: white !important;
-  font-size: 15px;
-  border: 2px dotted #ffffff;
-  border-radius: 5px;
-  padding: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  border: none;
+  border-radius: calc(var(--radius) - 2px);
+  padding: 8px 12px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.goog-te-gadget .goog-te-combo:hover {
+  background: linear-gradient(135deg, var(--veg-primary-700), var(--veg-primary-600)) !important;
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
 }
 
 .goog-te-gadget .goog-te-combo option {
-  color: white;
+  color: hsl(var(--foreground));
+  background: hsl(var(--background));
+  padding: 8px;
 }
 
 #goog-gt-tt,
@@ -128,12 +370,91 @@ body {
   display: none !important;
 }
 
+/* Enhanced Theme Styles */
 body.light {
-  background-color: white;
-  color: black;
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
 }
 
 body.dark {
-  background-color: black;
-  color: white;
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
+
+/* Focus Styles for Accessibility */
+*:focus {
+  outline: 2px solid var(--veg-primary-500);
+  outline-offset: 2px;
+}
+
+*:focus:not(:focus-visible) {
+  outline: none;
+}
+
+*:focus-visible {
+  outline: 2px solid var(--veg-primary-500);
+  outline-offset: 2px;
+}
+
+/* Enhanced Form Styles */
+.form-modern input,
+.form-modern textarea,
+.form-modern select {
+  transition: all 0.3s ease;
+  border: 2px solid hsl(var(--border));
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  font-size: var(--font-size-base);
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
+
+.form-modern input:focus,
+.form-modern textarea:focus,
+.form-modern select:focus {
+  border-color: var(--veg-primary-500);
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
+  transform: translateY(-1px);
+}
+
+/* Loading Animation */
+.loading-spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive Utilities */
+@media (max-width: 768px) {
+  .google-translate-container {
+    bottom: 16px;
+    right: 16px;
+    left: 16px;
+    width: auto;
+  }
+  
+  .card-modern {
+    margin-bottom: var(--spacing-md);
+  }
+}
+
+/* Print Styles */
+@media print {
+  .google-translate-container,
+  .btn-modern,
+  .animate-fade-in,
+  .animate-slide-up,
+  .animate-scale-in {
+    display: none !important;
+  }
 }

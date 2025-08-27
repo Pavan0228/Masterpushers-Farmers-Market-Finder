@@ -3,40 +3,68 @@ import { InfoIcon, LeafIcon, Egg, Mail, Phone, MapPin, Facebook, Instagram, Twit
 
 const Footer = () => {
   return (
-    <footer className="bg-green-50 text-green-900 py-8 px-4 border-t border-green-200">
-      <div className="max-w-6xl mx-auto">
+    <footer className="bg-gradient-to-br from-green-50 via-white to-green-50 text-green-900 py-16 px-4 border-t border-green-200 relative overflow-hidden">
+      {/* Background decorations */}
+      <div className="absolute top-0 left-0 w-64 h-64 bg-green-100/30 rounded-full -translate-x-32 -translate-y-32"></div>
+      <div className="absolute bottom-0 right-0 w-96 h-96 bg-emerald-100/20 rounded-full translate-x-48 translate-y-48"></div>
+      
+      <div className="max-w-6xl mx-auto relative z-10">
         {/* Main Footer Content */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
           {/* Company Info */}
-          <div>
-            <h3 className="flex items-center text-xl font-semibold text-green-700 mb-4">
-              <LeafIcon className="mr-2 h-5 w-5" /> Farm Fresh
+          <div className="space-y-6">
+            <h3 className="flex items-center text-2xl font-bold text-green-700 mb-6">
+              <div className="bg-gradient-to-br from-green-500 to-green-600 p-2 rounded-xl mr-3">
+                <LeafIcon className="h-6 w-6 text-white" />
+              </div>
+              Farm Fresh
             </h3>
-            <p className="text-green-800 mb-4">
+            <p className="text-green-800 leading-relaxed text-lg">
               Providing fresh vegetables, organic produce, and quality poultry products.
             </p>
             <div className="flex space-x-4">
-              <Facebook className="h-5 w-5 text-green-600 hover:text-green-800 cursor-pointer" />
-              <Instagram className="h-5 w-5 text-green-600 hover:text-green-800 cursor-pointer" />
-              <Twitter className="h-5 w-5 text-green-600 hover:text-green-800 cursor-pointer" />
+              <div className="p-3 bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:scale-110 cursor-pointer group">
+                <Facebook className="h-5 w-5 text-green-600 group-hover:text-blue-600 transition-colors" />
+              </div>
+              <div className="p-3 bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:scale-110 cursor-pointer group">
+                <Instagram className="h-5 w-5 text-green-600 group-hover:text-pink-600 transition-colors" />
+              </div>
+              <div className="p-3 bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:scale-110 cursor-pointer group">
+                <Twitter className="h-5 w-5 text-green-600 group-hover:text-blue-400 transition-colors" />
+              </div>
             </div>
           </div>
 
           {/* Products */}
-          <div>
-            <h4 className="text-lg font-medium text-green-700 mb-4">Our Products</h4>
-            <ul className="space-y-2">
-              <li className="flex items-center">
-                <LeafIcon className="h-4 w-4 mr-2 text-green-600" /> Organic Vegetables
+          <div className="space-y-6">
+            <h4 className="text-xl font-bold text-green-700 mb-6 flex items-center">
+              <div className="w-2 h-8 bg-gradient-to-b from-green-400 to-green-600 rounded-full mr-3"></div>
+              Our Products
+            </h4>
+            <ul className="space-y-4">
+              <li className="flex items-center p-3 bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 hover:translate-x-2">
+                <div className="bg-green-100 p-2 rounded-lg mr-3">
+                  <LeafIcon className="h-4 w-4 text-green-600" />
+                </div>
+                <span className="font-medium">Organic Vegetables</span>
               </li>
-              <li className="flex items-center">
-                <LeafIcon className="h-4 w-4 mr-2 text-green-600" /> Fresh Herbs
+              <li className="flex items-center p-3 bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 hover:translate-x-2">
+                <div className="bg-green-100 p-2 rounded-lg mr-3">
+                  <LeafIcon className="h-4 w-4 text-green-600" />
+                </div>
+                <span className="font-medium">Fresh Herbs</span>
               </li>
-              <li className="flex items-center">
-                <Egg className="h-4 w-4 mr-2 text-green-600" /> Free-Range Eggs
+              <li className="flex items-center p-3 bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 hover:translate-x-2">
+                <div className="bg-green-100 p-2 rounded-lg mr-3">
+                  <Egg className="h-4 w-4 text-green-600" />
+                </div>
+                <span className="font-medium">Free-Range Eggs</span>
               </li>
-              <li className="flex items-center">
-                <Egg className="h-4 w-4 mr-2 text-green-600" /> Organic Poultry
+              <li className="flex items-center p-3 bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 hover:translate-x-2">
+                <div className="bg-green-100 p-2 rounded-lg mr-3">
+                  <Egg className="h-4 w-4 text-green-600" />
+                </div>
+                <span className="font-medium">Organic Poultry</span>
               </li>
             </ul>
           </div>

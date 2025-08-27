@@ -1,6 +1,5 @@
 "use client";
 
-import '@babel/polyfill';
 import { useEffect, useRef, useState } from "react";
 import { toast } from "react-hot-toast";
 import { useLoadScript, GoogleMap, Marker, Autocomplete, DirectionsRenderer, Polyline } from "@react-google-maps/api";

@@ -977,13 +977,13 @@ const UserRegistrationPage = () => {
                 <div className="text-center mt-8">
                     <p className="text-gray-600 text-lg">
                         Already have an account?
-                        <a
-                            href="#"
+                        <button
+                            onClick={()=>{window.location.href="/login"}}
                             className="ml-2 hover:underline font-medium"
                             style={{ color: currentTheme.primary }}
                         >
                             Login
-                        </a>
+                        </button>
                     </p>
                 </div>
             </div>

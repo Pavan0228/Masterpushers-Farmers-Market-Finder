@@ -203,93 +203,75 @@ const HeroSection = () => {
                         </div>
                     </div>
 
-                    <div className="flex flex-col sm:flex-row gap-3 max-w-lg mx-auto bg-white/10 p-2 rounded-xl backdrop-blur-sm">
+                    <div className="flex flex-col sm:flex-row gap-4 max-w-2xl mx-auto">
                         <div className="relative flex-grow">
                             <Input
                                 type="text"
-                                placeholder="Enter your location"
-                                className="pl-10 py-2 bg-white/90 text-black border-green-400 focus-visible:ring-green-500 rounded-lg"
+                                placeholder="Enter your location (e.g., Delhi, Mumbai)"
+                                className="pl-12 pr-4 py-4 bg-white text-gray-800 border-0 focus-visible:ring-2 focus-visible:ring-green-400 rounded-xl shadow-lg text-base placeholder:text-gray-400"
                                 value={location}
                                 onChange={(e) => setLocation(e.target.value)}
                                 onKeyPress={(e) =>
                                     e.key === "Enter" && handleSearch()
                                 }
                             />
-                            <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600 h-5 w-5" />
+                            <MapPin className="absolute left-4 top-1/2 transform -translate-y-1/2 text-green-600 h-5 w-5" />
                         </div>
                         <Button
                             onClick={handleSearch}
-                            className="bg-green-500 hover:bg-green-600 py-2 px-4 text-white rounded-lg shadow-lg hover:shadow-green-500/20 transition-all"
+                            size="lg"
+                            className="bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 py-4 px-8 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 disabled:transform-none disabled:hover:scale-100"
                             disabled={isSearching}
                         >
                             {isSearching ? (
                                 <div className="flex items-center">
-                                    <svg
-                                        className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                    >
-                                        <circle
-                                            className="opacity-25"
-                                            cx="12"
-                                            cy="12"
-                                            r="10"
-                                            stroke="currentColor"
-                                            strokeWidth="4"
-                                        ></circle>
-                                        <path
-                                            className="opacity-75"
-                                            fill="currentColor"
-                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                        ></path>
-                                    </svg>
+                                    <div className="loading-spinner mr-2"></div>
                                     Searching...
                                 </div>
                             ) : (
                                 <div className="flex items-center">
-                                    <Search className="mr-2 h-4 w-4" />
+                                    <Search className="mr-2 h-5 w-5" />
                                     Find Markets
                                 </div>
                             )}
                         </Button>
                     </div>
 
-                    {/* Benefits section - more compact */}
-                    <div className="mt-8 grid grid-cols-3 gap-3 max-w-4xl mx-auto">
-                        <div className="bg-white/10 backdrop-blur-sm p-3 rounded-xl border border-green-600/20">
-                            <div className="bg-green-600/20 w-8 h-8 rounded-full flex items-center justify-center mx-auto mb-2">
-                                <ShoppingBag className="h-4 w-4 text-green-300" />
+                    {/* Enhanced Benefits section */}
+                    <div className="mt-12 grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-4xl mx-auto">
+                        <div className="group bg-white/15 backdrop-blur-md p-6 rounded-2xl border border-green-400/20 hover:bg-white/20 transition-all duration-300 hover:scale-105">
+                            <div className="bg-gradient-to-br from-green-500 to-green-600 w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+                                <ShoppingBag className="h-6 w-6 text-white" />
                             </div>
-                            <h3 className="text-sm font-semibold mb-1">
+                            <h3 className="text-lg font-bold mb-2 text-white">
                                 Fresh & Local
                             </h3>
-                            <p className="text-green-100 text-xs">
-                                Peak ripeness for maximum flavor
+                            <p className="text-green-100 text-sm leading-relaxed">
+                                Peak ripeness for maximum flavor and nutrition
                             </p>
                         </div>
 
-                        <div className="bg-white/10 backdrop-blur-sm p-3 rounded-xl border border-green-600/20">
-                            <div className="bg-green-600/20 w-8 h-8 rounded-full flex items-center justify-center mx-auto mb-2">
-                                <Users className="h-4 w-4 text-green-300" />
+                        <div className="group bg-white/15 backdrop-blur-md p-6 rounded-2xl border border-green-400/20 hover:bg-white/20 transition-all duration-300 hover:scale-105">
+                            <div className="bg-gradient-to-br from-green-500 to-green-600 w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+                                <Users className="h-6 w-6 text-white" />
                             </div>
-                            <h3 className="text-sm font-semibold mb-1">
+                            <h3 className="text-lg font-bold mb-2 text-white">
                                 Support Farmers
                             </h3>
-                            <p className="text-green-100 text-xs">
-                                Connect with local growers
+                            <p className="text-green-100 text-sm leading-relaxed">
+                                Connect directly with local growers
                             </p>
                         </div>
 
-                        <div className="bg-white/10 backdrop-blur-sm p-3 rounded-xl border border-green-600/20">
-                            <div className="bg-green-600/20 w-8 h-8 rounded-full flex items-center justify-center mx-auto mb-2">
-                                <Wind className="h-4 w-4 text-green-300" />
+                        <div className="group bg-white/15 backdrop-blur-md p-6 rounded-2xl border border-green-400/20 hover:bg-white/20 transition-all duration-300 hover:scale-105">
+                            <div className="bg-gradient-to-br from-green-500 to-green-600 w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+                                <Wind className="h-6 w-6 text-white" />
                             </div>
-                            <h3 className="text-sm font-semibold mb-1">
+                            <h3 className="text-lg font-bold mb-2 text-white">
                                 Eco-Friendly
                             </h3>
-                            <p className="text-green-100 text-xs">
-                                Reduce food miles
+                            <p className="text-green-100 text-sm leading-relaxed">
+                                Reduce food miles and carbon footprint
                             </p>
                         </div>
                     </div>

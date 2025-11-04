@@ -3,9 +3,8 @@ import multer from "multer";
 import multerS3 from "multer-s3";
 import dotenv from "dotenv";
 
-dotenv.config({
-    path: "./.env"
-});
+// Load environment variables (works for both local .env and Vercel env vars)
+dotenv.config();
 
 // Configure AWS SDK (v2)
 const s3 = new S3Client({

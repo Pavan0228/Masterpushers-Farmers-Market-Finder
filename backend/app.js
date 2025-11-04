@@ -12,9 +12,8 @@ import axios from "axios";
 import { farmerRouter } from "./routers/farmer.routes.js";
 import { wishlistRouter } from "./routers/wishlist.routes.js";
 
-dotenv.config({
-    path: "./.env",
-});
+// Load environment variables (works for both local .env and Vercel env vars)
+dotenv.config();
 
 const app = express({
     origin: process.env.CORS_ORIGIN,
@@ -83,3 +82,4 @@ app.post("/api/directions", async (req, res) => {
 });
 
 export { app };
+export default app;
